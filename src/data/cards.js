@@ -1,0 +1,225 @@
+import { B } from "./brand";
+
+// ═══════════════════════════════════════════════════════
+//  CARD DATA
+// ═══════════════════════════════════════════════════════
+export const DATA = {
+  cards: [
+    // ─── CARD 0: STORY HOOK ───
+    { id:"meet-yajaira", nav:"Meet Yajaira", type:"story", data:{
+      character:"Yajaira", portrait:"Y", portraitColor:B.blue,
+      headline:"Before we begin, meet someone.",
+      body:[
+        "Yajaira is originally from the Bronx. She worked as an office manager on West Broadway — just blocks from Ground Zero — from 1997 to 2005. She has three kids and a dog named Crispy.",
+        "On September 11, 2001, her son was sick. She stayed home and watched the news. She knew people in both towers. She lost friends. She went back to work on September 17th. She could still smell the fires from her desk.",
+        "In October 2020, Yajaira found a lump on her left breast. It was cancer — malignant neoplasm of the axillary tail of the breast.",
+        "Yajaira has heard there are programs for people who were near Ground Zero and later got sick. But she doesn't think she qualifies. She does some Googling, and eventually decides to call us. Just to be sure.",
+      ],
+      closing:"By the end of this module, you'll understand the programs that exist for people like Yajaira, what makes someone eligible, and what we need to prove to get her the help she deserves.",
+      objectives:["The two federal programs at the center of what we do","Which illnesses qualify — and the timing rules that apply","Exposure and presence requirements for each program","The proof we need, and how it differs between programs"],
+    }},
+    // ─── CARD 1: TWO PROGRAMS ───
+    { id:"two-programs", nav:"Two Federal Programs", type:"content", data:{
+      title:"Two Federal Programs", subtitle:"Two programs, two processes",
+      intro:"If Yajaira qualifies, she is entitled to free treatment for her 9/11 condition and an award for her pain, suffering, and lost income. But we must help her navigate two federal bureaucracies to get her what she deserves.",
+      blocks:[
+        { type:"program-cards", cards:[
+          { icon:"HP", iconBg:B.gray, title:"World Trade Center Health Program", agency:"U.S. Dept. of Health & Human Services (CDC/NIOSH)", bullets:["Confirms exposure to 9/11 toxins","Certifies the claimant has a qualified illness","Provides subsidized healthcare for that illness"], accent:B.gray },
+          { icon:"$", iconBg:B.blue, title:"Victim Compensation Fund", agency:"U.S. Dept. of Justice", bullets:["Confirms presence in the VCF eligibility area","Provides financial compensation (non-economic and economic loss)"], accent:B.blue },
+        ]},
+        { type:"paragraph", text:"In a typical case, the client first enrolls in the WTCHP and gets their illness **certified**. That certification letter is then submitted as part of the **VCF claim**. WTCHP certification is a prerequisite for most living claimants — though there are alternative paths we'll cover in later modules." },
+        { type:"comparison-table", headers:["","WTCHP","VCF"], rows:[
+          ["Administered by","HHS (CDC/NIOSH)","Department of Justice"],
+          ["Purpose","Healthcare & illness certification","Financial compensation"],
+          ["Eligibility area","Responders: south of Canal/west of Clinton (through 7/31/2002). Survivors: south of Houston, 1.5mi radius (through 7/31/2002)","South of Canal St. & west of Clinton St. (9/11/2001 through 5/30/2002)"],
+          ["Proof needed","Attestations showing hours and location(s) of exposure","Evidence placing the claimant in the 9/11 exposure zone — employer/official documents and/or eye-witnesses, ideally telling a consistent story"],
+          ["What claimant gets","Free monitoring & treatment","Money — NEL, economic loss, replacement services"],
+          ["Open through","2090","2090"],
+        ]},
+        { type:"yajaira-check", text:"For Yajaira, we'll need to help her enroll in the **WTCHP** to get her breast cancer certified, then submit a **VCF claim** with that certification, proof of presence, and authorization forms (which we send to clients after they sign up with us). Two programs, two processes — we'll guide her through both." },
+      ],
+    }},
+    // ─── CARD 2: QUIZ 1 ───
+    { id:"quiz-programs", nav:"Check: Two Programs", type:"quiz", data:{
+      label:"Knowledge Check", context:"A client calls and asks:",
+      question:"\"I'm already enrolled in the Health Program — does that mean I've filed my VCF claim?\"",
+      options:[
+        "No — the WTCHP and VCF are separate programs. Enrollment in one does not file a claim with the other.",
+        "Yes — enrollment in the WTCHP automatically submits your claim to the VCF.",
+        "It depends on whether their illness has been certified by the WTCHP yet.",
+      ],
+      correctIndex:0,
+      feedbackCorrect:"Exactly right. The WTCHP (HHS) and VCF (DOJ) are entirely separate systems. Claimants are frequently confused by this distinction, so this question has been known to come up.",
+      feedbackIncorrect:"Not quite. The answer is in the section you just reviewed. Take another look — pay attention to which agencies administer each program and what each one does.",
+      reviewCardIndex:1,
+      retryQuestion:"A claimant is happy with their private healthcare and wants to skip the Health Program enrollment and certification process. Can they move straight to filing their VCF claim without enrolling in the Health Program?",
+      retryOptions:[
+        "Yes — the VCF is a separate program, so Health Program enrollment is optional.",
+        "Only if they have a doctor's note confirming their illness is 9/11-related.",
+        "No — most living claimants need to be enrolled in and certified by the WTCHP before the VCF will approve their claim.",
+      ],
+      retryCorrectIndex:2,
+      retryFeedbackCorrect:"Correct. For most living claimants, WTCHP certification is a prerequisite for a successful VCF claim. Claimants can generally only skip WTCHP certification if they don't qualify for the Health Program — something we'll discuss in later modules.",
+      retryFeedbackIncorrect:"For most living claimants, the VCF requires WTCHP certification before it will approve a claim. The two programs are separate, but they work together — and skipping the Health Program is generally only an option for claimants who don't qualify for it, which we'll cover in later modules.",
+    }},
+    // ─── CARD 3: ILLNESS ───
+    { id:"illness", nav:"Qualified Illnesses", type:"content", data:{
+      title:"Does Yajaira's Cancer Qualify?", subtitle:"The specific illness and when it was diagnosed are a major component in eligibility",
+      intro:"Yajaira has breast cancer. Before we can help her, we need to know: is breast cancer a VCF eligible condition? And how does diagnosis date affect eligibility?",
+      blocks:[
+        { type:"paragraph", text:"The WTCHP only certifies illnesses linked to 9/11 toxin exposure. Internally, B&M groups these into three tiers based on maximum possible VCF non-economic loss (NEL) award." },
+        { type:"callout", style:"warn", icon:"⚠️", text:"**Tier designations are for INTERNAL B&M discussion only.** Never discuss illness tiers with clients. Never promise a specific award amount." },
+        { type:"tier-cards", tiers:[
+          { name:"Solid & Blood Cancers", label:"Tier 1", color:B.blue, bg:B.blueLt, border:"#b3dcf2", items:["64 solid cancers (incl. melanoma)","Blood cancers (leukemia, lymphoma, myeloma)","Excludes non-melanoma skin cancers"] },
+          { name:"ILDs & Some Skin Cancers", label:"Tier 2", color:B.gray, bg:"#f0f0f1", border:"#d0d0d3", items:["Non-melanoma skin cancers (basal/squamous)","Interstitial lung diseases","Pulmonary fibrosis","Sarcoidosis"] },
+          { name:"Aerodigestive Disorders", label:"Tier 3", color:"#3d7a56", bg:"#edf5f0", border:"#b8d5c4", items:["GERD / esophageal reflux","Asthma, COPD, chronic bronchitis","Rhinosinusitis, nasopharyngitis","Sleep apnea (if co-occurring w/ another Tier 3)"] },
+        ]},
+        { type:"yajaira-check", text:"Breast cancer is a solid cancer — **Tier 1**. Yajaira's illness qualifies. But there's a timing requirement we need to check." },
+        { type:"subheading", text:"Minimum Latency & Maximum Time Interval" },
+        { type:"paragraph", text:"Cancers have a **minimum latency period** — minimum time between first exposure and diagnosis. Non-cancer conditions may have a **Maximum Time Interval** — maximum time between *last exposure* and *symptom onset*." },
+        { type:"subheading", text:"Cancer Minimum Latency Periods" },
+        { type:"paragraph", text:"**Latency** is the minimum time that must pass between a claimant's first exposure to 9/11 toxins and their cancer diagnosis. If the cancer was diagnosed too soon after exposure, it may not be certifiable." },
+        { type:"latency-list", items:[
+          {time:"~5 months", desc:"Blood cancers"},
+          {time:"1 year", desc:"Childhood cancers (diagnosed under age 18)"},
+          {time:"2.5 years", desc:"Thyroid cancer"},
+          {time:"4 years", desc:"Most solid cancers"},
+          {time:"11 years", desc:"Mesothelioma"},
+        ]},
+        { type:"subheading", text:"Non-Cancer Maximum Time Intervals" },
+        { type:"paragraph", text:"**Maximum Time Interval** is the maximum time allowed between a claimant's last exposure to 9/11 toxins and the onset of their symptoms. If symptoms appeared too long after their last exposure, the condition may not be certifiable." },
+        { type:"latency-list", items:[
+          {time:"No Maximum Time Interval", desc:"**COPD** (new onset or exacerbated) and Emphysema"},
+          {time:"No Maximum Time Interval", desc:"**Interstitial Lung Diseases**: Sarcoidosis, Pulmonary Fibrosis, Asbestosis"},
+          {time:"5 years", desc:"Upper respiratory and obstructive airway diseases"},
+          {time:"1 year", desc:"GERD (alone)"},
+          {time:"5 years", desc:"GERD (if co-occurring with a respiratory disorder)"},
+        ]},
+        { type:"yajaira-check", text:"Yajaira was first exposed September 17, 2001 and diagnosed with breast cancer in October 2020 — over 19 years later. She easily meets the 4-year minimum latency for solid cancers. ✓" },
+        { type:"paragraph", text:"Now see if you can match each illness to its correct timing requirement from memory:" },
+      ],
+    }},
+    // ─── CARD 4: MATCHING ───
+    { id:"match-latency", nav:"Match: Timing Rules", type:"matching", data:{
+      label:"Interactive Exercise", instruction:"Click an illness on the left, then click its timing requirement on the right.",
+      pairs:[
+        { left:"Blood cancers", right:"~5 months min. latency" },
+        { left:"Most solid cancers", right:"4 years min. latency" },
+        { left:"Mesothelioma", right:"11 years min. latency" },
+        { left:"Thyroid cancer", right:"2.5 years min. latency" },
+        { left:"Upper respiratory diseases", right:"5-year Maximum Time Interval" },
+        { left:"GERD (alone)", right:"1-year Maximum Time Interval" },
+        { left:"COPD (new onset or exacerbated), Emphysema, and ILDs (sarcoidosis, pulmonary fibrosis, asbestosis)", right:"No Maximum Time Interval" },
+      ],
+      successMessage:"All matched correctly. Yajaira was first exposed September 17, 2001 and diagnosed in October 2020 — over 19 years later. She easily meets the 4-year minimum latency for solid cancers. ✓",
+    }},
+    // ─── CARD 5: EXPOSURE ───
+    { id:"exposure", nav:"Exposure Requirements", type:"content", data:{
+      title:"Was Yajaira There Long Enough?", subtitle:"Exposure requirements for the WTCHP",
+      intro:"We know Yajaira's cancer qualifies. Now: did she have sufficient exposure? The WTCHP requires being in a specific area, having a reason, and meeting minimum time requirements.",
+      blocks:[
+        { type:"subheading", text:"The Eligible Area" },
+        { type:"map-diagram" },
+        { type:"paragraph", text:"**Survivors:** south of Houston Street, within 1.5-mile radius of Ground Zero (Lower Manhattan and a small part of Brooklyn — the blue area on the map). **Responders:** south of Canal Street, west of Clinton Street, or approved satellite locations (same boundary as the VCF — the gold area). Window: **9/11/2001 through 7/31/2002**." },
+        { type:"subheading", text:"Reason for Being There" },
+        { type:"paragraph", text:"The claimant must have been **working, living, studying, or responding** to the attacks." },
+        { type:"subheading", text:"Minimum Time for Enrollment" },
+        { type:"paragraph", text:"Anyone engulfed in the dust cloud on 9/11 has no minimum. For everyone else:" },
+        { type:"exposure-grid", groups:[
+          { title:"Responders", rows:[{period:"9/11 – 9/14/01",hours:"4 hours"},{period:"9/11 – 9/30/01",hours:"24 hours"},{period:"9/11 – 7/31/02",hours:"80 hours"}] },
+          { title:"Survivors", rows:[{period:"9/11 – 1/10/02",hours:"4 days (>4 hrs each)"},{period:"9/11 – 7/31/02",hours:"30 days (>4 hrs each)"}] },
+        ]},
+        { type:"yajaira-check", text:"Yajaira returned to work September 17, 2001 and worked on West Broadway until 2005. As a **survivor** working 8 hours/day, 5 days/week — she far exceeds the 30-day requirement for enrollment. ✓" },
+        { type:"subheading", text:"Enrollment vs. Certification: The Hour Requirements Are Different" },
+        { type:"paragraph", text:"Meeting the enrollment requirements above gets the claimant **into** the Health Program. But to get their illness **certified**, the WTCHP applies a stricter set of hour requirements based on **exposure intensity** — how close the claimant was to heavy dust, smoke, or debris." },
+        { type:"paragraph", text:"The Health Program uses three exposure tiers. The tier is determined by the claimant's exposure form, which they fill out after enrollment. We typically don't help clients complete this form, which is why it's important that they understand the impact of their selections:" },
+        { type:"tier-cards", tiers:[
+          { name:"Tier 1: Heavy Exposure", label:"Dust cloud, rescue/recovery, heavy dust", color:B.blue, bg:B.blueLt, border:"#b3dcf2", items:["9/11 – 9/14: ≥ 4 hours","9/15 – 9/30: ≥ 24 hours","10/1 – 7/31/02: ≥ 80 hours"] },
+          { name:"Tier 2: Medium Exposure", label:"Visible but light dust, smell of smoke", color:B.gray, bg:"#f0f0f1", border:"#d0d0d3", items:["9/11 – 9/14: ≥ 8 hours","9/15 – 9/30: ≥ 48 hours","10/1 – 7/31/02: ≥ 160 hours"] },
+          { name:"Tier 3: Light Exposure", label:"No visible dust, no smoke smell", color:"#3d7a56", bg:"#edf5f0", border:"#b8d5c4", items:["9/11 – 9/14: ≥ 20 hours","9/15 – 9/30: ≥ 120 hours","10/1 – 7/31/02: ≥ 400 hours"] },
+        ]},
+        { type:"callout", style:"warn", icon:"⚠️", text:"**This matters for everyone on the team.** If a client selects \"light exposure\" on their Health Program exposure form, their certification requirement jumps from 80 hours to 400 hours for the same time period. It's important that claimants accurately describe their highest level of exposure and include all hours spent in the zone. A claimant can meet the enrollment threshold but still fall short of certification hours — and we may not be able to help them if that happens." },
+        { type:"paragraph", text:"Note: someone could meet the enrollment requirement as a survivor (4 days at 4+ hours before 1/10/02) but still not have enough total hours for certification. For example, 4 days × 4 hours = 16 total hours, which falls short of even the Tier 1 requirement of 24 hours for the 9/15–9/30 window." },
+      ],
+    }},
+    // ─── CARD 6: QUIZ EXPOSURE ───
+    { id:"quiz-exposure", nav:"Check: Exposure", type:"quiz", data:{
+      label:"Knowledge Check", context:"A new caller:",
+      question:"A survivor worked at an office on Maiden Lane (between Broadway and Nassau Street) from 9/17/2001 through February 2002, five days a week, eight hours a day. Not caught in the dust cloud. Does she likely meet the enrollment time requirement?",
+      options:["No — survivors must have been present in the first few days.","Yes — well over 30 days at more than 4 hours each, and Maiden Lane is within the exposure zone.","Can't determine without more information."],
+      correctIndex:1,
+      feedbackCorrect:"Correct. Maiden Lane between Broadway and Nassau Street is south of Canal and west of Clinton — clearly within the exposure zone. ~100+ working days at 8 hours each easily exceeds the 30-day enrollment minimum. For the Health Program attestation, try to get an exact address. At the very least, get cross streets — remember, some roads run the full length of Manhattan, so just saying someone worked \"on Broadway\" is not sufficient, even \"Broadway south of Canal\" is unlikely to be enough for the Health Program. Later, VCF eye-witnesses will need to place the claimant in the 9/11 exposure zone as well.",
+      feedbackIncorrect:"Review the exposure requirements — pay attention to which time windows apply and how many days are needed for survivors. Also note that Maiden Lane is well within the exposure zone boundaries.",
+      reviewCardIndex:5,
+      retryQuestion:"A survivor was in the exposure zone for 4 days at 4 hours per day between September 11 and January 10, 2002. She selected \"heavy exposure\" (Tier 1) on her Health Program exposure form. She meets the enrollment requirement of 4 days. Will she also meet the certification requirement?",
+      retryOptions:["No — her total of 16 hours falls short of the Tier 1 certification requirement of 24 hours for the 9/15–9/30 window.","Yes — if she's enrolled, certification is automatic.","It depends on her illness."],
+      retryCorrectIndex:0,
+      retryFeedbackCorrect:"Right. 4 days × 4 hours = 16 total hours. Even at Tier 1 (heavy exposure), the certification requirement for the 9/15–9/30 window is 24 hours. She's enrolled but can't get certified with those hours. This is why it's important to capture all exposure hours accurately.",
+      retryFeedbackIncorrect:"Enrollment and certification have different hour requirements. This survivor has 16 total hours (4 days × 4 hours). Even at Tier 1, certification for 9/15–9/30 requires 24 hours. She's enrolled but cannot get certified — a real scenario our team encounters.",
+    }},
+    // ─── CARD 7: VCF POP ───
+    { id:"vcf-pop", nav:"VCF Proof of Presence", type:"content", data:{
+      title:"Proving Yajaira Was There", subtitle:"VCF presence requirements — and how they differ from the Health Program",
+      intro:"If Yajaira is able to get her illness and exposure certified by the Health Program, she has one more hurdle: proving her presence in the 9/11 exposure zone to the satisfaction of the VCF.",
+      blocks:[
+        { type:"paragraph", text:"The VCF zone: **south of Canal Street and west of Clinton Street, river to river**. No minimum time requirement. NYC window: **September 11, 2001 through May 30, 2002**." },
+        { type:"callout", style:"info", icon:"📍", text:"**Different boundaries, different dates.** The WTCHP survivor zone extends to Houston Street through 7/31/2002. The VCF zone (and WTCHP responder zone) extends to Canal Street through 5/30/2002 for the VCF and 7/31/2002 for the WTCHP. Keep these distinct — they trip people up." },
+        { type:"callout", style:"info", icon:"🕙", text:"**VCF presence begins at 10:00 AM on September 11, 2001** — approximately when the first tower fell and toxic exposure began." },
+        { type:"subheading", text:"HP POP vs. VCF POP — Critical Distinction" },
+        { type:"comparison-table", headers:["","WTCHP POP","VCF POP"], rows:[
+          ["Evidence","Victim attestation + 2 third-party attestations showing hours and location(s) of exposure","EVL, TPV, certified transcript, eye-witness statements, or other documents placing the claimant in the 9/11 exposure zone"],
+          ["Witness standard","Anyone AWARE of the claimant's exposure","EYE-WITNESSES who directly observed the claimant at the location"],
+          ["Family as witnesses?","Yes","At least one witness must NOT be an immediate family member"],
+          ["Preferred / sufficient evidence","Attestations with hours and locations","A sufficient EVL, TPV, or certified transcript — if one of these includes all necessary information, it is the only POP the VCF technically requires"],
+          ["When preferred evidence isn't available","N/A — attestations are always available","Two eye-witness statements using the VCF Witness Presence Statement form. We often collect more than two in case the VCF requests additional proof."],
+        ]},
+        { type:"callout", style:"warn", icon:"⚠️", text:"**Recent enforcement change:** The VCF now expects EVLs and TPVs for workers, and documents like leases, tax records, or official mail to a previous address for residents — or documented proof that we attempted to obtain them — before it will rely on Witness Presence Statements alone. Attempting to get these documents is more important than ever." },
+        { type:"paragraph", text:"Ideally, all the evidence we submit tells a consistent story. For example, two eye-witness statements that agree on location and activity — both placing the claimant at the same address doing the same work during the same period. Or a tax record showing the claimant's address in the exposure zone, plus two eye-witnesses who saw them at that home. We'll go into more detail about building strong POP packages in later modules." },
+        { type:"yajaira-check", text:"For Yajaira: to prove exposure to the **WTCHP**, she will need her own statement and two signed statements from people aware of her exposure. For the **VCF**, we'll need eye-witnesses who actually saw her at the office on West Broadway — former coworkers are ideal. We should also attempt to get an EVL or TPV from her employer, or document the attempt if the employer can't provide one." },
+      ],
+    }},
+    // ─── CARD 8: QUIZ POP ───
+    { id:"quiz-pop", nav:"Check: Proof of Presence", type:"quiz", data:{
+      label:"Knowledge Check", context:"Thinking about Yajaira's witnesses:",
+      question:"Yajaira's husband heard about her working near Ground Zero every day but never visited her office. Can he serve as a witness for the WTCHP? The VCF?",
+      options:["Yes for both.","No for both — family excluded.","Yes for the WTCHP (accepts anyone aware of the claimant's exposure), but no for the VCF (requires eye-witnesses who directly observed the claimant)."],
+      correctIndex:2,
+      feedbackCorrect:"Exactly. The WTCHP accepts witnesses who are aware of the claimant's exposure. The VCF requires eye-witnesses who directly observed the claimant at the location. Additionally, at least one VCF witness must not be an immediate family member.",
+      feedbackIncorrect:"Review the POP comparison — focus on the difference in witness standards between the two programs.",
+      reviewCardIndex:7,
+      retryQuestion:"A claimant's coworker saw her at their shared office at 55 Fulton Street (near Cliff Street) every day after 9/11. Her mother, who lives upstate, knows about her work but never visited. Who can serve as a VCF witness?",
+      retryOptions:["Neither — VCF doesn't accept individual witnesses.","Only the coworker — the VCF requires eye-witnesses who directly observed the claimant at the location.","Both — any witness is acceptable for the VCF."],
+      retryCorrectIndex:1,
+      retryFeedbackCorrect:"Correct — the coworker is an eye-witness who directly observed the claimant at the location. The mother is aware of the claimant's exposure but didn't directly observe her there, so she doesn't meet the VCF standard (though she could serve as a witness for the WTCHP).",
+      retryFeedbackIncorrect:"The VCF requires eye-witnesses who directly observed the claimant at the eligible location. The coworker qualifies; the mother does not because she never saw the claimant there. The mother could, however, serve as a witness for the WTCHP, which accepts anyone aware of the claimant's exposure.",
+    }},
+    // ─── CARD 9: SCENARIO ───
+    { id:"scenario", nav:"Apply It: New Client", type:"scenario", data:{
+      title:"A New Client Calls", subtitle:"Apply what you've learned", intro:"You've learned through Yajaira. Now apply the concepts to someone new.",
+      steps:[
+        { text:"**Denise** worked as an admin at **120 Broadway (between Cedar and Thames Streets)** in Lower Manhattan from 9/11/2001 through **March 2002**. Diagnosed with **chronic rhinosinusitis**.", question:"Is Denise's workplace within the VCF exposure zone?",
+          options:["Yes — 120 Broadway is south of Canal and west of Clinton.","No — north of the boundary.","Need more info."], correctIndex:0,
+          feedback:"120 Broadway is well south of Canal Street. Having a specific address (or at minimum, cross streets) is essential — for the Health Program attestations, we need the exact location and hours at that location. Just knowing someone worked \"on Broadway\" would not be sufficient." },
+        { text:"Denise has **chronic rhinosinusitis**. Last day at 120 Broadway: March 2002. Symptoms first appeared **June 2006**.", question:"Does it qualify? Any timing concern?",
+          options:["Qualifies (Tier 3), no timing issue.","Not on the list.","Qualifies (Tier 3), but upper respiratory diseases have a 5-year Maximum Time Interval — it's close."], correctIndex:2,
+          feedback:"Rhinosinusitis is Tier 3 with a 5-year Maximum Time Interval. March 2002 → June 2006 ≈ 4yr 3mo. Within the window, but close. Also worth noting: we'll need medical records showing the actual diagnosis date. In New York, most facilities are only required to keep records for 7 years — if Denise doesn't already have records from 2006, proving this diagnosis may be difficult." },
+        { text:"Denise's employer **closed in 2010**. She has **two former coworkers** still in touch and her **sister** who visited the office a few times after 9/11.", question:"Best approach for VCF proof of presence?",
+          options:["Witnesses alone are sufficient — no need to document the employer.","Both coworkers as witnesses, plus document the failed employer outreach. Hold the sister's statement as backup.","Sister + one coworker — that gives us two witnesses."], correctIndex:1,
+          feedback:"The two coworkers are the strongest witnesses — non-family eye-witnesses at the same location. At least one VCF witness must be a non-family member. Since the employer is defunct, we must document the attempt to obtain records. We'd likely get all three statements and submit the two that tell the most consistent, detailed story. We hold the third in case the VCF sends a Missing Information letter requesting more." },
+      ],
+    }},
+    // ─── CARD 10: ASSESSMENT ───
+    { id:"assessment", nav:"Final Assessment", type:"assessment", data:{
+      title:"Final Assessment", subtitle:"Five questions",
+      questions:[
+        { question:"Which agency administers the VCF?", options:["HHS","Dept. of Justice","FEMA","Dept. of Labor"], correctIndex:1 },
+        { question:"What does a claimant need to submit a VCF claim?", options:["Just proof of presence and a personal statement.","A doctor's note and two witnesses.","A completed CIRF, an EVL, and a notarized affidavit.","WTCHP certification (for most living claimants), proof of presence, authorization forms, and sometimes other supporting documentation."], correctIndex:3 },
+        { question:"A claimant has GERD only. Last exposure: Jan 2002. Symptoms: June 2003. Timing concern?", options:["Yes — GERD alone has a 1-year Maximum Time Interval; ~17 months passed.","No — aerodigestive conditions have no time limits.","Yes — a 4-year minimum latency period has not been met.","No — GERD is a Tier 1 illness with a 5-year MTI."], correctIndex:0 },
+        { question:"Key difference between WTCHP and VCF witnesses?", options:["The WTCHP requires more total witnesses than the VCF.","The VCF accepts immediate family members; the WTCHP does not.","WTCHP accepts anyone aware of the claimant's exposure; VCF requires eye-witnesses who directly observed the claimant at the location.","Both programs require certified notarized witness statements."], correctIndex:2 },
+        { question:"A claimant worked for Verizon in the exposure zone. Best approach for VCF proof of presence?", options:["Collect two eye-witness statements immediately — no employer outreach needed.","Ask the claimant to write a personal statement describing their time in the zone.","Submit a CIRF and let the VCF contact Verizon directly.","Attempt to request an Employment Verification Letter or TPV from Verizon first, and gather two witness statements as backup."], correctIndex:3 },
+      ],
+    }},
+    // ─── CARD 11: COMPLETION ───
+    { id:"complete", nav:"Module Complete", type:"completion", data:{} },
+  ],
+};

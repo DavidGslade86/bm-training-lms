@@ -1,0 +1,36 @@
+import { B } from "../data/brand";
+import { P, Nav } from "./Shared";
+import { GT } from "./Glossary";
+
+export default function StoryCard({ data }) {
+  return (
+    <div>
+      <div className="rounded-lg p-8 mb-8 text-white bg-brand-hdr">
+        <div className="flex items-center gap-4 mb-6">
+          <P l={data.portrait} c={data.portraitColor}/>
+          <div>
+            <div className="text-xs font-bold tracking-widest mb-1 text-brand-blue">BEFORE WE BEGIN</div>
+            <div className="text-xl font-bold font-heading">{data.headline}</div>
+          </div>
+        </div>
+        {data.body.map((p, i) => (
+          <p key={i} className="text-sm leading-relaxed mb-3 text-white/80"><GT t={p}/></p>
+        ))}
+        <div className="rounded-lg p-4 mt-6 bg-white/[0.06] border border-white/10">
+          <p className="text-sm text-white/90"><GT t={data.closing}/></p>
+        </div>
+      </div>
+
+      <div className="text-xs font-bold tracking-widest mb-4 text-brand-tl">WHAT YOU'LL LEARN</div>
+      <div className="grid grid-cols-2 gap-3">
+        {data.objectives.map((o, i) => (
+          <div key={i} className="flex items-start gap-3 text-sm text-brand-tm">
+            <div className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 border-[1.5px] border-brand-blue text-brand-blue">{i+1}</div>
+            <span>{o}</span>
+          </div>
+        ))}
+      </div>
+      <Nav ok={true}/>
+    </div>
+  );
+}
