@@ -83,6 +83,7 @@ export default function MatchingCard({ data, cardId }) {
 
       {allOk && (
         <div className="rounded-lg p-4 mt-5 flex gap-3 items-start bg-brand-ww border border-brand-sand">
+          {/* TODO: drop Yajaira_Torso_sm.png into src/assets/ and replace with <img> */}
           <P l="Y" c={B.blue} sz="sm"/>
           <div>
             <p className="text-sm text-brand-tm">{data.successMessage}</p>

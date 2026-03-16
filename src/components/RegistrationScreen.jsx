@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { B, IMG } from "../data/brand";
+import { B } from "../data/brand";
+import bmLogo from "../assets/Barasch_McGarry_Logo_2020_RGB.png";
 
 const ROLES = [
   "CA I — Health Program",
@@ -49,7 +50,7 @@ export default function RegistrationScreen({ onStart }) {
         <div className="bg-brand-hdr rounded-xl overflow-hidden shadow-[0_12px_48px_rgba(0,0,0,0.25)]">
           {/* Header */}
           <div className="px-9 pt-8 pb-7 border-b border-white/[0.07]">
-            <img src={IMG.logo} alt="Barasch & McGarry" className="h-9 mb-6"/>
+            <img src={bmLogo} alt="Barasch & McGarry" className="h-9 mb-6"/>
             <div className="text-[22px] font-bold text-white font-heading mb-1.5">
               Module 2: Foundational Concepts
             </div>

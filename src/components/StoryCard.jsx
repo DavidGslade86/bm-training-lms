@@ -1,13 +1,21 @@
+import { useState } from "react";
 import { B } from "../data/brand";
 import { P, Nav } from "./Shared";
 import { GT } from "./Glossary";
+import yajairaImg from "../assets/Yajaira_Torso.png";
 
 export default function StoryCard({ data }) {
+  const [imgErr, setImgErr] = useState(false);
   return (
     <div>
       <div className="rounded-lg p-8 mb-8 text-white bg-brand-hdr">
         <div className="flex items-center gap-4 mb-6">
-          <P l={data.portrait} c={data.portraitColor}/>
+          {!imgErr
+            ? <div className="w-14 h-14 rounded-full overflow-hidden shrink-0">
+                <img src={yajairaImg} alt={data.character} className="w-full h-full object-cover" onError={()=>setImgErr(true)}/>
+              </div>
+            : <P l={data.portrait} c={data.portraitColor}/>
+          }
           <div>
             <div className="text-xs font-bold tracking-widest mb-1 text-brand-blue">BEFORE WE BEGIN</div>
             <div className="text-xl font-bold font-heading">{data.headline}</div>

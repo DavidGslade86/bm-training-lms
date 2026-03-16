@@ -115,10 +115,10 @@ export const DATA = {
     }},
     // ─── CARD 5: EXPOSURE ───
     { id:"exposure", nav:"Exposure Requirements", type:"content", data:{
-      title:"Was Yajaira There Long Enough?", subtitle:"Exposure requirements for the WTCHP",
+      title:"Was Yajaira There Long Enough?", subtitle:"WTCHP Responder zone (south of Canal, same as VCF eligible zone)",
       intro:"We know Yajaira's cancer qualifies. Now: did she have sufficient exposure? The WTCHP requires being in a specific area, having a reason, and meeting minimum time requirements.",
       blocks:[
-        { type:"subheading", text:"The Eligible Area" },
+        { type:"subheading", text:"The Eligible Area for the WTCHP" },
         { type:"map-diagram" },
         { type:"paragraph", text:"**Survivors:** south of Houston Street, within 1.5-mile radius of Ground Zero (Lower Manhattan and a small part of Brooklyn — the blue area on the map). **Responders:** south of Canal Street, west of Clinton Street, or approved satellite locations (same boundary as the VCF — the gold area). Window: **9/11/2001 through 7/31/2002**." },
         { type:"subheading", text:"Reason for Being There" },

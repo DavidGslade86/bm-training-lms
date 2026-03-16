@@ -1,5 +1,6 @@
 import { useState, useReducer, useEffect } from "react";
-import { B, IMG } from "./data/brand";
+import { B } from "./data/brand";
+import bmLogo from "./assets/Barasch_McGarry_Logo_2020_RGB.png";
 import { DATA } from "./data/cards";
 import { initState, red, Ctx } from "./state";
 import StoryCard from "./components/StoryCard";
@@ -55,7 +56,9 @@ export default function App() {
         {/* Top nav */}
         <div className="fixed top-1 left-0 right-0 z-40 flex items-center justify-between px-5 py-2 bg-brand-hdr shadow-[0_2px_12px_rgba(0,0,0,0.2)]">
           <div className="flex items-center gap-4">
-            <img src={IMG.logo} alt="B&M" className="h-8"/>
+            <div className="bg-white rounded px-2 py-1 inline-flex items-center">
+              <img src={bmLogo} alt="B&M" className="h-8"/>
+            </div>
             <div className="w-px h-5 bg-white/15"/>
             <span className="text-xs text-white/50">Module 2: Foundational Concepts</span>
           </div>
@@ -101,13 +104,6 @@ export default function App() {
               );
             })}
 
-            {/* Glossary shortcut */}
-            <div className="absolute bottom-4 left-0 right-0 px-4">
-              <button onClick={()=>setGlossOpen(true)}
-                className="w-full px-3 py-2 rounded-md cursor-pointer bg-[rgba(0,155,223,0.12)] border border-[rgba(0,155,223,0.25)] text-white/55 text-[11px] font-semibold flex items-center justify-center gap-1.5">
-                📖 Glossary · 132 terms
-              </button>
-            </div>
           </div>
 
           {/* Main content */}

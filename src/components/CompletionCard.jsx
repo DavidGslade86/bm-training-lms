@@ -7,6 +7,8 @@ import { P } from "./Shared";
 export default function CompletionCard() {
   const {s, learner, moduleStartedAt} = useContext(Ctx);
   const [copied, setCopied] = useState(false);
+  const [submitState, setSubmitState] = useState("idle"); // idle | submitting | success | error
+  const [submittedAt, setSubmittedAt] = useState(null);
   const tot = DATA.cards.find(c=>c.type==="assessment")?.data.questions.length || 5;
 
   // ── Derived metrics ──────────────────────────────────────────────
@@ -96,6 +98,31 @@ Generated: ${completedAt.toISOString()}`;
     window.open(`mailto:?subject=${subject}&body=${body}`);
   };
 
+  // ── Power Automate submission ──────────────────────────────────────
+  const paUrl = import.meta.env.VITE_POWERAUTOMATE_URL;
+  const canSubmit = paUrl && paUrl.trim().length > 0;
+
+  const submitToPA = async () => {
+    if (!canSubmit || submitState === "submitting") return;
+    setSubmitState("submitting");
+    if (import.meta.env.DEV) console.log("Power Automate payload:", payload);
+    try {
+      const res = await fetch(paUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (res.status === 200 || res.status === 202) {
+        setSubmitState("success");
+        setSubmittedAt(new Date().toLocaleString());
+      } else {
+        setSubmitState("error");
+      }
+    } catch {
+      setSubmitState("error");
+    }
+  };
+
   return (
     <div>
       {/* Hero */}
@@ -166,7 +193,19 @@ Generated: ${completedAt.toISOString()}`;
             {copied ? "✓ Copied!" : "📋 Copy Summary"}
           </button>
           <button onClick={openEmail} className="flex items-center gap-[7px] px-4 py-[9px] bg-white text-brand-gray border-[1.5px] border-brand-sand rounded-md cursor-pointer text-xs font-semibold">✉ Open Email Draft</button>
+          {canSubmit && submitState === "success" && (
+            <span className="flex items-center gap-[7px] px-4 py-[9px] text-xs font-semibold text-brand-ok">✓ Submitted to training record{submittedAt && ` · ${submittedAt}`}</span>
+          )}
+          {canSubmit && submitState !== "success" && (
+            <button onClick={submitToPA} disabled={submitState==="submitting"}
+              className="flex items-center gap-[7px] px-4 py-[9px] rounded-md text-xs font-bold border-none cursor-pointer bg-brand-ok text-white disabled:opacity-60 disabled:cursor-wait">
+              {submitState === "submitting" ? "Submitting…" : "📤 Submit to Training Record"}
+            </button>
+          )}
         </div>
+        {submitState === "error" && (
+          <p className="text-xs mt-2 font-semibold text-brand-err">Submission failed — please use Download CSV as a backup</p>
+        )}
         <p className="text-xs mt-3 text-brand-tl">
           <strong>CSV</strong> — one-row spreadsheet-ready file · <strong>Copy</strong> — formatted text for email · <strong>Email</strong> — opens your mail client with subject + body pre-filled
         </p>
@@ -174,6 +213,7 @@ Generated: ${completedAt.toISOString()}`;
 
       {/* Next module tease */}
       <div className="rounded-lg p-5 flex items-start gap-4 bg-brand-hdr">
+        {/* TODO: drop Yajaira_Torso_sm.png into src/assets/ and replace with <img> */}
         <P l="Y" c={B.blue} sz="sm"/>
         <p className="text-sm text-white/55">And Yajaira? We're going to help her. That's the next module.</p>
       </div>

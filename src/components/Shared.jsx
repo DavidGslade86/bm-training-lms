@@ -3,6 +3,7 @@ import { B } from "../data/brand";
 import { DATA } from "../data/cards";
 import { Ctx } from "../state";
 import { GT } from "./Glossary";
+import mapImg from "../assets/911-map-alt.jpg";
 
 // ─── Md: simple **bold** renderer (no glossary) ──────
 export function Md({ t }) {
@@ -63,6 +64,7 @@ export function Blocks({ blocks }) {
     if (b.type === "yajaira-check")
       return (
         <div key={i} className="rounded-lg p-4 my-5 flex gap-3 items-start bg-brand-ww border border-brand-sand">
+          {/* TODO: drop Yajaira_Torso_sm.png into src/assets/ and replace with <img> */}
           <P l="Y" c={B.blue} sz="sm"/>
           <p className="text-sm leading-relaxed text-brand-tm"><GT t={b.text}/></p>
         </div>
@@ -160,14 +162,12 @@ export function Blocks({ blocks }) {
     if (b.type === "map-diagram")
       return (
         <div key={i} className="my-5 rounded-lg overflow-hidden border border-brand-sand bg-brand-ww">
-          <div className="p-4 bg-[#f0f2f4] text-center">
-            <div className="inline-block px-[60px] py-10 rounded-lg border border-[#c4d4e4] relative" style={{background:"linear-gradient(135deg, #dce6f0 0%, #e8eff5 100%)"}} /* dynamic: CSS gradient */>
-              <div className="text-[11px] font-bold text-brand-gray-dk mb-2">LOWER MANHATTAN EXPOSURE ZONES</div>
-              <div className="flex gap-6 justify-center text-xs">
-                <div className="flex items-center gap-2"><div className="w-3.5 h-3.5 rounded-sm bg-[#e6c65a]"/><span className="text-brand-tm">VCF Zone (south of Canal)</span></div>
-                <div className="flex items-center gap-2"><div className="w-3.5 h-3.5 rounded-sm bg-[#7bbce6]"/><span className="text-brand-tm">WTCHP Survivor Zone (south of Houston, 1.5mi radius)</span></div>
-              </div>
-              <div className="mt-3 text-[11px] text-brand-tl">📍 Image: 9/11 exposure zone map — to be embedded in production build</div>
+          <img src={mapImg} alt="9/11 exposure zone map — VCF and WTCHP eligibility areas" className="w-full rounded-lg"/>
+          <div className="px-4 py-3">
+            <div className="text-[11px] font-bold text-brand-gray-dk mb-2">LOWER MANHATTAN EXPOSURE ZONES</div>
+            <div className="flex gap-6 text-xs">
+              <div className="flex items-center gap-2"><div className="w-3.5 h-3.5 rounded-sm bg-[#e6c65a]"/><span className="text-brand-tm">VCF Zone (south of Canal)</span></div>
+              <div className="flex items-center gap-2"><div className="w-3.5 h-3.5 rounded-sm bg-[#7bbce6]"/><span className="text-brand-tm">WTCHP Survivor Zone (south of Houston, 1.5mi radius)</span></div>
             </div>
           </div>
         </div>
