@@ -1,6 +1,5 @@
 import { useContext } from "react";
 import { B } from "../data/brand";
-import { DATA } from "../data/cards";
 import { Ctx } from "../state";
 import { GT } from "./Glossary";
 import mapImg from "../assets/911-map-alt.jpg";
@@ -28,8 +27,8 @@ export function P({ l, c, sz="lg" }) {
 
 // ─── Nav: prev / continue buttons ────────────────────
 export function Nav({ ok }) {
-  const {s, d} = useContext(Ctx);
-  const i = s.cur, tot = DATA.cards.length;
+  const {s, d, cards} = useContext(Ctx);
+  const i = s.cur, tot = cards.length;
   return (
     <div className="flex justify-between items-center mt-10 pt-5 border-t border-brand-sand">
       {i > 0
@@ -37,7 +36,7 @@ export function Nav({ ok }) {
         : <div/>
       }
       {i < tot-1
-        ? <button onClick={()=>{d({t:"DONE",i});d({t:"GO",i:i+1})}} disabled={!ok} className="px-5 py-2.5 rounded text-sm font-semibold text-white" style={{background:ok?B.blue:"#ccc",cursor:ok?"pointer":"default"}} /* dynamic: depends on ok prop */>Continue →</button>
+        ? <button onClick={()=>{d({t:"DONE",i,total:tot});d({t:"GO",i:i+1})}} disabled={!ok} className="px-5 py-2.5 rounded text-sm font-semibold text-white" style={{background:ok?B.blue:"#ccc",cursor:ok?"pointer":"default"}} /* dynamic: depends on ok prop */>Continue →</button>
         : <div/>
       }
     </div>

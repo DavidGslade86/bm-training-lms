@@ -1,15 +1,14 @@
 import { useState, useContext } from "react";
 import { B } from "../data/brand";
-import { DATA } from "../data/cards";
 import { Ctx } from "../state";
 import { P } from "./Shared";
 
 export default function CompletionCard() {
-  const {s, learner, moduleStartedAt} = useContext(Ctx);
+  const {s, learner, moduleStartedAt, cards, moduleId, moduleTitle} = useContext(Ctx);
   const [copied, setCopied] = useState(false);
   const [submitState, setSubmitState] = useState("idle"); // idle | submitting | success | error
   const [submittedAt, setSubmittedAt] = useState(null);
-  const tot = DATA.cards.find(c=>c.type==="assessment")?.data.questions.length || 5;
+  const tot = cards.find(c=>c.type==="assessment")?.data.questions.length || 5;
 
   // ── Derived metrics ──────────────────────────────────────────────
   const completedAt = new Date();
@@ -35,8 +34,8 @@ export default function CompletionCard() {
     userId:        learner?.email || "",
     displayName:   learner?.name  || "",
     role:          learner?.role  || "",
-    moduleId:      "module-2-foundational-concepts",
-    moduleTitle:   "Module 2: Foundational Concepts",
+    moduleId:      moduleId || "module-2-foundational-concepts",
+    moduleTitle:   moduleTitle || "Module 2: Foundational Concepts",
     completedAt:   completedAt.toISOString(),
     timeOnTaskSec: elapsedSec || 0,
     assessScore:   s.assessScore,
@@ -131,7 +130,7 @@ Generated: ${completedAt.toISOString()}`;
         <div className="text-2xl font-bold mb-1 text-brand-blue font-heading">Module Complete</div>
         <p className="text-sm mb-1 text-white/55">
           {learner?.name && <span className="text-white/80 font-semibold">{learner.name} · </span>}
-          Module 2: Foundational Concepts
+          {moduleTitle || "Module 2: Foundational Concepts"}
         </p>
         <p className="text-xs mb-6 text-white/35">
           Completed {completedAt.toLocaleString()} · {elapsedStr} on module

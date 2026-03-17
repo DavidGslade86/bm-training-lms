@@ -1,5 +1,4 @@
 import { createContext } from "react";
-import { DATA } from "./data/cards";
 
 // ═══════════════════════════════════════════════════════
 //  STATE — initial state, reducer, context
@@ -30,7 +29,7 @@ export function red(s, a) {
     case "DONE": {
       const d = new Set([...s.done, a.i]);
       const o = new Set([...s.open]);
-      if (a.i + 1 < DATA.cards.length) o.add(a.i + 1);
+      if (a.total && a.i + 1 < a.total) o.add(a.i + 1);
       return { ...s, done: d, open: o };
     }
     case "QUIZ":

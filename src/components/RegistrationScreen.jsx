@@ -52,7 +52,7 @@ export default function RegistrationScreen({ onStart }) {
           <div className="px-9 pt-8 pb-7 border-b border-white/[0.07]">
             <img src={bmLogo} alt="Barasch & McGarry" className="h-9 mb-6"/>
             <div className="text-[22px] font-bold text-white font-heading mb-1.5">
-              Module 2: Foundational Concepts
+              B&M Training Portal
             </div>
             <div className="text-[13px] text-white/45">
               Please enter your information before beginning. Your completion data will be recorded.
