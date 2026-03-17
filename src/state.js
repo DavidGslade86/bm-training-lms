@@ -20,6 +20,12 @@ export const initState = {
   matchDone: {},
   matchPairs: {},
   qReviewed: {},
+  // Document-review card
+  docFound: {},       // { [cardId]: { [errorId]: true } }
+  docErrors: {},      // { [cardId]: number } — wrong option picks
+  // Transcript card
+  transAns: {},       // { [cardId]: { [decisionKey]: answerIdx } }
+  transErrors: {},    // { [cardId]: number } — wrong decision picks
 };
 
 export function red(s, a) {
@@ -70,6 +76,18 @@ export function red(s, a) {
       const prev = s.scenErrors[a.cardId] || {};
       return { ...s, scenErrors: { ...s.scenErrors, [a.cardId]: { ...prev, [a.step]: (prev[a.step] || 0) + 1 } } };
     }
+    // ── Document-review card ──
+    case "DOC_FIND":
+      return { ...s, docFound: { ...s.docFound, [a.id]: { ...(s.docFound[a.id] || {}), [a.errorId]: true } } };
+    case "DOC_ERR":
+      return { ...s, docErrors: { ...s.docErrors, [a.id]: (s.docErrors[a.id] || 0) + 1 } };
+    // ── Transcript card ──
+    case "TRANS_ANS": {
+      const prev = s.transAns[a.id] || {};
+      return { ...s, transAns: { ...s.transAns, [a.id]: { ...prev, [a.key]: a.ans } } };
+    }
+    case "TRANS_ERR":
+      return { ...s, transErrors: { ...s.transErrors, [a.id]: (s.transErrors[a.id] || 0) + 1 } };
     default:
       return s;
   }
