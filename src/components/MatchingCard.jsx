@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useContext } from "react";
 import { B } from "../data/brand";
 import { Ctx } from "../state";
 import { P, Nav } from "./Shared";
+import yajairaImg from "../assets/Yajaira_Torso.png";
 
 export default function MatchingCard({ data, cardId }) {
   const {s, d} = useContext(Ctx);
@@ -83,8 +84,9 @@ export default function MatchingCard({ data, cardId }) {
 
       {allOk && (
         <div className="rounded-lg p-4 mt-5 flex gap-3 items-start bg-brand-ww border border-brand-sand">
-          {/* TODO: drop Yajaira_Torso_sm.png into src/assets/ and replace with <img> */}
-          <P l="Y" c={B.blue} sz="sm"/>
+          <div className="w-9 h-9 rounded-full overflow-hidden shrink-0">
+            <img src={yajairaImg} alt="Yajaira" className="w-full h-full object-cover"/>
+          </div>
           <div>
             <p className="text-sm text-brand-tm">{data.successMessage}</p>
             {missCount > 0 && (

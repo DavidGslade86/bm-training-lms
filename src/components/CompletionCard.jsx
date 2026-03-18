@@ -2,6 +2,7 @@ import { useState, useContext } from "react";
 import { B } from "../data/brand";
 import { Ctx } from "../state";
 import { P } from "./Shared";
+import yajairaImg from "../assets/Yajaira_Torso.png";
 
 export default function CompletionCard() {
   const {s, learner, moduleStartedAt, cards, moduleId, moduleTitle} = useContext(Ctx);
@@ -23,7 +24,7 @@ export default function CompletionCard() {
   const scenErrCount  = Object.values(s.scenErrors).reduce((n,steps)=>
     n + Object.values(steps).reduce((a,b)=>a+b, 0), 0);
 
-  const assessDetails = DATA.cards.find(c=>c.type==="assessment")?.data.questions.map((q,qi)=>({
+  const assessDetails = cards?.find(c=>c.type==="assessment")?.data.questions.map((q,qi)=>({
     q: `Q${qi+1}`, text: q.question,
     attempts: s.assessTries[qi] || (s.assessAns[qi]!==undefined ? 1 : 0),
     correct: s.assessAns[qi] !== undefined,
@@ -212,9 +213,10 @@ Generated: ${completedAt.toISOString()}`;
 
       {/* Next module tease */}
       <div className="rounded-lg p-5 flex items-start gap-4 bg-brand-hdr">
-        {/* TODO: drop Yajaira_Torso_sm.png into src/assets/ and replace with <img> */}
-        <P l="Y" c={B.blue} sz="sm"/>
-        <p className="text-sm text-white/55">And Yajaira? We're going to help her. That's the next module.</p>
+        <div className="w-9 h-9 rounded-full overflow-hidden shrink-0">
+          <img src={yajairaImg} alt="Yajaira" className="w-full h-full object-cover"/>
+        </div>
+        <p className="text-sm text-white/55">And Yajaira? Now that she is enrolled in the Health Program, we are going to work on her VCF claim.</p>
       </div>
     </div>
   );

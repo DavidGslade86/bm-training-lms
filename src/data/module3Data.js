@@ -1,4 +1,17 @@
 import { B } from "./brand";
+import imgSignaturePage from "../assets/forms/signature-page.png";
+import imgExhibitA from "../assets/forms/exhibit-a.png";
+import imgCIRF from "../assets/forms/cirf.png";
+import imgCPA from "../assets/forms/cpa.png";
+import imgWtchpApp from "../assets/forms/wtchp-app-signature.png";
+import imgDesRep from "../assets/forms/designated-rep.png";
+import imgHipaaDR from "../assets/forms/hipaa-auth-dr.png";
+import imgExposure from "../assets/forms/exposure-form.png";
+import imgMedHist from "../assets/forms/medical-history.png";
+import imgContact from "../assets/forms/contact-form.png";
+import imgWitnessContact from "../assets/forms/witness_contact_form.png";
+import imgRetainer1 from "../assets/forms/retainer-1.png";
+import imgRetainer2 from "../assets/forms/retainer-2.png";
 
 // ═══════════════════════════════════════════════════════
 //  MODULE 3 — From Sign-Up to Submitted
@@ -30,7 +43,62 @@ export const MODULE3 = {
         ],
       },
     },
-    // ─── CARD 1: VCF AUTHORIZATION FORMS ───
+    // ─── CARD 1: THE RETAINER ───
+    {
+      id: "m3-retainer",
+      nav: "The Retainer",
+      type: "content",
+      data: {
+        title: "The Retainer \u2014 Our Agreement with the Client",
+        subtitle: "The document that establishes the legal relationship \u2014 and what that relationship obligates us to do",
+        intro: "Before the intake kit goes out, the client signs a retainer agreement with Barasch & McGarry. The e-retainer is sent within 24 hours of sign-up. If the client didn\u2019t sign electronically, a physical copy goes out with the intake kit. Understanding what this agreement says \u2014 and what it obligates B&M to \u2014 is foundational to how you represent clients.",
+        blocks: [
+          {
+            type: "doc-cards",
+            cards: [
+              {
+                abbr: "Retainer Agreement (p.1)",
+                color: "#009bdf",
+                formImage: imgRetainer1,
+                desc: "The fee agreement between the client and Barasch & McGarry \u2014 establishes our authority to act on the client\u2019s behalf, sets the fee structure, and defines the scope of representation.",
+                notes: [
+                  "Must be signed before B&M can take any formal action on the client\u2019s behalf with the VCF or WTCHP.",
+                  "The e-retainer sent by the Client Acquisition team is legally binding once signed electronically.",
+                  "If the client did not sign the e-retainer, a physical copy is included with the intake kit and must be returned before intake can close.",
+                ],
+              },
+              {
+                abbr: "Retainer Agreement (p.2)",
+                color: "#63656a",
+                formImage: imgRetainer2,
+                desc: "Continuation of the retainer \u2014 includes the signature page and any additional authorization language. Both pages must be signed and returned.",
+                notes: [
+                  "The client\u2019s signature on the retainer is what triggers the e-retainer to be treated as executed.",
+                  "A retainer that has been signed electronically does not need to be re-signed on paper.",
+                ],
+              },
+            ],
+          },
+          {
+            type: "callout", style: "info", icon: "\ud83d\udcbc",
+            text: "**Our fee is 10% \u2014 the statutory maximum, and the standard for every reputable firm.** Federal law limits attorney fees for VCF claims to 10% of the award. B&M charges 10%. Any firm charging more than 10% on a VCF claim is violating federal law. If a client asks whether our fee is negotiable, or why it\u2019s 10%, the honest answer is this: that\u2019s the maximum the law permits, and it\u2019s what every legitimate 9/11 firm charges. There is no reputable firm doing this work for less.",
+          },
+          {
+            type: "subheading",
+            text: "Power of Attorney \u2014 VCF Matters Only",
+          },
+          {
+            type: "paragraph",
+            text: "The retainer grants B&M power of attorney on VCF-related matters. This is **not a general power of attorney**. It does not give B&M authority over the client\u2019s finances, healthcare decisions, or any aspect of their life outside of the VCF claim process. The scope is specific: B&M can communicate with the VCF on the client\u2019s behalf, file documents, respond to requests, and receive award notifications. Nothing more.",
+          },
+          {
+            type: "callout", style: "warn", icon: "\u2696\ufe0f",
+            text: "**From the moment the retainer is signed, we are their legal representative \u2014 a fiduciary.** This is both an ethical obligation and a legal one. It means we are required to act in the client\u2019s best interest at all times \u2014 not in B&M\u2019s interest, not in the interest of moving the file faster, and not to avoid a difficult conversation. It also means we are obligated to give clients accurate, honest information to the best of our knowledge. If you don\u2019t know the answer to something a client asks, say so and find out \u2014 don\u2019t guess, and don\u2019t minimize a concern to move the call along.",
+          },
+        ],
+      },
+    },
+    // ─── CARD 2: VCF AUTHORIZATION FORMS ───
     {
       id: "m3-vcf-docs",
       nav: "VCF Authorization Forms",
@@ -50,6 +118,7 @@ export const MODULE3 = {
               {
                 abbr: "Signature Page",
                 color: "#009bdf",
+                formImage: imgSignaturePage,
                 desc: "The client\u2019s formal consent to the VCF process \u2014 authorizes the DOJ to collect and share their information, authorizes B&M to act on their behalf, and waives their right to file future 9/11-related civil lawsuits.",
                 notes: [
                   "Requires initials on multiple lines \u2014 every line except the Personal Representative section, which must be left blank for living claimants.",
@@ -60,6 +129,7 @@ export const MODULE3 = {
               {
                 abbr: "Exhibit A",
                 color: "#63656a",
+                formImage: imgExhibitA,
                 desc: "Permits the VCF to obtain the client\u2019s WTCHP certification information directly from the Health Program, and authorizes the release of medical records for claim evaluation.",
                 notes: [
                   "Contains a field where the client must initial to acknowledge that records may include mental health information.",
@@ -70,6 +140,7 @@ export const MODULE3 = {
               {
                 abbr: "CIRF",
                 color: "#3d7a56",
+                formImage: imgCIRF,
                 desc: "Verifies the client\u2019s identity for the VCF\u2019s Claim Management System \u2014 name, date of birth, Social Security number, and VCF claim number.",
                 notes: [
                   "The VCF uses the CIRF as their source of truth for who this person is within the CMS.",
@@ -80,6 +151,7 @@ export const MODULE3 = {
               {
                 abbr: "CPA",
                 color: "#6b4fa0",
+                formImage: imgCPA,
                 desc: "Authorizes the VCF to deposit any award directly into B&M\u2019s attorney trust account, from which B&M disburses payment to the client.",
                 notes: [
                   "Must be signed with an original signature and must include a date.",
@@ -112,6 +184,7 @@ export const MODULE3 = {
               {
                 abbr: "WTCHP App Signature",
                 color: "#009bdf",
+                formImage: imgWtchpApp,
                 desc: "The client\u2019s formal application to the World Trade Center Health Program \u2014 signing it declares intent to apply and attests that the client has answered questions honestly.",
                 notes: [
                   "Must be hand-signed and uploaded with the online application \u2014 it cannot be mailed or faxed separately.",
@@ -122,6 +195,7 @@ export const MODULE3 = {
               {
                 abbr: "Designated Rep Form",
                 color: "#63656a",
+                formImage: imgDesRep,
                 desc: "Appoints a specific individual to act on the client\u2019s behalf in all WTCHP matters \u2014 receiving information, making requests, and handling appeals.",
                 notes: [
                   "B&M has one Designated Representative for the entire firm: Ryah Mesch. Her information is pre-filled on the form.",
@@ -132,6 +206,7 @@ export const MODULE3 = {
               {
                 abbr: "HIPAA Auth (DR)",
                 color: "#9a6b1a",
+                formImage: imgHipaaDR,
                 desc: "Grants the Designated Representative permission to access the client\u2019s protected health information held by the WTCHP.",
                 notes: [
                   "Must be submitted together with the Designated Representative Appointment Form.",
@@ -159,6 +234,7 @@ export const MODULE3 = {
               {
                 abbr: "Exposure Form",
                 color: "#3d7a56",
+                formImage: imgExposure,
                 desc: "Captures the client\u2019s location during 9/11, hours at each location, activities, and dust exposure level \u2014 used by B&M to complete the Health Program application on the client\u2019s behalf.",
                 notes: [
                   "The client\u2019s self-reported exposure level is especially important: it informs the hours submitted with the WTCHP application.",
@@ -168,6 +244,7 @@ export const MODULE3 = {
               {
                 abbr: "Witness Contact Form",
                 color: "#63656a",
+                formImage: imgWitnessContact,
                 desc: "Collects names and contact information for potential witnesses \u2014 both for WTCHP attestations and VCF Proof of Presence.",
                 notes: [
                   "PI (living claimant) kits request both eyewitnesses and individuals with general knowledge of the client\u2019s presence.",
@@ -177,6 +254,7 @@ export const MODULE3 = {
               {
                 abbr: "Medical History Form",
                 color: "#9a6b1a",
+                formImage: imgMedHist,
                 desc: "Lists the client\u2019s claimed conditions and asks whether they have been certified by the WTCHP.",
                 notes: [
                   "Helps us understand what medical records to request early.",
@@ -186,6 +264,7 @@ export const MODULE3 = {
               {
                 abbr: "Contact Form",
                 color: "#1a7a8a",
+                formImage: imgContact,
                 desc: "Collects the client\u2019s preferred contact information and an emergency contact.",
                 notes: [
                   "The emergency contact is someone we can notify if we learn the claimant has passed during the claim process.",
@@ -414,7 +493,7 @@ export const MODULE3 = {
         correctIndex: 1,
         feedbackCorrect: "Right. Any change to a signed document \u2014 even a single digit \u2014 requires a fresh signature from the original signer. The Client Advocate should contact the witness, explain the issue, and offer a convenient way to return a corrected version. A photo or scan of the signed statement is acceptable; the witness doesn\u2019t need to mail the original.",
         feedbackIncorrect: "Review the document integrity rules. The rule about re-signing applies regardless of how minor the correction appears, and regardless of who requests or authorizes it. The only acceptable path is a new signature from the witness.",
-        reviewCardIndex: 3,
+        reviewCardIndex: 4,
         retryQuestion: "A client\u2019s CIRF was signed and returned last week. During review, the Client Advocate notices that the client\u2019s name on the CIRF is \u2018Yajaira Diaz\u2019 but the CMS account shows \u2018Maria Yajaira Diaz.\u2019 The client is frustrated about having to sign another form. What is the correct next step?",
         retryOptions: [
           "Submit the CIRF as signed and add a note to the file explaining the discrepancy \u2014 the VCF can determine the correct name from other documents.",
@@ -486,10 +565,6 @@ export const MODULE3 = {
             type: "paragraph",
             text: "On the question of dust and smoke exposure: when you speak to a client \u2014 especially a responder who worked around Ground Zero \u2014 ask them to describe what their environment was like. Was there visible dust? Debris in the air? Did they work in areas that had been recently disturbed? You\u2019re not making a determination for them, but you want to draw out the full picture of what their exposure actually was.",
           },
-          {
-            type: "callout", style: "info", icon: "\ud83d\udccb",
-            text: "**A note on the intake exposure form.** B&M uses the information on the client\u2019s intake exposure form to complete the Health Program application on their behalf. The client will also complete a separate exposure form at their WTCHP clinic \u2014 that one is used for certification. When the client fills out their clinic form, the exposure tier they select (heavy, medium, or light dust) determines the number of hours required for their illness to be certified. This is not something we complete for clients, but it is worth explaining clearly: if their exposure included visible dust and debris, especially close to the site, they should reflect that accurately when they complete their clinic paperwork.",
-          },
         ],
       },
     },
@@ -529,7 +604,7 @@ export const MODULE3 = {
           },
           {
             type: "paragraph",
-            text: "**Attorney Review.** Approximately one month after the client is enrolled, the account moves to Attorney Review. An attorney reviews the claim, creates a roadmap for next steps, and schedules a call with the client. After that call, the client is assigned to a CA II, who will handle the VCF claim process.",
+            text: "**Attorney Review.** As soon as enrollment is confirmed, the account moves to Attorney Review. An attorney reviews the claim and creates a roadmap for next steps. The actual call with the attorney typically takes place within about 30 days of enrollment being confirmed \u2014 it is not instantaneous. During that window, clients may still call their CA I because the attorney is now the account owner but hasn\u2019t yet spoken to them. After the attorney call, the client is assigned to a CA II, who will handle the VCF claim process.",
           },
           {
             type: "subheading",
@@ -595,13 +670,13 @@ export const MODULE3 = {
                 type: "decision",
                 question: "What is the right next step?",
                 options: [
-                  "Continue with intake \u2014 the lawsuit was settled and closed years ago, so it no longer affects the claim.",
-                  "Escalate to your supervisor or team attorney via Chatter immediately. A prior 9/11 lawsuit that was settled needs attorney review before proceeding.",
-                  "Have Marcus sign the Signature Page now and add a note to the file flagging the lawsuit for the attorney to review later.",
-                  "Ask Marcus to gather his settlement documents and submit them with the intake kit \u2014 this can be assessed during preliminary review without attorney involvement.",
+                  "Continue intake without noting the lawsuit \u2014 a $40,000 settlement from 2006 is small and won\u2019t have any effect on a VCF claim.",
+                  "Note the prior lawsuit in Salesforce, get the settlement date and settlement amount from Marcus, and Chatter your supervisor to make them aware. A prior settlement doesn\u2019t automatically disqualify a client \u2014 you can continue intake while confirming the details.",
+                  "Stop intake immediately. Any prior 9/11-related lawsuit means Marcus cannot file a VCF claim and must be referred to an attorney before anything proceeds.",
+                  "Ask Marcus to gather his settlement documents and hold all intake steps until an attorney has fully reviewed and cleared him.",
                 ],
                 correctIndex: 1,
-                feedback: "Marcus\u2019s prior 9/11 lawsuit must be reviewed by an attorney before proceeding. Whether his settlement meets the VCF\u2019s specific date and release requirements is a legal question, not a paperwork question. Additionally, depending on the settlement amount relative to the maximum possible VCF award, prior payments may affect whether Marcus would receive any additional compensation from the VCF even if eligible. Escalate to your supervisor or team attorney via Chatter now.",
+                feedback: "A prior 9/11 lawsuit doesn\u2019t automatically disqualify a client. The details matter: Was the settlement finalized before the Zadroga Act went into effect in 2011? Is the case fully closed? And critically \u2014 does the settlement amount exceed Marcus\u2019s prospective VCF award? A $40,000 settlement where the prospective award is significantly higher is generally not a barrier. Document the prior lawsuit in Salesforce, confirm the settlement date and amount, Chatter your supervisor so they\u2019re aware, and continue intake. Where it becomes a real problem is if the lawsuit is still active, was not settled before 2011, or the settlement amount is close to or greater than what Marcus could receive from the VCF \u2014 those situations require attorney review before moving forward.",
               },
             ],
           },
@@ -665,7 +740,7 @@ export const MODULE3 = {
                   "Ask Robert to contact his clinic in person and bring back whatever paperwork they give him.",
                 ],
                 correctIndex: 1,
-                feedback: "What Robert described sounds like an Initial Health Evaluation \u2014 but an IHE is not the same as enrollment confirmation or certification. Before any next steps, check Salesforce. If that\u2019s inconclusive, conference call the WTCHP with Robert on the line \u2014 he must be present and consent before the WTCHP will share any information. Never assume where a client is in the process; always confirm.",
+                feedback: "What Robert described sounds like an Initial Health Evaluation \u2014 but an IHE is not the same as enrollment confirmation or certification. Check Salesforce first, but be careful: a note from a previous team member saying a client is enrolled or certified is not the same as documentation. Unless there is an actual enrollment or certification letter on file, or you confirm directly with the Health Program or clinic, you cannot assume where Robert stands \u2014 even if someone told him he was enrolled, even if a prior CA wrote it in Salesforce. Conference call the WTCHP at (888) 982-4748 with Robert on the line \u2014 he must be present and consent before they will share any account information. Never advance a client based on notes or prior assumptions; always confirm from a primary source.",
               },
             ],
           },
@@ -692,14 +767,14 @@ export const MODULE3 = {
             correctIndex: 2,
           },
           {
-            question: "Which of the following best describes why the CIRF must match the CMS exactly?",
+            question: "A client returns their Signature Page. During review, you notice the name on the form reads \u2018Joseph Williams\u2019 but the VCF CMS account shows \u2018Joseph T. Williams.\u2019 What is the correct approach?",
             options: [
-              "The CIRF is what the VCF uses to determine the client\u2019s award amount.",
-              "The CIRF is the VCF\u2019s source of truth for the client\u2019s identity in their Claim Management System \u2014 any discrepancy triggers a hold on the claim.",
-              "The CIRF is the document that authorizes B&M to act on the client\u2019s behalf with the VCF.",
-              "The CIRF is optional \u2014 it\u2019s only required if the VCF contacts us about a discrepancy.",
+              "Submit the Signature Page as returned \u2014 the VCF will reconcile minor name differences when they process the form.",
+              "Ask the client to re-sign the Signature Page immediately using \u2018Joseph T. Williams\u2019 to match what\u2019s on the CMS account.",
+              "First verify the client\u2019s full legal name from a government document. If the CMS is the one with the error, submit a corrected CIRF to update the CMS. Once the correct name is confirmed and the CMS reflects it, ensure all authorization forms match.",
+              "Contact the VCF to ask which name format they prefer for this account before requesting any new signatures.",
             ],
-            correctIndex: 1,
+            correctIndex: 2,
           },
           {
             question: "A client calls to say they\u2019ve just scheduled their Initial Health Evaluation for next week. What should the Client Advocate do?",
@@ -712,12 +787,12 @@ export const MODULE3 = {
             correctIndex: 3,
           },
           {
-            question: "Which document in the WTCHP intake kit can only be signed by the applicant themselves or a court-appointed legal guardian?",
+            question: "A client mails back their signed WTCHP Application Signature Form, but mentions their daughter filled out and signed the Designated Representative Form and HIPAA Authorization on their behalf. What do you tell the client?",
             options: [
-              "The HIPAA Authorization for Designated Representatives",
-              "The Designated Representative Appointment Form",
-              "The WTCHP Online Application Signature Form",
-              "Both the Designated Representative Appointment Form and the HIPAA Authorization",
+              "The Designated Rep and HIPAA forms can be signed by a family member \u2014 only the Application Signature Form requires the client\u2019s own signature.",
+              "The daughter\u2019s signature is acceptable if the client sends a written letter authorizing her to sign on their behalf.",
+              "All three WTCHP authorization forms must be signed by the client themselves. The Designated Rep Form and HIPAA Authorization will need to be re-signed by the client before they can be submitted.",
+              "Only the HIPAA Authorization requires the client\u2019s own signature \u2014 the Designated Rep Form can be signed by an authorized family member.",
             ],
             correctIndex: 2,
           },

@@ -3,6 +3,7 @@ import { B } from "../data/brand";
 import { Ctx } from "../state";
 import { GT } from "./Glossary";
 import mapImg from "../assets/911-map-alt.jpg";
+import yajairaImg from "../assets/Yajaira_Torso.png";
 
 // ─── Md: simple **bold** renderer (no glossary) ──────
 export function Md({ t }) {
@@ -63,8 +64,9 @@ export function Blocks({ blocks }) {
     if (b.type === "yajaira-check")
       return (
         <div key={i} className="rounded-lg p-4 my-5 flex gap-3 items-start bg-brand-ww border border-brand-sand">
-          {/* TODO: drop Yajaira_Torso_sm.png into src/assets/ and replace with <img> */}
-          <P l="Y" c={B.blue} sz="sm"/>
+          <div className="w-9 h-9 rounded-full overflow-hidden shrink-0">
+            <img src={yajairaImg} alt="Yajaira" className="w-full h-full object-cover"/>
+          </div>
           <p className="text-sm leading-relaxed text-brand-tm"><GT t={b.text}/></p>
         </div>
       );
@@ -175,6 +177,12 @@ export function Blocks({ blocks }) {
                     <span className="leading-relaxed"><GT t={n}/></span>
                   </div>
                 ))}
+                {c.formImage && (
+                  <div className="mt-3 pt-3 border-t border-brand-sand">
+                    <div className="text-[11px] font-bold tracking-widest mb-2 text-brand-tl">FORM PREVIEW</div>
+                    <img src={c.formImage} alt={c.abbr} className="w-full rounded border border-brand-sand"/>
+                  </div>
+                )}
               </div>
             </div>
           ))}
