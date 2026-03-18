@@ -389,7 +389,7 @@ export const MODULE3 = {
               {
                 id: "cirf-2",
                 zone: "Victim Date of Birth",
-                displayed: "03/15/1968 \u2014 this is today\u2019s date, not the client\u2019s birthday",
+                displayed: "2-5-2026",
                 options: [
                   "The date format should be MM-DD-YYYY, not MM/DD/YYYY",
                   "The date of birth field appears to contain today\u2019s date instead of the client\u2019s actual birth date",
@@ -412,6 +412,11 @@ export const MODULE3 = {
                 correctOption: 1,
                 feedback: "Yajaira\u2019s legal name appears to be Maria Yajaira Diaz. The CIRF must reflect the full legal name as it appears on government records and in the CMS. This also signals we should verify whether the CMS itself shows the correct name \u2014 if it shows \u2018Yajaira Diaz,\u2019 a corrected CIRF may be needed to prompt the VCF to update their records.",
               },
+            ],
+          },
+          {
+            name: "VCF Signature Page",
+            errors: [
               {
                 id: "cirf-4",
                 zone: "Personal Representative section \u2014 initialed",
@@ -459,7 +464,7 @@ export const MODULE3 = {
               {
                 id: "exa-2",
                 zone: "Client name \u2014 Section 2",
-                displayed: "Shows \u2018Yajaira Diaz\u2019 \u2014 should be \u2018Maria Yajaira Diaz\u2019",
+                displayed: "Yajaira Diaz",
                 options: [
                   "The name on Exhibit A can differ from the CMS if the client uses a preferred name",
                   "This mirrors the CIRF error \u2014 all documents must reflect the client\u2019s full legal name, and both forms need to be corrected and re-signed once the correct name is confirmed",
