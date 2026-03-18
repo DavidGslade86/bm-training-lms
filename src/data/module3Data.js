@@ -57,24 +57,15 @@ export const MODULE3 = {
             type: "doc-cards",
             cards: [
               {
-                abbr: "Retainer Agreement (p.1)",
+                abbr: "Retainer Agreement",
                 color: "#009bdf",
-                formImage: imgRetainer1,
-                desc: "The fee agreement between the client and Barasch & McGarry \u2014 establishes our authority to act on the client\u2019s behalf, sets the fee structure, and defines the scope of representation.",
+                formImages: [imgRetainer1, imgRetainer2],
+                desc: "The fee agreement between the client and Barasch & McGarry \u2014 establishes our authority to act on the client\u2019s behalf, sets the fee structure, and defines the scope of representation. Both pages must be signed and returned.",
                 notes: [
                   "Must be signed before B&M can take any formal action on the client\u2019s behalf with the VCF or WTCHP.",
                   "The e-retainer sent by the Client Acquisition team is legally binding once signed electronically.",
                   "If the client did not sign the e-retainer, a physical copy is included with the intake kit and must be returned before intake can close.",
-                ],
-              },
-              {
-                abbr: "Retainer Agreement (p.2)",
-                color: "#63656a",
-                formImage: imgRetainer2,
-                desc: "Continuation of the retainer \u2014 includes the signature page and any additional authorization language. Both pages must be signed and returned.",
-                notes: [
-                  "The client\u2019s signature on the retainer is what triggers the e-retainer to be treated as executed.",
-                  "A retainer that has been signed electronically does not need to be re-signed on paper.",
+                  "A retainer signed electronically does not need to be re-signed on paper.",
                 ],
               },
             ],

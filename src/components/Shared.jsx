@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { B } from "../data/brand";
 import { Ctx } from "../state";
 import { GT } from "./Glossary";
@@ -40,6 +40,36 @@ export function Nav({ ok }) {
         ? <button onClick={()=>{d({t:"DONE",i,total:tot});d({t:"GO",i:i+1})}} disabled={!ok} className="px-5 py-2.5 rounded text-sm font-semibold text-white" style={{background:ok?B.blue:"#ccc",cursor:ok?"pointer":"default"}} /* dynamic: depends on ok prop */>Continue →</button>
         : <div/>
       }
+    </div>
+  );
+}
+
+// ─── FormImageViewer: paginated form preview ─────────
+function FormImageViewer({ images, alt }) {
+  const [page, setPage] = useState(0);
+  if (!images || images.length === 0) return null;
+  const total = images.length;
+  return (
+    <div className="mt-3 pt-3 border-t border-brand-sand">
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-[11px] font-bold tracking-widest text-brand-tl">FORM PREVIEW</div>
+        {total > 1 && (
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setPage(p => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="w-6 h-6 rounded flex items-center justify-center text-sm font-bold disabled:opacity-25"
+              style={{background:"#e8f4fb", color:"#009bdf"}}>‹</button>
+            <span className="text-[11px] text-brand-tl tabular-nums">{page + 1} / {total}</span>
+            <button
+              onClick={() => setPage(p => Math.min(total - 1, p + 1))}
+              disabled={page === total - 1}
+              className="w-6 h-6 rounded flex items-center justify-center text-sm font-bold disabled:opacity-25"
+              style={{background:"#e8f4fb", color:"#009bdf"}}>›</button>
+          </div>
+        )}
+      </div>
+      <img src={images[page]} alt={`${alt} — page ${page + 1}`} className="w-full rounded border border-brand-sand"/>
     </div>
   );
 }
@@ -177,11 +207,8 @@ export function Blocks({ blocks }) {
                     <span className="leading-relaxed"><GT t={n}/></span>
                   </div>
                 ))}
-                {c.formImage && (
-                  <div className="mt-3 pt-3 border-t border-brand-sand">
-                    <div className="text-[11px] font-bold tracking-widest mb-2 text-brand-tl">FORM PREVIEW</div>
-                    <img src={c.formImage} alt={c.abbr} className="w-full rounded border border-brand-sand"/>
-                  </div>
+                {(c.formImages || c.formImage) && (
+                  <FormImageViewer images={c.formImages || [c.formImage]} alt={c.abbr}/>
                 )}
               </div>
             </div>
