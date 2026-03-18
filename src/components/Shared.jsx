@@ -158,6 +158,29 @@ export function Blocks({ blocks }) {
         </div>
       );
 
+    if (b.type === "doc-cards")
+      return (
+        <div key={i} className="space-y-4 my-5">
+          {b.cards.map((c, ci) => (
+            <div key={ci} className="rounded-lg border overflow-hidden" style={{borderColor:c.color+"33"}} /* dynamic: tinted border from card color */>
+              <div className="flex items-center gap-3 px-5 py-3" style={{background:c.color+"0d"}} /* dynamic: tinted bg from card color */>
+                <div className="w-8 h-8 rounded flex items-center justify-center text-white font-bold text-[10px]" style={{background:c.color}} /* dynamic: badge color */>{c.abbr.slice(0,3)}</div>
+                <div className="font-bold text-sm text-brand-gray-dk font-heading">{c.abbr}</div>
+              </div>
+              <div className="px-5 py-3">
+                <p className="text-sm leading-relaxed mb-3 text-brand-tm"><GT t={c.desc}/></p>
+                {c.notes && c.notes.map((n, ni) => (
+                  <div key={ni} className="flex gap-2 text-xs mb-1.5 text-brand-tm">
+                    <span className="mt-0.5 shrink-0" style={{color:c.color}} /* dynamic: bullet color */>•</span>
+                    <span className="leading-relaxed"><GT t={n}/></span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+
     if (b.type === "map-diagram")
       return (
         <div key={i} className="my-5 rounded-lg overflow-hidden border border-brand-sand bg-brand-ww">

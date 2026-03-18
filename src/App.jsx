@@ -2,6 +2,7 @@ import { useState } from "react";
 import RegistrationScreen from "./components/RegistrationScreen";
 import HomePage from "./components/HomePage";
 import Module2 from "./components/Module2";
+import Module3 from "./components/Module3";
 
 export default function App() {
   const [currentView, setCurrentView] = useState("registration");
@@ -25,6 +26,16 @@ export default function App() {
   if (currentView === "module-2") {
     return (
       <Module2
+        learner={learner}
+        moduleStartedAt={moduleStartedAt}
+        onHome={() => setCurrentView("home")}
+      />
+    );
+  }
+
+  if (currentView === "module-3") {
+    return (
+      <Module3
         learner={learner}
         moduleStartedAt={moduleStartedAt}
         onHome={() => setCurrentView("home")}
