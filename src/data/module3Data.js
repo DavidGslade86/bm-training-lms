@@ -1,11 +1,18 @@
 import { B } from "./brand";
 import imgSignaturePage from "../assets/forms/signature-page.png";
+import imgSignaturePageP2 from "../assets/forms/signature-page-p2.png";
+import imgSignaturePageP3 from "../assets/forms/signature-page-p3.png";
 import imgExhibitA from "../assets/forms/exhibit-a.png";
+import imgExhibitAP2 from "../assets/forms/exhibit-a-p2.png";
+import imgExhibitAP3 from "../assets/forms/exhibit-a-p3.png";
+import imgExhibitAP4 from "../assets/forms/exhibit-a-p4.png";
 import imgCIRF from "../assets/forms/cirf.png";
 import imgCPA from "../assets/forms/cpa.png";
 import imgWtchpApp from "../assets/forms/wtchp-app-signature.png";
 import imgDesRep from "../assets/forms/designated-rep.png";
+import imgDesRepP2 from "../assets/forms/designated-rep-p2.png";
 import imgHipaaDR from "../assets/forms/hipaa-auth-dr.png";
+import imgHipaaDRP2 from "../assets/forms/hipaa-auth-dr-p2.png";
 import imgExposure from "../assets/forms/exposure-form.png";
 import imgMedHist from "../assets/forms/medical-history.png";
 import imgContact from "../assets/forms/contact-form.png";
@@ -60,7 +67,7 @@ export const MODULE3 = {
                 abbr: "Retainer Agreement",
                 color: "#009bdf",
                 formImages: [imgRetainer1, imgRetainer2],
-                desc: "The fee agreement between the client and Barasch & McGarry \u2014 establishes our authority to act on the client\u2019s behalf, sets the fee structure, and defines the scope of representation. Both pages must be signed and returned.",
+                desc: "The retainer agreements between the client and Barasch & McGarry \u2014 establishes our authority to act on the client\u2019s behalf, sets the fee structure, and defines the scope of representation. Both pages must be signed and returned.",
                 notes: [
                   "Must be signed before B&M can take any formal action on the client\u2019s behalf with the VCF or WTCHP.",
                   "The e-retainer sent by the Client Acquisition team is legally binding once signed electronically.",
@@ -109,7 +116,7 @@ export const MODULE3 = {
               {
                 abbr: "Signature Page",
                 color: "#009bdf",
-                formImage: imgSignaturePage,
+                formImages: [imgSignaturePage, imgSignaturePageP2, imgSignaturePageP3],
                 desc: "The client\u2019s formal consent to the VCF process \u2014 authorizes the DOJ to collect and share their information, authorizes B&M to act on their behalf, and waives their right to file future 9/11-related civil lawsuits.",
                 notes: [
                   "Requires initials on multiple lines \u2014 every line except the Personal Representative section, which must be left blank for living claimants.",
@@ -120,7 +127,7 @@ export const MODULE3 = {
               {
                 abbr: "Exhibit A",
                 color: "#63656a",
-                formImage: imgExhibitA,
+                formImages: [imgExhibitA, imgExhibitAP2, imgExhibitAP3, imgExhibitAP4],
                 desc: "Permits the VCF to obtain the client\u2019s WTCHP certification information directly from the Health Program, and authorizes the release of medical records for claim evaluation.",
                 notes: [
                   "Contains a field where the client must initial to acknowledge that records may include mental health information.",
@@ -186,7 +193,7 @@ export const MODULE3 = {
               {
                 abbr: "Designated Rep Form",
                 color: "#63656a",
-                formImage: imgDesRep,
+                formImages: [imgDesRep, imgDesRepP2],
                 desc: "Appoints a specific individual to act on the client\u2019s behalf in all WTCHP matters \u2014 receiving information, making requests, and handling appeals.",
                 notes: [
                   "B&M has one Designated Representative for the entire firm: Ryah Mesch. Her information is pre-filled on the form.",
@@ -197,7 +204,7 @@ export const MODULE3 = {
               {
                 abbr: "HIPAA Auth (DR)",
                 color: "#9a6b1a",
-                formImage: imgHipaaDR,
+                formImages: [imgHipaaDR, imgHipaaDRP2],
                 desc: "Grants the Designated Representative permission to access the client\u2019s protected health information held by the WTCHP.",
                 notes: [
                   "Must be submitted together with the Designated Representative Appointment Form.",
