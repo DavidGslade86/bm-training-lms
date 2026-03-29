@@ -5,7 +5,7 @@ import { P } from "./Shared";
 import yajairaImg from "../assets/Yajaira_Torso.png";
 
 export default function CompletionCard() {
-  const {s, learner, moduleStartedAt, cards, moduleId, moduleTitle} = useContext(Ctx);
+  const {s, learner, moduleStartedAt, cards, moduleId, moduleTitle, reviewMode} = useContext(Ctx);
   const [copied, setCopied] = useState(false);
   const [submitState, setSubmitState] = useState("idle"); // idle | submitting | success | error
   const [submittedAt, setSubmittedAt] = useState(null);
@@ -181,35 +181,41 @@ Generated: ${completedAt.toISOString()}`;
         </div>
       </div>
 
-      {/* Export panel */}
-      <div className="rounded-lg p-6 mb-6 bg-brand-ww border border-brand-sand">
-        <div className="text-xs font-bold tracking-widest mb-1 text-brand-tl">SAVE YOUR RESULTS</div>
-        <p className="text-xs mb-4 text-brand-tl">Your completion data needs to be submitted so your progress can be recorded.</p>
-        <div className="flex flex-wrap gap-3">
-          <button onClick={downloadCSV} className="flex items-center gap-[7px] px-4 py-[9px] bg-brand-blue text-white border-none rounded-md cursor-pointer text-xs font-bold">⬇ Download CSV</button>
-          <button onClick={copyToClipboard}
-            className="flex items-center gap-[7px] px-4 py-[9px] rounded-md cursor-pointer text-xs font-semibold transition-all duration-200"
-            style={{background:copied?B.ok:"white",color:copied?"white":B.gray,border:`1.5px solid ${copied?B.ok:B.sand}`}} /* dynamic: copied-state styling */>
-            {copied ? "✓ Copied!" : "📋 Copy Summary"}
-          </button>
-          <button onClick={openEmail} className="flex items-center gap-[7px] px-4 py-[9px] bg-white text-brand-gray border-[1.5px] border-brand-sand rounded-md cursor-pointer text-xs font-semibold">✉ Open Email Draft</button>
-          {canSubmit && submitState === "success" && (
-            <span className="flex items-center gap-[7px] px-4 py-[9px] text-xs font-semibold text-brand-ok">✓ Submitted to training record{submittedAt && ` · ${submittedAt}`}</span>
-          )}
-          {canSubmit && submitState !== "success" && (
-            <button onClick={submitToPA} disabled={submitState==="submitting"}
-              className="flex items-center gap-[7px] px-4 py-[9px] rounded-md text-xs font-bold border-none cursor-pointer bg-brand-ok text-white disabled:opacity-60 disabled:cursor-wait">
-              {submitState === "submitting" ? "Submitting…" : "📤 Submit to Training Record"}
-            </button>
-          )}
+      {/* Export panel — hidden in review mode */}
+      {reviewMode ? (
+        <div className="rounded-lg p-6 mb-6 bg-brand-ww border border-brand-sand text-center">
+          <div className="text-sm font-semibold text-brand-tl">Module review complete — exit review mode to record a real completion.</div>
         </div>
-        {submitState === "error" && (
-          <p className="text-xs mt-2 font-semibold text-brand-err">Submission failed — please use Download CSV as a backup</p>
-        )}
-        <p className="text-xs mt-3 text-brand-tl">
-          <strong>CSV</strong> — one-row spreadsheet-ready file · <strong>Copy</strong> — formatted text for email · <strong>Email</strong> — opens your mail client with subject + body pre-filled
-        </p>
-      </div>
+      ) : (
+        <div className="rounded-lg p-6 mb-6 bg-brand-ww border border-brand-sand">
+          <div className="text-xs font-bold tracking-widest mb-1 text-brand-tl">SAVE YOUR RESULTS</div>
+          <p className="text-xs mb-4 text-brand-tl">Your completion data needs to be submitted so your progress can be recorded.</p>
+          <div className="flex flex-wrap gap-3">
+            <button onClick={downloadCSV} className="flex items-center gap-[7px] px-4 py-[9px] bg-brand-blue text-white border-none rounded-md cursor-pointer text-xs font-bold">⬇ Download CSV</button>
+            <button onClick={copyToClipboard}
+              className="flex items-center gap-[7px] px-4 py-[9px] rounded-md cursor-pointer text-xs font-semibold transition-all duration-200"
+              style={{background:copied?B.ok:"white",color:copied?"white":B.gray,border:`1.5px solid ${copied?B.ok:B.sand}`}} /* dynamic: copied-state styling */>
+              {copied ? "✓ Copied!" : "📋 Copy Summary"}
+            </button>
+            <button onClick={openEmail} className="flex items-center gap-[7px] px-4 py-[9px] bg-white text-brand-gray border-[1.5px] border-brand-sand rounded-md cursor-pointer text-xs font-semibold">✉ Open Email Draft</button>
+            {canSubmit && submitState === "success" && (
+              <span className="flex items-center gap-[7px] px-4 py-[9px] text-xs font-semibold text-brand-ok">✓ Submitted to training record{submittedAt && ` · ${submittedAt}`}</span>
+            )}
+            {canSubmit && submitState !== "success" && (
+              <button onClick={submitToPA} disabled={submitState==="submitting"}
+                className="flex items-center gap-[7px] px-4 py-[9px] rounded-md text-xs font-bold border-none cursor-pointer bg-brand-ok text-white disabled:opacity-60 disabled:cursor-wait">
+                {submitState === "submitting" ? "Submitting…" : "📤 Submit to Training Record"}
+              </button>
+            )}
+          </div>
+          {submitState === "error" && (
+            <p className="text-xs mt-2 font-semibold text-brand-err">Submission failed — please use Download CSV as a backup</p>
+          )}
+          <p className="text-xs mt-3 text-brand-tl">
+            <strong>CSV</strong> — one-row spreadsheet-ready file · <strong>Copy</strong> — formatted text for email · <strong>Email</strong> — opens your mail client with subject + body pre-filled
+          </p>
+        </div>
+      )}
 
       {/* Next module tease */}
       <div className="rounded-lg p-5 flex items-start gap-4 bg-brand-hdr">

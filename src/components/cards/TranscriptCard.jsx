@@ -12,7 +12,7 @@ import { GT } from "../Glossary";
 // ═══════════════════════════════════════════════════════
 
 export default function TranscriptCard({ data, cardId }) {
-  const { s, d } = useContext(Ctx);
+  const { s, d, reviewMode } = useContext(Ctx);
   const answers = s.transAns[cardId] || {};
   const [wrongPicks, setWrongPicks] = useState({});   // { [decKey]: Set<optIdx> }
   const endRef = useRef(null);
@@ -44,18 +44,21 @@ export default function TranscriptCard({ data, cardId }) {
   }, [data.calls]);
 
   // ── Visible segment count ──
-  // Walk from the start; a segment is "blocking" if it has an unanswered decision.
+  // In review mode, all segments are visible. Otherwise walk from the start.
   const visibleCount = useMemo(() => {
+    if (reviewMode) return segments.length;
     for (let i = 0; i < segments.length; i++) {
       if (segments[i].decision && answers[segments[i].decKey] === undefined) {
         return i + 1; // show this segment (lines visible, decision pending)
       }
     }
     return segments.length; // all segments visible
-  }, [segments, answers]);
+  }, [segments, answers, reviewMode]);
 
-  const allDone = visibleCount === segments.length &&
-    segments.every(seg => !seg.decision || answers[seg.decKey] !== undefined);
+  const allDone = reviewMode || (
+    visibleCount === segments.length &&
+    segments.every(seg => !seg.decision || answers[seg.decKey] !== undefined)
+  );
 
   // ── Decision handler ──
   const handleDecisionPick = (decKey, correctIdx, optIdx) => {
@@ -211,11 +214,13 @@ export default function TranscriptCard({ data, cardId }) {
 
                 {/* Decision point */}
                 {seg.decision && (
-                  decAnswered
-                    ? renderDecisionAnswered(seg.decision, answers[seg.decKey])
-                    : isLastVisible
-                      ? renderDecisionPending(seg.decision)
-                      : null
+                  reviewMode
+                    ? renderDecisionAnswered(seg.decision, seg.decision.correctIndex)
+                    : decAnswered
+                      ? renderDecisionAnswered(seg.decision, answers[seg.decKey])
+                      : isLastVisible
+                        ? renderDecisionPending(seg.decision)
+                        : null
                 )}
               </div>
             );

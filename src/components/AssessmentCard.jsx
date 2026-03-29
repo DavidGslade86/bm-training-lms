@@ -5,9 +5,10 @@ import { Nav } from "./Shared";
 import { GT } from "./Glossary";
 
 export default function AssessmentCard({ data }) {
-  const {s, d} = useContext(Ctx);
+  const {s, d, reviewMode} = useContext(Ctx);
   // wrongPicks[qi] = Set of option indices chosen incorrectly for question qi
   const [wrongPicks, setWrongPicks] = useState({});
+  const [showAllAnswers, setShowAllAnswers] = useState(false);
   const L = ["A","B","C","D"];
   const tot = data.questions.length;
   const ct  = Object.keys(s.assessAns).length;
@@ -21,9 +22,9 @@ export default function AssessmentCard({ data }) {
       </div>
 
       {data.questions.map((q, qi) => {
-        const correct = s.assessAns[qi] !== undefined;
+        const correct = reviewMode && showAllAnswers ? true : s.assessAns[qi] !== undefined;
         const qWrong  = wrongPicks[qi] || new Set();
-        const lk      = qi > ct;
+        const lk      = !reviewMode && qi > ct;
         const tries   = s.assessTries[qi] || 0;
 
         return (
@@ -35,8 +36,8 @@ export default function AssessmentCard({ data }) {
           }} /* dynamic: answer-state + lock-state styling */>
             <div className="flex items-center justify-between mb-2">
               <div className="text-xs font-bold tracking-widest" style={{color:correct?B.ok:B.blue}} /* dynamic: answer-state color */>Q{qi+1} / {tot}</div>
-              {tries > 0 && !correct && <div className="text-xs text-brand-err">{tries} incorrect attempt{tries>1?"s":""} — try again</div>}
-              {correct && <div className="text-xs font-bold text-brand-ok">✓ Correct{tries > 1 ? ` (${tries} attempts)` : ""}</div>}
+              {!reviewMode && tries > 0 && !correct && <div className="text-xs text-brand-err">{tries} incorrect attempt{tries>1?"s":""} — try again</div>}
+              {correct && <div className="text-xs font-bold text-brand-ok">✓ Correct{!reviewMode && tries > 1 ? ` (${tries} attempts)` : ""}</div>}
             </div>
 
             <div className="text-sm font-bold mb-3 text-brand-gray-dk font-heading"><GT t={q.question}/></div>
@@ -52,7 +53,7 @@ export default function AssessmentCard({ data }) {
                 } else if (qWrong.has(oi)) {
                   st = {border:`1.5px solid ${B.err}`, background:B.errBg, color:"#9a3030"};
                 }
-                const clickable    = !correct && !lk && !qWrong.has(oi);
+                const clickable    = !correct && !lk && !qWrong.has(oi) && !reviewMode;
                 /* dynamic: circle indicator colors depend on answer state */
                 const circleBorder = correct && oi===q.correctIndex ? B.ok : qWrong.has(oi) ? B.err : "#ddd";
                 const circleBg     = correct && oi===q.correctIndex ? B.ok : qWrong.has(oi) ? B.err : "transparent";
@@ -87,9 +88,14 @@ export default function AssessmentCard({ data }) {
         );
       })}
 
-      <div className="text-xs mt-2 mb-4 text-brand-tl">
-        Score shown at completion reflects questions answered correctly on the first attempt.
-      </div>
+      {reviewMode && !showAllAnswers && (
+        <button onClick={()=>setShowAllAnswers(true)} className="mb-4 px-4 py-2 rounded text-sm font-semibold border-[1.5px]" style={{borderColor:B.blue, color:B.blue, background:B.blueLt}}>Show all answers</button>
+      )}
+      {!reviewMode && (
+        <div className="text-xs mt-2 mb-4 text-brand-tl">
+          Score shown at completion reflects questions answered correctly on the first attempt.
+        </div>
+      )}
       <Nav ok={ct >= tot}/>
     </div>
   );

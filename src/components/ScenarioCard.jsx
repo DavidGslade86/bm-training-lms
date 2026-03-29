@@ -5,7 +5,7 @@ import { Nav } from "./Shared";
 import { GT } from "./Glossary";
 
 export default function ScenarioCard({ data, cardId }) {
-  const {s, d} = useContext(Ctx);
+  const {s, d, reviewMode} = useContext(Ctx);
   const cur = s.scenProg[cardId] || 0;
   const sa  = s.scenAns[cardId]  || {};
   const allDone = cur >= data.steps.length;
@@ -20,8 +20,8 @@ export default function ScenarioCard({ data, cardId }) {
       <p className="text-sm mb-5" style={{color:B.tm}}>{data.intro}</p>
 
       {data.steps.map((st, si) => {
-        if (si > cur) return null;
-        const correct    = sa[si] !== undefined;
+        if (!reviewMode && si > cur) return null;
+        const correct    = reviewMode ? true : sa[si] !== undefined;
         const stepWrong  = wrongPicks[si] || new Set();
         const tryCount   = stepWrong.size;
 
@@ -31,8 +31,8 @@ export default function ScenarioCard({ data, cardId }) {
               <div className="text-xs font-bold tracking-widest" style={{color:B.blue}}>
                 STEP {si+1} OF {data.steps.length}
               </div>
-              {tryCount > 0 && !correct && <div style={{fontSize:11,color:B.err}}>{tryCount} incorrect — try again</div>}
-              {correct && tryCount > 0 && <div style={{fontSize:11,color:B.ok}}>✓ ({tryCount} attempt{tryCount>1?"s":""})</div>}
+              {!reviewMode && tryCount > 0 && !correct && <div style={{fontSize:11,color:B.err}}>{tryCount} incorrect — try again</div>}
+              {!reviewMode && correct && tryCount > 0 && <div style={{fontSize:11,color:B.ok}}>✓ ({tryCount} attempt{tryCount>1?"s":""})</div>}
             </div>
 
             <div className="text-sm mb-4" style={{color:"rgba(255,255,255,0.85)"}}><GT t={st.text} dark/></div>
@@ -41,10 +41,15 @@ export default function ScenarioCard({ data, cardId }) {
             <div className="flex flex-col gap-2">
               {st.options.map((o, oi) => {
                 let bg="rgba(255,255,255,0.03)", bd="rgba(255,255,255,0.2)", cl="rgba(255,255,255,0.8)";
-                if (correct && oi === st.correctIndex) { bg="rgba(74,140,111,0.2)"; bd=B.ok; cl="white"; }
-                else if (stepWrong.has(oi))            { bg="rgba(181,74,74,0.15)"; bd=B.err; cl="rgba(255,255,255,0.45)"; }
-                else if (correct)                      { cl="rgba(255,255,255,0.35)"; }
-                const clickable = !correct && !stepWrong.has(oi);
+                if (reviewMode) {
+                  if (oi === st.correctIndex) { bg="rgba(74,140,111,0.2)"; bd=B.ok; cl="white"; }
+                  else                        { cl="rgba(255,255,255,0.35)"; }
+                } else {
+                  if (correct && oi === st.correctIndex) { bg="rgba(74,140,111,0.2)"; bd=B.ok; cl="white"; }
+                  else if (stepWrong.has(oi))            { bg="rgba(181,74,74,0.15)"; bd=B.err; cl="rgba(255,255,255,0.45)"; }
+                  else if (correct)                      { cl="rgba(255,255,255,0.35)"; }
+                }
+                const clickable = !reviewMode && !correct && !stepWrong.has(oi);
                 return (
                   <div key={oi}
                     onClick={() => {
@@ -69,7 +74,7 @@ export default function ScenarioCard({ data, cardId }) {
               })}
             </div>
 
-            {correct && (
+            {(correct || reviewMode) && (
               <div className="rounded-md p-4 mt-4 text-sm" style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(255,255,255,0.85)"}}>
                 <GT t={st.feedback} dark/>
               </div>
@@ -78,7 +83,7 @@ export default function ScenarioCard({ data, cardId }) {
         );
       })}
 
-      {allDone && (
+      {(allDone || reviewMode) && (
         <div className="rounded-lg p-4 my-4 flex gap-3" style={{background:B.blueLt,border:"1px solid #b3dcf2"}}>
           <span>✅</span>
           <p className="text-sm" style={{color:B.tm}}><strong>Scenario complete.</strong></p>

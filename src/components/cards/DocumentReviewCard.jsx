@@ -12,7 +12,7 @@ import { GT } from "../Glossary";
 // ═══════════════════════════════════════════════════════
 
 export default function DocumentReviewCard({ data, cardId }) {
-  const { s, d } = useContext(Ctx);
+  const { s, d, reviewMode } = useContext(Ctx);
   const found = s.docFound[cardId] || {};
 
   const [active, setActive] = useState(null);           // active error id (expanded)
@@ -24,7 +24,7 @@ export default function DocumentReviewCard({ data, cardId }) {
     [data.documents],
   );
   const foundCount = Object.keys(found).length;
-  const allFound   = foundCount >= totalErrors;
+  const allFound   = reviewMode || foundCount >= totalErrors;
 
   // ── Pick handler ──
   const handlePick = (err, optIdx) => {
@@ -78,8 +78,8 @@ export default function DocumentReviewCard({ data, cardId }) {
           {/* Error zones rendered as form fields */}
           <div className="p-4 space-y-3" style={{ background: B.ww }} /* dynamic: brand bg */>
             {doc.errors.map((err) => {
-              const isFound  = !!found[err.id];
-              const isActive = active === err.id;
+              const isFound  = reviewMode || !!found[err.id];
+              const isActive = !reviewMode && active === err.id;
               const wrongs   = wrongPicks[err.id] || new Set();
 
               return (
@@ -90,9 +90,9 @@ export default function DocumentReviewCard({ data, cardId }) {
                     style={{
                       borderColor: isFound ? B.ok : isActive ? B.blue : B.sand,
                       background:  isFound ? B.okBg : isActive ? B.blueLt : "white",
-                      cursor: isFound ? "default" : "pointer",
+                      cursor: isFound || reviewMode ? "default" : "pointer",
                     }} /* dynamic: border/bg change on found/active state */
-                    onClick={() => { if (!isFound) setActive(isActive ? null : err.id); }}
+                    onClick={() => { if (!isFound && !reviewMode) setActive(isActive ? null : err.id); }}
                   >
                     <div className="flex items-center justify-between">
                       <div>
@@ -109,7 +109,7 @@ export default function DocumentReviewCard({ data, cardId }) {
                           {isFound ? "\u2713 " : ""}{err.displayed}
                         </div>
                       </div>
-                      {!isFound && (
+                      {!isFound && !reviewMode && (
                         <div
                           className="text-xs px-2 py-1 rounded shrink-0 ml-3"
                           style={{ color: B.blue, background: B.blueLt }} /* dynamic: brand badge */
@@ -120,8 +120,8 @@ export default function DocumentReviewCard({ data, cardId }) {
                     </div>
                   </div>
 
-                  {/* ── Options panel (expanded) ── */}
-                  {isActive && !isFound && (
+                  {/* ── Options panel (expanded) — hidden in review mode ── */}
+                  {isActive && !isFound && !reviewMode && (
                     <div className="mt-2 ml-4 p-3 rounded-lg border" style={{ borderColor: B.sand, background: "white" }} /* dynamic: brand border */>
                       <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: B.grayLt }} /* dynamic: label color */>
                         What's wrong with this field?
@@ -151,7 +151,7 @@ export default function DocumentReviewCard({ data, cardId }) {
                     </div>
                   )}
 
-                  {/* ── Feedback (after finding the error) ── */}
+                  {/* ── Feedback (after finding the error, or always in review mode) ── */}
                   {isFound && (
                     <div
                       className="mt-2 ml-4 px-3 py-2 rounded-lg text-xs leading-relaxed"

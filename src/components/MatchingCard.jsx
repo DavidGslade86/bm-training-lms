@@ -5,11 +5,12 @@ import { P, Nav } from "./Shared";
 import yajairaImg from "../assets/Yajaira_Torso.png";
 
 export default function MatchingCard({ data, cardId }) {
-  const {s, d} = useContext(Ctx);
+  const {s, d, reviewMode} = useContext(Ctx);
   const done = s.matchDone[cardId];
   const [selL, setSelL] = useState(null);
   const matches = s.matchPairs[cardId] || {};
   const [errs, setErrs] = useState({});
+  const [revealAll, setRevealAll] = useState(false);
 
   // Shuffle right-side options once per mount
   const shuf = useRef(null);
@@ -24,6 +25,11 @@ export default function MatchingCard({ data, cardId }) {
 
   const mR = new Set(Object.values(matches));
 
+  // In review mode, build a "revealed" right column that maps each left item to its correct right
+  const revealedRights = reviewMode && revealAll
+    ? new Set(data.pairs.map(p => p.right))
+    : null;
+
   return (
     <div>
       <div className="text-xs font-bold tracking-widest mb-2 text-brand-blue">{data.label}</div>
@@ -34,16 +40,16 @@ export default function MatchingCard({ data, cardId }) {
         <div>
           <div className="text-xs font-bold tracking-wider mb-3 uppercase text-brand-gray">Illness / Condition</div>
           {data.pairs.map((p, i) => {
-            const m = matches[i] !== undefined, sel = selL === i, er = errs.left === i;
+            const m = matches[i] !== undefined || !!revealAll, sel = selL === i, er = errs.left === i;
             /* dynamic: match-state colors for bg/border/text */
             let bg="white", bd=B.sand, cl=B.tm;
             if (m)        { bg=B.okBg;  bd=B.ok;  cl="#2d5a3f"; }
             else if (er)  { bg=B.errBg; bd=B.err; }
             else if (sel) { bg=B.blueLt; bd=B.blue; cl=B.blueDk; }
             return (
-              <div key={i} onClick={()=>!m&&!done&&setSelL(i)}
+              <div key={i} onClick={()=>!m&&!done&&!reviewMode&&setSelL(i)}
                 className="px-4 py-3 rounded-md text-sm mb-2 font-medium"
-                style={{background:bg,border:`2px solid ${bd}`,color:cl,cursor:m||done?"default":"pointer"}} /* dynamic: match-state styling */>
+                style={{background:bg,border:`2px solid ${bd}`,color:cl,cursor:m||done||reviewMode?"default":"pointer"}} /* dynamic: match-state styling */>
                 {m && <span className="mr-2">✓</span>}{p.left}
               </div>
             );
@@ -54,7 +60,7 @@ export default function MatchingCard({ data, cardId }) {
         <div>
           <div className="text-xs font-bold tracking-wider mb-3 uppercase text-brand-gray">Timing Requirement</div>
           {shuf.current.map((r, i) => {
-            const m = mR.has(r), er = errs.right === r;
+            const m = mR.has(r) || (revealedRights?.has(r)), er = errs.right === r;
             /* dynamic: match-state colors for bg/border/text */
             let bg="white", bd=B.sand, cl=B.tm;
             if (m)        { bg=B.okBg;  bd=B.ok; cl="#2d5a3f"; }
@@ -63,7 +69,7 @@ export default function MatchingCard({ data, cardId }) {
             return (
               <div key={i}
                 onClick={() => {
-                  if (done || m || selL === null) return;
+                  if (done || m || selL === null || reviewMode) return;
                   if (r === data.pairs[selL].right) {
                     d({t:"MATCH_PAIR", id:cardId, idx:selL, right:r});
                     setSelL(null);
@@ -74,7 +80,7 @@ export default function MatchingCard({ data, cardId }) {
                   }
                 }}
                 className="px-4 py-3 rounded-md text-sm mb-2 font-medium"
-                style={{background:bg,border:`2px solid ${bd}`,color:cl,cursor:m||done||selL===null?"default":"pointer"}} /* dynamic: match-state styling */>
+                style={{background:bg,border:`2px solid ${bd}`,color:cl,cursor:m||done||selL===null||reviewMode?"default":"pointer"}} /* dynamic: match-state styling */>
                 {m && <span className="mr-2">✓</span>}{r}
               </div>
             );
@@ -82,14 +88,18 @@ export default function MatchingCard({ data, cardId }) {
         </div>
       </div>
 
-      {allOk && (
+      {reviewMode && !revealAll && (
+        <button onClick={()=>setRevealAll(true)} className="mt-4 px-4 py-2 rounded text-sm font-semibold border-[1.5px]" style={{borderColor:B.blue, color:B.blue, background:B.blueLt}}>Reveal all matches</button>
+      )}
+
+      {(allOk || revealAll) && (
         <div className="rounded-lg p-4 mt-5 flex gap-3 items-start bg-brand-ww border border-brand-sand">
           <div className="w-9 h-9 rounded-full overflow-hidden shrink-0">
             <img src={yajairaImg} alt="Yajaira" className="w-full h-full object-cover"/>
           </div>
           <div>
             <p className="text-sm text-brand-tm">{data.successMessage}</p>
-            {missCount > 0 && (
+            {!reviewMode && missCount > 0 && (
               <p className="text-xs mt-2 text-brand-tl">
                 {missCount} incorrect attempt{missCount>1?"s":""} — consider reviewing the timing requirements above before continuing.
               </p>

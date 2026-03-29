@@ -28,8 +28,9 @@ export function P({ l, c, sz="lg" }) {
 
 // ─── Nav: prev / continue buttons ────────────────────
 export function Nav({ ok }) {
-  const {s, d, cards} = useContext(Ctx);
+  const {s, d, cards, reviewMode} = useContext(Ctx);
   const i = s.cur, tot = cards.length;
+  const canContinue = ok || !!reviewMode;
   return (
     <div className="flex justify-between items-center mt-10 pt-5 border-t border-brand-sand">
       {i > 0
@@ -37,7 +38,7 @@ export function Nav({ ok }) {
         : <div/>
       }
       {i < tot-1
-        ? <button onClick={()=>{d({t:"DONE",i,total:tot});d({t:"GO",i:i+1})}} disabled={!ok} className="px-5 py-2.5 rounded text-sm font-semibold text-white" style={{background:ok?B.blue:"#ccc",cursor:ok?"pointer":"default"}} /* dynamic: depends on ok prop */>Continue →</button>
+        ? <button onClick={()=>{d({t:"DONE",i,total:tot});d({t:"GO",i:i+1})}} disabled={!canContinue} className="px-5 py-2.5 rounded text-sm font-semibold text-white" style={{background:canContinue?B.blue:"#ccc",cursor:canContinue?"pointer":"default"}} /* dynamic: depends on ok prop or reviewMode */>Continue →</button>
         : <div/>
       }
     </div>
