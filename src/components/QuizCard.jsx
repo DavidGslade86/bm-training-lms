@@ -4,8 +4,90 @@ import { Ctx } from "../state";
 import { Nav } from "./Shared";
 import { GT } from "./Glossary";
 
+// ─── QuizEditPanel ────────────────────────────────────
+// Shown below the quiz card in edit mode. Lets admins
+// update the question, options, correct index, and feedback.
+function QuizEditPanel({ data, cardId }) {
+  const { updateCard } = useContext(Ctx);
+  const save = (path, value) => updateCard?.(cardId, path, value);
+
+  return (
+    <div
+      className="mt-4 rounded-xl border-2 p-5"
+      style={{ borderColor: "#fcd34d", background: "#fffbeb" }}
+    >
+      <div className="text-[10px] font-bold uppercase tracking-wider mb-4" style={{ color: "#92400e" }}>
+        ✏️ Edit Question
+      </div>
+
+      {/* Question text */}
+      <label className="block mb-3">
+        <span className="text-xs font-semibold text-brand-tl block mb-1">Question text</span>
+        <textarea
+          defaultValue={data.question}
+          rows={2}
+          onBlur={(e) => save("data.question", e.target.value)}
+          className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none"
+          style={{ borderColor: "#fcd34d", background: "white" }}
+        />
+      </label>
+
+      {/* Options + correct index radio */}
+      <div className="mb-3">
+        <span className="text-xs font-semibold text-brand-tl block mb-1">Options (select radio = correct)</span>
+        {data.options.map((opt, oi) => (
+          <div key={oi} className="flex items-center gap-2 mb-1.5">
+            <input
+              type="radio"
+              name={`ci-${cardId}`}
+              checked={data.correctIndex === oi}
+              onChange={() => save("data.correctIndex", oi)}
+              className="cursor-pointer shrink-0"
+              style={{ accentColor: "#f59e0b" }}
+            />
+            <input
+              defaultValue={opt}
+              key={`opt-${oi}-${opt}`}
+              onBlur={(e) => save(`data.options.${oi}`, e.target.value)}
+              className="flex-1 border rounded px-2 py-1 text-sm focus:outline-none"
+              style={{ borderColor: "#fcd34d", background: "white" }}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Correct feedback */}
+      <label className="block mb-3">
+        <span className="text-xs font-semibold text-brand-tl block mb-1">Feedback (correct)</span>
+        <textarea
+          defaultValue={data.feedbackCorrect}
+          rows={2}
+          onBlur={(e) => save("data.feedbackCorrect", e.target.value)}
+          className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none"
+          style={{ borderColor: "#fcd34d", background: "white" }}
+        />
+      </label>
+
+      {/* Incorrect feedback */}
+      {data.feedbackIncorrect && (
+        <label className="block">
+          <span className="text-xs font-semibold text-brand-tl block mb-1">Feedback (incorrect)</span>
+          <textarea
+            defaultValue={data.feedbackIncorrect}
+            rows={2}
+            onBlur={(e) => save("data.feedbackIncorrect", e.target.value)}
+            className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none"
+            style={{ borderColor: "#fcd34d", background: "white" }}
+          />
+        </label>
+      )}
+    </div>
+  );
+}
+
+// ─── QuizCard ─────────────────────────────────────────
 export default function QuizCard({ data, cardId }) {
-  const {s, d, reviewMode} = useContext(Ctx);
+  const {s, d, reviewMode, editMode} = useContext(Ctx);
   const [showAnswer, setShowAnswer] = useState(false);
   const attempts = s.qAttempts[cardId] || 0;
   const answered = s.qa[cardId] !== undefined;
@@ -70,7 +152,7 @@ export default function QuizCard({ data, cardId }) {
             return (
               <div key={oi} onClick={()=>handleAnswer(oi)}
                 className="flex items-center gap-3 px-4 py-3 rounded-md text-sm"
-                style={{...st,cursor:(showingAnswer||reviewMode)?"default":"pointer"}} /* dynamic: answer-state styling */>
+                style={{...st,cursor:(showingAnswer||reviewMode||editMode)?"default":"pointer"}} /* dynamic: answer-state styling */>
                 <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
                   style={{border:`1.5px solid ${circleBd}`,background:circleBg,color:circleColor}} /* dynamic: answer-state indicator */>
                   {L[oi]}
@@ -100,6 +182,12 @@ export default function QuizCard({ data, cardId }) {
           <button onClick={()=>setShowAnswer(true)} className="mt-4 px-4 py-2 rounded text-sm font-semibold border-[1.5px]" style={{borderColor:B.blue, color:B.blue, background:B.blueLt}}>Show answer</button>
         )}
       </div>
+
+      {/* Edit mode: question/options/feedback edit panel */}
+      {editMode && cardId && (
+        <QuizEditPanel data={data} cardId={cardId}/>
+      )}
+
       <Nav ok={canProceed}/>
     </div>
   );

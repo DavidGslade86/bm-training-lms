@@ -8,6 +8,7 @@ export default function App() {
   const [currentView, setCurrentView] = useState("registration");
   const [learner, setLearner] = useState(null);
   const [moduleStartedAt, setModuleStartedAt] = useState(null);
+  const [editMode, setEditMode] = useState(false);
 
   const handleRegistration = (l) => {
     setLearner(l);
@@ -29,6 +30,8 @@ export default function App() {
         learner={learner}
         moduleStartedAt={moduleStartedAt}
         onHome={() => setCurrentView("home")}
+        editMode={editMode}
+        onExitEditMode={() => setEditMode(false)}
       />
     );
   }
@@ -39,6 +42,8 @@ export default function App() {
         learner={learner}
         moduleStartedAt={moduleStartedAt}
         onHome={() => setCurrentView("home")}
+        editMode={editMode}
+        onExitEditMode={() => setEditMode(false)}
       />
     );
   }
@@ -48,6 +53,9 @@ export default function App() {
     <HomePage
       learner={learner}
       onStartModule={startModule}
+      editMode={editMode}
+      onEnterEditMode={() => setEditMode(true)}
+      onExitEditMode={() => setEditMode(false)}
     />
   );
 }

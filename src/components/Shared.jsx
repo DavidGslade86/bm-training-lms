@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { B } from "../data/brand";
 import { Ctx } from "../state";
 import { GT } from "./Glossary";
@@ -13,6 +13,63 @@ export function Md({ t }) {
       ? <strong key={i} className="text-gray-800">{p.slice(2,-2)}</strong>
       : <span key={i}>{p}</span>
   )}</>;
+}
+
+// ─── ET: editable text (edit mode only) ──────────────
+// Wraps any text field with click-to-edit in edit mode.
+// In normal/review mode renders children (or raw value) unchanged.
+// Usage: <ET cardId={id} path="data.title" value={data.title}>{data.title}</ET>
+//   or:  <ET cardId={id} path="data.blocks.0.text" value={b.text} multiline><GT t={b.text}/></ET>
+export function ET({ cardId, path, value, children, multiline = false, className = "" }) {
+  const ctx = useContext(Ctx);
+  const editMode = ctx?.editMode;
+  const updateCard = ctx?.updateCard;
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+
+  // Keep draft in sync when value changes externally (after another field saves)
+  useEffect(() => { if (!editing) setDraft(value); }, [value, editing]);
+
+  // In non-edit mode render children (or value) completely transparently
+  if (!editMode) return children ?? value ?? null;
+
+  const save = () => {
+    if (String(draft) !== String(value) && updateCard) {
+      updateCard(cardId, path, draft);
+    }
+    setEditing(false);
+  };
+
+  if (editing) {
+    const cls = "border-2 border-amber-400 rounded px-2 py-1 bg-amber-50 focus:outline-none w-full text-sm";
+    return multiline
+      ? <textarea
+          className={cls}
+          value={draft}
+          rows={3}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={save}
+          autoFocus
+        />
+      : <input
+          className={`${cls} block`}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={save}
+          onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") { setEditing(false); setDraft(value); } }}
+          autoFocus
+        />;
+  }
+
+  return (
+    <span
+      className={`cursor-text rounded transition-all hover:outline hover:outline-2 hover:outline-amber-400/60 hover:outline-offset-1 hover:bg-amber-50/30 ${className}`}
+      title="Click to edit"
+      onClick={() => { setDraft(value); setEditing(true); }}
+    >
+      {children ?? value}
+    </span>
+  );
 }
 
 // ─── P: avatar circle ────────────────────────────────
@@ -76,19 +133,59 @@ function FormImageViewer({ images, alt }) {
 }
 
 // ─── Blocks: renders typed content blocks ────────────
-export function Blocks({ blocks }) {
+// cardId is optional; when provided and editMode is active, paragraph/subheading/callout blocks become editable.
+export function Blocks({ blocks, cardId }) {
+  const ctx = useContext(Ctx);
+  const editMode = ctx?.editMode;
+
   return blocks.map((b, i) => {
-    if (b.type === "paragraph")
-      return <p key={i} className="text-sm leading-relaxed mb-4 text-brand-tm"><GT t={b.text}/></p>;
+    if (b.type === "paragraph") {
+      // Use div in edit mode to avoid textarea-inside-p invalid HTML
+      const Tag = editMode ? "div" : "p";
+      return (
+        <Tag key={i} className="text-sm leading-relaxed mb-4 text-brand-tm">
+          {editMode && cardId
+            ? <ET cardId={cardId} path={`data.blocks.${i}.text`} value={b.text} multiline><GT t={b.text}/></ET>
+            : <GT t={b.text}/>}
+        </Tag>
+      );
+    }
 
     if (b.type === "subheading")
-      return <h3 key={i} className="text-lg font-bold mt-8 mb-3 text-brand-gray-dk font-heading"><GT t={b.text}/></h3>;
+      return (
+        <h3 key={i} className="text-lg font-bold mt-8 mb-3 text-brand-gray-dk font-heading">
+          {editMode && cardId
+            ? <ET cardId={cardId} path={`data.blocks.${i}.text`} value={b.text}><GT t={b.text}/></ET>
+            : <GT t={b.text}/>}
+        </h3>
+      );
 
     if (b.type === "callout")
       return (
         <div key={i} className="rounded-lg p-4 my-5 flex gap-3" style={{background:b.style==="warn"?"#fef6e8":B.blueLt,border:`1px solid ${b.style==="warn"?"#e8d5a0":"#b3dcf2"}`}} /* dynamic: callout style variant */>
-          <span className="text-lg shrink-0">{b.icon}</span>
-          <p className="text-sm leading-relaxed text-brand-tm"><GT t={b.text}/></p>
+          {editMode && cardId
+            ? <ET cardId={cardId} path={`data.blocks.${i}.icon`} value={b.icon} className="text-lg shrink-0">{b.icon}</ET>
+            : <span className="text-lg shrink-0">{b.icon}</span>}
+          <div className="flex-1">
+            <div className="text-sm leading-relaxed text-brand-tm">
+              {editMode && cardId
+                ? <ET cardId={cardId} path={`data.blocks.${i}.text`} value={b.text} multiline><GT t={b.text}/></ET>
+                : <GT t={b.text}/>}
+            </div>
+            {editMode && cardId && (
+              <div className="mt-2 flex items-center gap-2">
+                <span className="text-[10px] text-amber-700">Style:</span>
+                <select
+                  value={b.style || "info"}
+                  onChange={(e) => ctx?.updateCard?.(cardId, `data.blocks.${i}.style`, e.target.value)}
+                  className="text-[10px] border border-amber-400 rounded px-1 py-0.5 bg-amber-50 cursor-pointer focus:outline-none"
+                >
+                  <option value="info">Blue (info)</option>
+                  <option value="warn">Amber (warn)</option>
+                </select>
+              </div>
+            )}
+          </div>
         </div>
       );
 

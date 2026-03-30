@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { B } from "../data/brand";
-import { P, Nav } from "./Shared";
+import { Ctx } from "../state";
+import { P, Nav, ET } from "./Shared";
 import { GT } from "./Glossary";
 import yajairaImg from "../assets/Yajaira_Torso.png";
 
-export default function StoryCard({ data }) {
+export default function StoryCard({ data, cardId }) {
+  const { editMode } = useContext(Ctx);
   const [imgErr, setImgErr] = useState(false);
+
   return (
     <div>
       <div className="rounded-lg p-8 mb-8 text-white bg-brand-hdr">
@@ -18,14 +21,26 @@ export default function StoryCard({ data }) {
           }
           <div>
             <div className="text-xs font-bold tracking-widest mb-1 text-brand-blue">BEFORE WE BEGIN</div>
-            <div className="text-xl font-bold font-heading">{data.headline}</div>
+            <div className="text-xl font-bold font-heading">
+              {editMode && cardId
+                ? <ET cardId={cardId} path="data.headline" value={data.headline}>{data.headline}</ET>
+                : data.headline}
+            </div>
           </div>
         </div>
         {data.body.map((p, i) => (
-          <p key={i} className="text-sm leading-relaxed mb-3 text-white/80"><GT t={p}/></p>
+          <div key={i} className="text-sm leading-relaxed mb-3 text-white/80">
+            {editMode && cardId
+              ? <ET cardId={cardId} path={`data.body.${i}`} value={p} multiline><GT t={p}/></ET>
+              : <GT t={p}/>}
+          </div>
         ))}
         <div className="rounded-lg p-4 mt-6 bg-white/[0.06] border border-white/10">
-          <p className="text-sm text-white/90"><GT t={data.closing}/></p>
+          <div className="text-sm text-white/90">
+            {editMode && cardId
+              ? <ET cardId={cardId} path="data.closing" value={data.closing} multiline><GT t={data.closing}/></ET>
+              : <GT t={data.closing}/>}
+          </div>
         </div>
       </div>
 
@@ -34,7 +49,11 @@ export default function StoryCard({ data }) {
         {data.objectives.map((o, i) => (
           <div key={i} className="flex items-start gap-3 text-sm text-brand-tm">
             <div className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 border-[1.5px] border-brand-blue text-brand-blue">{i+1}</div>
-            <span>{o}</span>
+            <span>
+              {editMode && cardId
+                ? <ET cardId={cardId} path={`data.objectives.${i}`} value={o}>{o}</ET>
+                : o}
+            </span>
           </div>
         ))}
       </div>
