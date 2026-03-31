@@ -27,10 +27,10 @@ const MODULES = [
   {
     key: "module-4",
     number: "Module 4",
-    title: "Proof of Presence Deep Dive",
-    desc: "POP hierarchy, EVLs, TPVs, and special cases.",
-    time: "Coming soon",
-    status: "coming-soon",
+    title: "Proof of Presence: Building the Case",
+    desc: "Sufficient vs. non-sufficient primary evidence, EVLs, TPVs, witness rules, and how to build a POP package.",
+    time: "~35 min",
+    status: "available",
   },
   {
     key: "module-5",
