@@ -11,7 +11,7 @@ const ROLES = [
   "Other",
 ];
 
-export default function RegistrationScreen({ onStart }) {
+export default function RegistrationScreen({ onStart, onPlayJeopardy }) {
   const [name,  setName]  = useState("");
   const [email, setEmail] = useState("");
   const [role,  setRole]  = useState("");
@@ -115,6 +115,19 @@ export default function RegistrationScreen({ onStart }) {
             <p className="text-[11px] text-white/25 text-center mt-3.5">
               Your name, email, and performance data will be recorded for training tracking purposes.
             </p>
+            {onPlayJeopardy && (
+              <p className="text-[11px] text-center mt-3">
+                <button
+                  onClick={onPlayJeopardy}
+                  className="border-none bg-transparent cursor-pointer underline"
+                  style={{ color: "rgba(255,255,255,0.25)", fontSize: 11 }}
+                  onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,0.5)")}
+                  onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.25)")}
+                >
+                  Play Jeopardy without signing in
+                </button>
+              </p>
+            )}
           </div>
         </div>
       </div>

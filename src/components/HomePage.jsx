@@ -50,7 +50,16 @@ const MODULES = [
   },
 ];
 
-export default function HomePage({ learner, onStartModule, editMode, onEnterEditMode, onExitEditMode }) {
+const ACTIVITIES = [
+  {
+    key: "jeopardy",
+    label: "Activity",
+    title: "Jeopardy Review",
+    desc: "25 questions across two programs, proof of presence, intake documents, timing rules, and firm process. Best played with a group.",
+  },
+];
+
+export default function HomePage({ learner, onStartModule, onStartActivity, editMode, onEnterEditMode, onExitEditMode }) {
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [adminPw, setAdminPw] = useState("");
   const [authError, setAuthError] = useState("");
@@ -223,6 +232,55 @@ export default function HomePage({ learner, onStartModule, editMode, onEnterEdit
               </div>
             );
           })}
+        </div>
+      </div>
+
+      {/* Activities section */}
+      <div className="max-w-[960px] mx-auto px-8 pb-12">
+        <h2 className="text-xs font-bold tracking-widest text-brand-tl mb-4">ACTIVITIES</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {ACTIVITIES.map((a) => (
+            <div
+              key={a.key}
+              className="rounded-lg overflow-hidden flex flex-col"
+              style={{ background: "#1a3a8f", border: "1px solid #2a4aaf" }}
+            >
+              <div className="px-5 pt-5 pb-4 flex-1">
+                <div className="flex items-center justify-between mb-2">
+                  <span
+                    className="text-[11px] font-bold tracking-widest"
+                    style={{ color: "rgba(240,192,64,0.7)" }}
+                  >
+                    {a.label.toUpperCase()}
+                  </span>
+                  <span
+                    className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                    style={{ background: "rgba(240,192,64,0.15)", color: "#f0c040", border: "1px solid rgba(240,192,64,0.3)" }}
+                  >
+                    Group Play
+                  </span>
+                </div>
+                <h3
+                  className="text-base font-bold font-heading mb-1.5"
+                  style={{ color: "#f0c040" }}
+                >
+                  {a.title}
+                </h3>
+                <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
+                  {a.desc}
+                </p>
+              </div>
+              <div className="px-5 pb-5">
+                <button
+                  onClick={() => onStartActivity(a.key)}
+                  className="w-full py-2.5 rounded-md text-sm font-bold border-none cursor-pointer"
+                  style={{ background: "#f0c040", color: "#1a1a1a" }}
+                >
+                  Play →
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

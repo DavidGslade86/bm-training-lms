@@ -4,6 +4,7 @@ import HomePage from "./components/HomePage";
 import Module2 from "./components/Module2";
 import Module3 from "./components/Module3";
 import Module4 from "./components/Module4";
+import JeopardyGame from "./components/JeopardyGame";
 
 export default function App() {
   const [currentView, setCurrentView] = useState("registration");
@@ -21,8 +22,23 @@ export default function App() {
     setCurrentView(moduleKey);
   };
 
+  // Jeopardy is accessible without registration
+  if (currentView === "jeopardy") {
+    return (
+      <JeopardyGame
+        learner={learner}
+        onBack={() => setCurrentView(learner ? "home" : "registration")}
+      />
+    );
+  }
+
   if (currentView === "registration") {
-    return <RegistrationScreen onStart={handleRegistration}/>;
+    return (
+      <RegistrationScreen
+        onStart={handleRegistration}
+        onPlayJeopardy={() => setCurrentView("jeopardy")}
+      />
+    );
   }
 
   if (currentView === "module-2") {
@@ -66,6 +82,7 @@ export default function App() {
     <HomePage
       learner={learner}
       onStartModule={startModule}
+      onStartActivity={(key) => setCurrentView(key)}
       editMode={editMode}
       onEnterEditMode={() => setEditMode(true)}
       onExitEditMode={() => setEditMode(false)}
