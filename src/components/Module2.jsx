@@ -13,11 +13,11 @@ import AssessmentCard from "./AssessmentCard";
 import CompletionCard from "./CompletionCard";
 import GlossaryDrawer from "./GlossaryDrawer";
 
-export default function Module2({ learner, moduleStartedAt, onHome, editMode, onExitEditMode }) {
+export default function Module2({ learner, moduleStartedAt, onHome, editMode, onExitEditMode, forceReview = false }) {
   const [s, d] = useReducer(red, initState);
   const [glossOpen, setGlossOpen] = useState(false);
-  const [reviewMode, setReviewMode] = useState(false);
-  const toggleReviewMode = () => setReviewMode(v => !v);
+  const [reviewMode, setReviewMode] = useState(forceReview);
+  const toggleReviewMode = () => { if (!forceReview) setReviewMode(v => !v); };
 
   // Edit mode: merged cards + edit utilities
   const MODULE_ID = "module-2";
@@ -107,16 +107,18 @@ export default function Module2({ learner, moduleStartedAt, onHome, editMode, on
               className="flex items-center gap-1.5 px-3 py-[5px] bg-white/[0.08] border border-white/15 rounded-md cursor-pointer text-white/70 text-xs font-semibold">
               <span className="text-sm">📖</span> Glossary
             </button>
-            <button onClick={toggleReviewMode}
-              className="flex items-center gap-1.5 px-3 py-[5px] rounded-md cursor-pointer text-xs font-semibold transition-all duration-150"
-              style={reviewMode
-                ? {background:B.blue, color:"white", border:"1.5px solid "+B.blue}
-                : {background:"transparent", color:"rgba(255,255,255,0.6)", border:"1.5px solid rgba(255,255,255,0.25)"}}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-              </svg>
-              {reviewMode ? "Reviewing" : "Review Mode"}
-            </button>
+            {!forceReview && (
+              <button onClick={toggleReviewMode}
+                className="flex items-center gap-1.5 px-3 py-[5px] rounded-md cursor-pointer text-xs font-semibold transition-all duration-150"
+                style={reviewMode
+                  ? {background:B.blue, color:"white", border:"1.5px solid "+B.blue}
+                  : {background:"transparent", color:"rgba(255,255,255,0.6)", border:"1.5px solid rgba(255,255,255,0.25)"}}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+                {reviewMode ? "Reviewing" : "Review Mode"}
+              </button>
+            )}
             {/* Edit mode badge + exit button */}
             {editMode && (
               <>

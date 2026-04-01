@@ -11,9 +11,16 @@ export default function App() {
   const [learner, setLearner] = useState(null);
   const [moduleStartedAt, setModuleStartedAt] = useState(null);
   const [editMode, setEditMode] = useState(false);
+  const [guestReview, setGuestReview] = useState(false);
 
   const handleRegistration = (l) => {
+    setGuestReview(false);
     setLearner(l);
+    setCurrentView("home");
+  };
+
+  const handleGuestReview = () => {
+    setGuestReview(true);
     setCurrentView("home");
   };
 
@@ -36,6 +43,7 @@ export default function App() {
     return (
       <RegistrationScreen
         onStart={handleRegistration}
+        onGuestReview={handleGuestReview}
         onPlayJeopardy={() => setCurrentView("jeopardy")}
       />
     );
@@ -49,6 +57,7 @@ export default function App() {
         onHome={() => setCurrentView("home")}
         editMode={editMode}
         onExitEditMode={() => setEditMode(false)}
+        forceReview={guestReview}
       />
     );
   }
@@ -61,6 +70,7 @@ export default function App() {
         onHome={() => setCurrentView("home")}
         editMode={editMode}
         onExitEditMode={() => setEditMode(false)}
+        forceReview={guestReview}
       />
     );
   }
@@ -73,6 +83,7 @@ export default function App() {
         onHome={() => setCurrentView("home")}
         editMode={editMode}
         onExitEditMode={() => setEditMode(false)}
+        forceReview={guestReview}
       />
     );
   }

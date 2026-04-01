@@ -11,7 +11,7 @@ const ROLES = [
   "Other",
 ];
 
-export default function RegistrationScreen({ onStart, onPlayJeopardy }) {
+export default function RegistrationScreen({ onStart, onGuestReview, onPlayJeopardy }) {
   const [name,  setName]  = useState("");
   const [email, setEmail] = useState("");
   const [role,  setRole]  = useState("");
@@ -112,6 +112,17 @@ export default function RegistrationScreen({ onStart, onPlayJeopardy }) {
               style={{background: submitting ? "#555" : B.blue, cursor: submitting ? "default" : "pointer"}} /* dynamic: submitting-state bg + cursor */>
               {submitting ? "Starting…" : "Begin Module →"}
             </button>
+            {onGuestReview && (
+              <button
+                onClick={onGuestReview}
+                className="w-full py-[11px] rounded-[7px] border-none text-[14px] font-semibold transition-colors duration-150 mt-2.5 cursor-pointer"
+                style={{ background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.12)" }}
+                onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.12)"; e.currentTarget.style.color = "rgba(255,255,255,0.85)"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.color = "rgba(255,255,255,0.6)"; }}
+              >
+                Review Material
+              </button>
+            )}
             <p className="text-[11px] text-white/25 text-center mt-3.5">
               Your name, email, and performance data will be recorded for training tracking purposes.
             </p>
