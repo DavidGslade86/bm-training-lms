@@ -15,7 +15,7 @@ import DocumentReviewCard from "./cards/DocumentReviewCard";
 import TranscriptCard from "./cards/TranscriptCard";
 import GlossaryDrawer from "./GlossaryDrawer";
 
-export default function Module4({ learner, moduleStartedAt, onHome, editMode, onExitEditMode, forceReview = false }) {
+export default function Module4({ learner, moduleStartedAt, onHome, onSignIn, editMode, onExitEditMode, forceReview = false }) {
   const [s, d] = useReducer(red, initState);
   const [glossOpen, setGlossOpen] = useState(false);
   const [reviewMode, setReviewMode] = useState(forceReview);
@@ -120,6 +120,13 @@ export default function Module4({ learner, moduleStartedAt, onHome, editMode, on
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                 </svg>
                 {reviewMode ? "Reviewing" : "Review Mode"}
+              </button>
+            )}
+            {forceReview && onSignIn && (
+              <button onClick={onSignIn}
+                className="flex items-center gap-1.5 px-3 py-[5px] rounded-md cursor-pointer text-xs font-semibold transition-all duration-150"
+                style={{background: B.blue, color:"white", border:"1.5px solid "+B.blue}}>
+                Sign in to complete →
               </button>
             )}
             {/* Edit mode badge + exit button */}

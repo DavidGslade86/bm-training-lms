@@ -55,6 +55,7 @@ export default function App() {
         learner={learner}
         moduleStartedAt={moduleStartedAt}
         onHome={() => setCurrentView("home")}
+        onSignIn={() => { setGuestReview(false); setCurrentView("registration"); }}
         editMode={editMode}
         onExitEditMode={() => setEditMode(false)}
         forceReview={guestReview}
@@ -68,6 +69,7 @@ export default function App() {
         learner={learner}
         moduleStartedAt={moduleStartedAt}
         onHome={() => setCurrentView("home")}
+        onSignIn={() => { setGuestReview(false); setCurrentView("registration"); }}
         editMode={editMode}
         onExitEditMode={() => setEditMode(false)}
         forceReview={guestReview}
@@ -81,6 +83,7 @@ export default function App() {
         learner={learner}
         moduleStartedAt={moduleStartedAt}
         onHome={() => setCurrentView("home")}
+        onSignIn={() => { setGuestReview(false); setCurrentView("registration"); }}
         editMode={editMode}
         onExitEditMode={() => setEditMode(false)}
         forceReview={guestReview}
