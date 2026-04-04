@@ -75,6 +75,38 @@ export const MODULE4 = {
       },
     },
 
+    // ─── CARD 1a: CHECK — WHO NEEDS POP? ───
+    {
+      id: "m4-quiz-who-needs-pop",
+      nav: "Check: Who Needs POP?",
+      type: "quiz",
+      data: {
+        label: "Knowledge Check",
+        context: "Before building a POP package:",
+        question: "A Client Advocate is preparing to build a POP package for a new client. Before starting, which of the following clients should they confirm actually requires POP collection?",
+        options: [
+          "A claimant who is a uniformed FDNY firefighter — she worked at the WTC site from 9/11 through October 2001.",
+          "A claimant who received a VCF1 award in 2003 and is now filing a VCF2 claim for a new certified condition. He is not yet enrolled in the WTCHP.",
+          "A claimant who worked for the Port Authority of New York and New Jersey during the exposure period.",
+          "A claimant who worked for ConEd during the exposure period.",
+        ],
+        correctIndex: 1,
+        feedbackCorrect: "Right. FDNY, Port Authority, and ConEd all have direct relationships with the VCF — no POP collection needed for those claimants. The VCF1 client is the exception worth checking: while VCF1 clients generally don't need to re-prove presence for their VCF2 claim, this client is not yet enrolled in the WTCHP. POP is still needed for WTCHP enrollment purposes — even if VCF presence doesn't need to be re-proven, the Health Program has its own requirements.",
+        feedbackIncorrect: "Before collecting any POP, check whether the employer has a direct VCF relationship. FDNY, Port Authority, and ConEd are all in the no-POP group — the VCF obtains their information directly. The VCF1 client requires more careful thinking: VCF1 clients generally don't need to re-prove VCF presence, but this client isn't enrolled in the WTCHP yet, which means enrollment POP is still needed.",
+        reviewCardIndex: 0,
+        retryQuestion: "A Client Advocate receives a new account. The client is a retired NYPD officer who worked at the WTC site from 9/12/2001 through 10/31/2001. He has a Notice of Participation signed in 2009. He also has a former coworker willing to complete a WPS. How should the CA approach POP for this client?",
+        retryOptions: [
+          "No POP needed — NYPD has a direct VCF relationship, so the VCF obtains the information directly.",
+          "The pre-2011 NOP is equivalent to one non-family eye-witness WPS. One additional non-family eye-witness WPS is needed alongside it. Contact the coworker and begin the WPS process.",
+          "The NOP is sufficient primary evidence on its own — no witnesses needed.",
+          "The NOP is supplemental only — two full eye-witness WPS are needed in addition to it.",
+        ],
+        retryCorrectIndex: 1,
+        retryFeedbackCorrect: "A pre-2011 NYPD NOP is treated by the VCF as the equivalent of one non-family eye-witness WPS. That means one additional non-family eye-witness WPS alongside it meets the standard. The coworker is the right person to contact. A post-2011 NOP would be supplemental only — the year the NOP was signed matters.",
+        retryFeedbackIncorrect: "The year the NOP was signed matters significantly. A pre-2011 NOP carries the weight of one non-family eye-witness WPS — meaning one additional non-family WPS is needed alongside it. A post-2011 NOP is supplemental only and would require two full eyewitness WPS in addition.",
+      },
+    },
+
     // ─── CARD 2: THE TWO CATEGORIES ───
     {
       id: "m4-two-categories",
@@ -196,6 +228,100 @@ export const MODULE4 = {
             text: "For any employer or organization, check policies and procedures and the Salesforce entity account before reaching out. Many have specific processes, preferred contacts, and required forms. The entity account is your first stop — it will tell you exactly how to proceed for that organization.",
           },
         ],
+      },
+    },
+
+    // ─── CARD 3a: CHECK — EVL REVIEW ───
+    {
+      id: "m4-evl-check",
+      nav: "Check: EVL Review",
+      type: "document-review",
+      data: {
+        title: "Is This EVL Sufficient?",
+        subtitle: "Identify every problem before it goes to the VCF",
+        instructions: "Below is an EVL that a client's former employer emailed to the Client Advocate. The CA is deciding whether to ask the employer to send it directly to the VCF. Find every problem with this document first.",
+        mode: "find-errors",
+        noteText: `Meridian Building Services
+123 Corporate Drive
+Parsippany, NJ 07054
+
+October 14, 2024
+
+To Whom It May Concern:
+
+This letter confirms that Carlos Rivera was employed
+by Meridian Building Services as a maintenance
+technician during the period September 2001 through
+May 2002. During this time, Mr. Rivera performed
+work assignments in Lower Manhattan as directed
+by supervisors.
+
+Please contact our HR department with any questions.
+
+Regards,
+Tom Walsh
+Senior Operations Manager
+Meridian Building Services`,
+        documents: [
+          {
+            name: "EVL — Meridian Building Services",
+            errors: [
+              {
+                id: "evl-1",
+                zone: "Work location",
+                displayed: "\"work assignments in Lower Manhattan as directed by supervisors\"",
+                options: [
+                  "This is sufficient — Lower Manhattan is within the VCF exposure zone.",
+                  "This is insufficient — an EVL must state a specific address or cross streets where the claimant worked. \"Lower Manhattan\" is not specific enough. The employer needs to include the actual work location address.",
+                  "The address can be supplemented by a WPS — no need to request a revision.",
+                  "This is sufficient because the employer confirms the exposure period dates.",
+                ],
+                correctOption: 1,
+                feedback: "\"Lower Manhattan\" does not meet the VCF's specificity requirement. The EVL must name the actual address or cross streets where the claimant worked during the exposure period. The CA should go back to the employer and request a reissued letter with the specific work location before asking them to transmit to the VCF.",
+              },
+              {
+                id: "evl-2",
+                zone: "Employment status / hours",
+                displayed: "No statement of full-time status or hours worked",
+                options: [
+                  "Employment status doesn't need to be stated — dates of employment are sufficient.",
+                  "The EVL must state either full-time employment status or the hours worked at each location. Without this, the document doesn't establish adequate exposure. Request the employer include this in a reissued letter.",
+                  "The client can provide a separate statement about their hours — the EVL doesn't need to include this.",
+                  "This only matters for PPP cases — for standard PI claims, dates of employment are sufficient.",
+                ],
+                correctOption: 1,
+                feedback: "Full-time status or hours worked is a required element of a sufficient EVL. Without it, the VCF cannot assess the level of exposure. Ask the employer to reissue the letter including this information. For PPP cases it is especially critical — but it is required for all EVLs regardless.",
+              },
+              {
+                id: "evl-3",
+                zone: "Signatory title",
+                displayed: "Signed by Tom Walsh, Senior Operations Manager",
+                options: [
+                  "The signatory's title doesn't matter — any employee can sign an EVL.",
+                  "This may be a problem. An EVL carries the most weight when signed by someone in legal or HR with authority to attest to employment records. An Operations Manager may not have that standing. Ask whether HR or legal can issue or co-sign the letter.",
+                  "Senior Operations Manager is a sufficiently senior title — this is acceptable.",
+                  "Only the CEO or HR Director can sign an EVL.",
+                ],
+                correctOption: 1,
+                feedback: "The signatory matters. The VCF places the most weight on EVLs from legal or HR — someone with institutional authority to attest to employment records. An Operations Manager may not have that standing. Ask whether an HR representative can issue or co-sign the letter before it goes to the VCF.",
+              },
+              {
+                id: "evl-4",
+                zone: "Transmission path",
+                displayed: "Letter was emailed directly to the Client Advocate",
+                options: [
+                  "This is fine — we can forward it to the VCF on the client's behalf.",
+                  "Receiving it first is the right workflow — we review it for sufficiency (which we are doing now). Once the employer reissues a corrected letter, they must send it directly to VCF.Thirdpartyverification@usdoj.gov with subject line \"Third Party Verification Form\" and CC us. Forwarding it ourselves without the employer also transmitting it directly is not sufficient.",
+                  "We can upload it to the CMS — that counts as direct submission to the VCF.",
+                  "Sending it through the CA is acceptable as long as it is accompanied by a cover letter.",
+                ],
+                correctOption: 1,
+                feedback: "Receiving it first is actually the correct workflow — we review for sufficiency before asking the employer to send to the VCF. Once the corrected letter is ready, the employer sends it directly to VCF.Thirdpartyverification@usdoj.gov with subject line \"Third Party Verification Form\" and CCs us. We include our copy in the submission package as backup, but the direct employer transmission is what makes it sufficient.",
+              },
+            ],
+          },
+        ],
+        completionMessage: "This EVL needs to be reissued before it goes anywhere. The employer needs to add a specific work address, full-time status or hours worked, and ideally a signatory from HR or legal. Once corrected, ask them to send directly to the VCF and CC us. Keep our copy for the submission package.",
       },
     },
 
@@ -344,6 +470,87 @@ export const MODULE4 = {
           {
             type: "yajaira-check",
             text: "For Yajaira, we need to attempt to get an EVL or TPV from her former employer at West Broadway. If that's successful and the document meets the standard and is sent directly to the VCF, that may be all we need. If it isn't — employer no longer exists, can't provide sufficient detail, doesn't respond — we document the attempt and build a two-WPS package from former coworkers who can place her at that specific location during the exposure period.",
+          },
+        ],
+      },
+    },
+
+    // ─── CARD 5a: APPLY IT — IDENTIFYING WITNESSES ───
+    {
+      id: "m4-witness-transcript",
+      nav: "Apply It: Identifying Witnesses",
+      type: "transcript",
+      data: {
+        title: "Identifying Witnesses",
+        subtitle: "A call with Robert about potential witnesses for his WPS",
+        intro: "Robert Figueroa's employer is defunct and we have documented the outreach attempt. Now we need two eyewitness WPS. Robert's CA calls to discuss potential witnesses. Read the conversation and answer the decision point.",
+        calls: [
+          {
+            callTitle: "Robert's Witnesses",
+            lines: [
+              {
+                type: "ca",
+                speaker: "Client Advocate",
+                text: "Hi Robert, I wanted to follow up on the witness outreach. We weren't able to get what we needed from Consolidated Power Services, so we're going to need two eyewitness statements from people who saw you working at the lower Manhattan locations. I know you mentioned a few people — can we go through them?",
+              },
+              {
+                type: "client",
+                speaker: "Robert",
+                text: "Sure. So there's my old foreman, Eddie Vasquez. He ran our crew the whole time we were down there. He's retired now but I still talk to him.",
+              },
+              {
+                type: "ca",
+                speaker: "Client Advocate",
+                text: "Great — and he was working with you at the lower Manhattan locations during that whole period?",
+              },
+              {
+                type: "client",
+                speaker: "Robert",
+                text: "Yeah, every day. He was our foreman, he was always there.",
+              },
+              {
+                type: "ca",
+                speaker: "Client Advocate",
+                text: "Perfect. Who else?",
+              },
+              {
+                type: "client",
+                speaker: "Robert",
+                text: "My brother-in-law Marco. He was on the same crew, different trade — he was a pipe fitter, I'm an electrician — but we'd see each other on site every day.",
+              },
+              {
+                type: "ca",
+                speaker: "Client Advocate",
+                text: "And Marco is your wife's brother?",
+              },
+              {
+                type: "client",
+                speaker: "Robert",
+                text: "Yeah, that's right.",
+              },
+              {
+                type: "ca",
+                speaker: "Client Advocate",
+                text: "Got it. Anyone else you can think of?",
+              },
+              {
+                type: "client",
+                speaker: "Robert",
+                text: "There's this younger guy, Danny. He grew up on my block and he ended up working in the area too around that time — he was like a runner or something for one of the other contractors. He's in his early twenties now. Always saying he remembers those days like it was yesterday.",
+              },
+              {
+                type: "decision",
+                question: "Based on this conversation, how should the CA approach the witness situation?",
+                options: [
+                  "Contact all three — Eddie, Marco, and Danny — and schedule WPS calls for each of them.",
+                  "Contact Eddie and Marco. Eddie is non-family and was working on-site throughout the period — he satisfies the non-family requirement. Marco is Robert's brother-in-law (family) but is acceptable as the second witness — note the relationship in the WPS and cover letter. Do not contact Danny — if he is in his early twenties now, he was born around 2002–2004, making him a minor or not yet born on September 11, 2001. Witnesses must have been at least 18 on 9/11.",
+                  "Contact Eddie only — one strong non-family witness is sufficient, and involving a family member weakens the submission.",
+                  "Contact Eddie and Danny — two non-family witnesses are always stronger than mixing family and non-family.",
+                ],
+                correctIndex: 1,
+                feedback: "Eddie is the clearest path — non-family, on-site foreman, present throughout the period. Marco is family (brother-in-law counts as family for VCF purposes) but is acceptable as one of the two witnesses — at least one must be non-family, which Eddie satisfies. Note the relationship clearly in both the WPS and the cover letter. Danny is the critical call: \"early twenties now\" means born around 2002–2004. That makes him a minor or not yet born on 9/11/2001. No matter how clearly he remembers the period, he is ineligible as a witness. Do not contact him for a WPS.",
+              },
+            ],
           },
         ],
       },

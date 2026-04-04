@@ -29,7 +29,7 @@ const MODULES = [
     number: "Module 4",
     title: "Proof of Presence: Building the Case",
     desc: "Sufficient vs. non-sufficient primary evidence, EVLs, TPVs, witness rules, and how to build a POP package.",
-    time: "~35 min",
+    time: "~45 min",
     status: "available",
   },
   {
