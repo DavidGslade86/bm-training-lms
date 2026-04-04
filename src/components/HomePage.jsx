@@ -44,9 +44,9 @@ const MODULES = [
     key: "module-6",
     number: "Module 6",
     title: "Complex Cases",
-    desc: "Deceased claims, Personal Representatives, and economic loss.",
-    time: "Coming soon",
-    status: "coming-soon",
+    desc: "FA claims, the Private Physician Process, and the Expedite pathway.",
+    time: "~35 min",
+    status: "available",
   },
 ];
 

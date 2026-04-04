@@ -5,6 +5,7 @@ import Module2 from "./components/Module2";
 import Module3 from "./components/Module3";
 import Module4 from "./components/Module4";
 import Module5 from "./components/Module5";
+import Module6 from "./components/Module6";
 import JeopardyGame from "./components/JeopardyGame";
 
 export default function App() {
@@ -95,6 +96,20 @@ export default function App() {
   if (currentView === "module-5") {
     return (
       <Module5
+        learner={learner}
+        moduleStartedAt={moduleStartedAt}
+        onHome={() => setCurrentView("home")}
+        onSignIn={() => { setGuestReview(false); setCurrentView("registration"); }}
+        editMode={editMode}
+        onExitEditMode={() => setEditMode(false)}
+        forceReview={guestReview}
+      />
+    );
+  }
+
+  if (currentView === "module-6") {
+    return (
+      <Module6
         learner={learner}
         moduleStartedAt={moduleStartedAt}
         onHome={() => setCurrentView("home")}
