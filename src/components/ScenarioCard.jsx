@@ -37,6 +37,30 @@ export default function ScenarioCard({ data, cardId }) {
         </div>
       )}
 
+      {/* ── Pathway reference boxes (optional) ── */}
+      {data.pathwayBoxes && (
+        <div className="grid grid-cols-1 gap-3 mb-6">
+          {data.pathwayBoxes.map((box, bi) => (
+            <div
+              key={bi}
+              className="rounded-lg px-5 py-4 border flex gap-4 items-start"
+              style={{ background: box.bg, borderColor: box.border }}
+            >
+              <div
+                className="w-9 h-9 rounded-lg flex items-center justify-center text-lg shrink-0 mt-0.5"
+                style={{ background: box.color + "1a", border: `1.5px solid ${box.border}` }}
+              >
+                {box.icon}
+              </div>
+              <div>
+                <div className="text-sm font-bold mb-1" style={{ color: box.color }}>{box.title}</div>
+                <div className="text-sm leading-relaxed" style={{ color: "#374151" }}>{box.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {data.steps.map((st, si) => {
         if (!reviewMode && si > cur) return null;
         const correct    = reviewMode ? true : sa[si] !== undefined;
