@@ -18,6 +18,10 @@ export default function DocumentReviewCard({ data, cardId }) {
   const [active, setActive] = useState(null);           // active error id (expanded)
   const [wrongPicks, setWrongPicks] = useState({});      // { [errorId]: Set<optionIndex> }
 
+  // mode: "find-errors" (default) | "action-items"
+  const mode = data.mode || "find-errors";
+  const isActionItems = mode === "action-items";
+
   // Total errors across all documents
   const totalErrors = useMemo(
     () => data.documents.reduce((sum, doc) => sum + doc.errors.length, 0),
@@ -41,14 +45,39 @@ export default function DocumentReviewCard({ data, cardId }) {
     }
   };
 
+  // Instruction text varies by mode
+  const instructions = data.instructions || (
+    isActionItems
+      ? "Review the note below and identify what action is required for each item."
+      : "Review the document below and find everything that needs to be corrected."
+  );
+
   return (
     <div>
       {/* ── Header ── */}
       <div className="mb-1 text-2xl font-bold text-brand-gray-dk font-heading">{data.title}</div>
       <div className="text-sm mb-3 text-brand-tl">{data.subtitle}</div>
       <p className="text-sm leading-relaxed mb-5 text-brand-tm">
-        <GT t={data.instructions} />
+        <GT t={instructions} />
       </p>
+
+      {/* ── Salesforce note block (optional) ── */}
+      {data.noteText && (
+        <div
+          className="mb-5 rounded-lg border px-5 py-4"
+          style={{ background: "#f8f9fa", borderColor: "#d0d5dd", fontFamily: "monospace" }}
+        >
+          <div
+            className="text-[10px] font-bold tracking-widest mb-2 uppercase"
+            style={{ color: "#6b7280", fontFamily: "system-ui, sans-serif" }}
+          >
+            Salesforce Note
+          </div>
+          <pre className="text-xs leading-relaxed whitespace-pre-wrap m-0" style={{ color: "#1a1a1a", fontFamily: "inherit" }}>
+            {data.noteText}
+          </pre>
+        </div>
+      )}
 
       {/* ── Progress counter ── */}
       <div
@@ -59,7 +88,7 @@ export default function DocumentReviewCard({ data, cardId }) {
           className="text-sm font-bold"
           style={{ color: allFound ? B.ok : B.blue }} /* dynamic: color switches on allFound */
         >
-          {foundCount} of {totalErrors} errors found
+          {foundCount} of {totalErrors} {isActionItems ? "items identified" : "errors found"}
         </span>
         {allFound && <span className="ml-auto text-sm" style={{ color: B.ok }} /* dynamic: ok color */>All found!</span>}
       </div>
@@ -124,7 +153,7 @@ export default function DocumentReviewCard({ data, cardId }) {
                   {isActive && !isFound && !reviewMode && (
                     <div className="mt-2 ml-4 p-3 rounded-lg border" style={{ borderColor: B.sand, background: "white" }} /* dynamic: brand border */>
                       <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: B.grayLt }} /* dynamic: label color */>
-                        What's wrong with this field?
+                        {isActionItems ? "What action is required?" : "What's wrong with this field?"}
                       </div>
                       <div className="space-y-1.5">
                         {err.options.map((opt, oi) => {

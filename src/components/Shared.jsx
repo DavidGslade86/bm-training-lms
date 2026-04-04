@@ -328,6 +328,134 @@ export function Blocks({ blocks, cardId }) {
         </div>
       );
 
+    if (b.type === "multi-select-scenarios")
+      return <MultiSelectScenarios key={i} block={b} />;
+
     return null;
   });
+}
+
+// ── MultiSelectScenarios ─────────────────────────────────────────────────────
+function MultiSelectScenarios({ block }) {
+  const { reviewMode } = useContext(Ctx);
+  // Per-scenario state: selected indices + submitted flag
+  const [states, setStates] = useState(
+    () => block.scenarios.map(() => ({ selected: new Set(), submitted: false }))
+  );
+
+  const toggle = (si, oi) => {
+    if (states[si].submitted) return;
+    setStates(prev => {
+      const next = prev.map((st, idx) => {
+        if (idx !== si) return st;
+        const sel = new Set(st.selected);
+        sel.has(oi) ? sel.delete(oi) : sel.add(oi);
+        return { ...st, selected: sel };
+      });
+      return next;
+    });
+  };
+
+  const submit = (si) => {
+    setStates(prev => prev.map((st, idx) =>
+      idx === si ? { ...st, submitted: true } : st
+    ));
+  };
+
+  return (
+    <div className="my-5 space-y-5">
+      {block.scenarios.map((sc, si) => {
+        const { selected, submitted } = states[si];
+        const correct = new Set(sc.correct);
+        const isCorrect = (oi) => correct.has(oi);
+        const wasSelected = (oi) => selected.has(oi);
+
+        const allCorrect = submitted && [...correct].every(oi => selected.has(oi)) && [...selected].every(oi => correct.has(oi));
+
+        return (
+          <div
+            key={sc.id}
+            className="rounded-lg border overflow-hidden"
+            style={{ borderColor: submitted ? (allCorrect ? B.ok : B.err) + "55" : B.sand }}
+          >
+            {/* Scenario prompt */}
+            <div className="px-5 py-4" style={{ background: B.hdr }}>
+              <div className="text-[10px] font-bold tracking-widest mb-1" style={{ color: B.blue }}>
+                SCENARIO {si + 1}
+              </div>
+              <div className="text-sm leading-relaxed text-white/90">{sc.text}</div>
+            </div>
+
+            {/* Options */}
+            <div className="px-5 py-4 space-y-2" style={{ background: B.ww }}>
+              <div className="text-xs font-bold mb-3" style={{ color: B.tl }}>
+                Select all that apply:
+              </div>
+              {block.options.map((opt, oi) => {
+                const checked = wasSelected(oi) || (reviewMode && isCorrect(oi));
+                let borderColor = B.sand;
+                let bg = "white";
+                let labelColor = B.td;
+                if (submitted || reviewMode) {
+                  if (isCorrect(oi)) { borderColor = B.ok; bg = B.okBg; labelColor = B.ok; }
+                  else if (wasSelected(oi)) { borderColor = B.err; bg = B.errBg; labelColor = B.err; }
+                }
+                return (
+                  <label
+                    key={oi}
+                    className="flex items-start gap-3 px-3 py-2.5 rounded-lg border cursor-pointer transition-colors"
+                    style={{ borderColor, background: bg, cursor: submitted || reviewMode ? "default" : "pointer" }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggle(si, oi)}
+                      disabled={submitted || reviewMode}
+                      className="mt-0.5 shrink-0 cursor-pointer"
+                      style={{ accentColor: B.blue }}
+                    />
+                    <span className="text-sm" style={{ color: labelColor }}>{opt}</span>
+                    {(submitted || reviewMode) && isCorrect(oi) && (
+                      <span className="ml-auto text-xs font-bold shrink-0" style={{ color: B.ok }}>✓</span>
+                    )}
+                    {submitted && !reviewMode && wasSelected(oi) && !isCorrect(oi) && (
+                      <span className="ml-auto text-xs font-bold shrink-0" style={{ color: B.err }}>✗</span>
+                    )}
+                  </label>
+                );
+              })}
+            </div>
+
+            {/* Submit button */}
+            {!submitted && !reviewMode && (
+              <div className="px-5 pb-4" style={{ background: B.ww }}>
+                <button
+                  onClick={() => submit(si)}
+                  disabled={selected.size === 0}
+                  className="px-4 py-2 rounded text-sm font-semibold border-none cursor-pointer disabled:opacity-40 disabled:cursor-default"
+                  style={{ background: B.blue, color: "white" }}
+                >
+                  Submit →
+                </button>
+              </div>
+            )}
+
+            {/* Feedback */}
+            {(submitted || reviewMode) && sc.feedback && (
+              <div
+                className="px-5 py-3 text-sm leading-relaxed border-t"
+                style={{
+                  background: allCorrect || reviewMode ? B.okBg : B.errBg,
+                  color: allCorrect || reviewMode ? B.ok : B.err,
+                  borderColor: allCorrect || reviewMode ? B.ok + "33" : B.err + "33",
+                }}
+              >
+                {sc.feedback}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 }

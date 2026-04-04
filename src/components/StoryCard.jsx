@@ -44,7 +44,7 @@ export default function StoryCard({ data, cardId }) {
         </div>
       </div>
 
-      <div className="text-xs font-bold tracking-widest mb-4 text-brand-tl">WHAT YOU'LL LEARN</div>
+      <div className="text-xs font-bold tracking-widest mb-4 text-brand-tl">{(data.objectivesLabel || "Topics covered").toUpperCase()}</div>
       <div className="grid grid-cols-2 gap-3">
         {data.objectives.map((o, i) => (
           <div key={i} className="flex items-start gap-3 text-sm text-brand-tm">

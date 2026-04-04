@@ -35,10 +35,10 @@ const MODULES = [
   {
     key: "module-5",
     number: "Module 5",
-    title: "Eligibility & Compensation",
-    desc: "Registration deadlines, NEL vs EL, VCF1 amendments, and the PPP.",
-    time: "Coming soon",
-    status: "coming-soon",
+    title: "From Certification to Close",
+    desc: "The claim lifecycle from the Eligibility Ready Note through the Loss Calculation Letter and award review.",
+    time: "~40 min",
+    status: "available",
   },
   {
     key: "module-6",

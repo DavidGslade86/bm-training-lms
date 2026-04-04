@@ -19,6 +19,24 @@ export default function ScenarioCard({ data, cardId }) {
       <div className="text-sm mb-2" style={{color:B.tl}}>{data.subtitle}</div>
       <p className="text-sm mb-5" style={{color:B.tm}}>{data.intro}</p>
 
+      {/* ── Salesforce note block (optional) ── */}
+      {data.noteText && (
+        <div
+          className="mb-5 rounded-lg border px-5 py-4"
+          style={{ background: "#f8f9fa", borderColor: "#d0d5dd", fontFamily: "monospace" }}
+        >
+          <div
+            className="text-[10px] font-bold tracking-widest mb-2 uppercase"
+            style={{ color: "#6b7280", fontFamily: "system-ui, sans-serif" }}
+          >
+            Salesforce Note
+          </div>
+          <pre className="text-xs leading-relaxed whitespace-pre-wrap m-0" style={{ color: "#1a1a1a", fontFamily: "inherit" }}>
+            {data.noteText}
+          </pre>
+        </div>
+      )}
+
       {data.steps.map((st, si) => {
         if (!reviewMode && si > cur) return null;
         const correct    = reviewMode ? true : sa[si] !== undefined;
