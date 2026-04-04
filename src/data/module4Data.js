@@ -251,10 +251,9 @@ To Whom It May Concern:
 
 This letter confirms that Carlos Rivera was employed
 by Meridian Building Services as a maintenance
-technician during the period September 2001 through
-May 2002. During this time, Mr. Rivera performed
-work assignments in Lower Manhattan as directed
-by supervisors.
+technician. Following the events of September 11,
+2001, Mr. Rivera performed work assignments in
+Lower Manhattan as directed by supervisors.
 
 Please contact our HR department with any questions.
 
@@ -281,16 +280,16 @@ Meridian Building Services`,
               },
               {
                 id: "evl-2",
-                zone: "Employment status / hours",
-                displayed: "No statement of full-time status or hours worked",
+                zone: "Employment dates",
+                displayed: "\"Following the events of September 11, 2001\" — no specific start or end date",
                 options: [
-                  "Employment status doesn't need to be stated — dates of employment are sufficient.",
-                  "The EVL must state either full-time employment status or the hours worked at each location. Without this, the document doesn't establish adequate exposure. Request the employer include this in a reissued letter.",
-                  "The client can provide a separate statement about their hours — the EVL doesn't need to include this.",
-                  "This only matters for PPP cases — for standard PI claims, dates of employment are sufficient.",
+                  "This is sufficient — the letter confirms work during the exposure period.",
+                  "The EVL must state the specific date range during which the claimant worked at the location. \"Following September 11, 2001\" without a start and end date is too vague. The employer needs to specify the actual period — e.g., September 13, 2001 through November 30, 2001. If the client is also pursuing the Private Physician Process rather than standard WTCHP certification, the EVL must additionally state full-time employment status or hours worked at each location to satisfy PPP exposure requirements.",
+                  "The client can provide a supplemental statement with the specific dates — the employer's letter doesn't need to include them.",
+                  "A general timeframe referencing the post-9/11 period is understood to mean the exposure window — no revision needed.",
                 ],
                 correctOption: 1,
-                feedback: "Full-time status or hours worked is a required element of a sufficient EVL. Without it, the VCF cannot assess the level of exposure. Ask the employer to reissue the letter including this information. For PPP cases it is especially critical — but it is required for all EVLs regardless.",
+                feedback: "The EVL must state the specific period during which the claimant worked at the location. \"Following September 11, 2001\" gives no end date and no precise start — it's too vague to establish that work occurred within the VCF's exposure window (September 11, 2001 – May 30, 2002). Request a reissued letter with specific dates. One clarification: for a standard WTCHP-certified claim, full-time status or hours worked is not a separate requirement — WTCHP enrollment and certification already accounts for that. Hours worked in the EVL only becomes required when the client is using the Private Physician Process instead.",
               },
               {
                 id: "evl-3",
@@ -556,53 +555,62 @@ Meridian Building Services`,
       },
     },
 
-    // ─── CARD 6: MATCHING ───
+    // ─── CARD 6: SUFFICIENCY SORTER ───
     {
       id: "m4-matching",
-      nav: "Match: Sufficient or Not?",
-      type: "matching",
+      nav: "Check: Sufficient or Not?",
+      type: "content",
       data: {
-        label: "Interactive Exercise",
-        instruction: "Click a document type on the left, then click its category on the right.",
-        pairs: [
+        title: "Sufficient or Not Sufficient?",
+        subtitle: "Classify each document type",
+        intro: "For each document below, decide: is it sufficient primary evidence on its own, or non-sufficient primary evidence that requires two eyewitness Witness Presence Statements alongside it?",
+        blocks: [
           {
-            left: "EVL on company letterhead, specific address and dates, sent directly to VCF by employer",
-            right: "Sufficient primary evidence",
-          },
-          {
-            left: "Certified school transcript sent directly by the school registrar",
-            right: "Sufficient primary evidence",
-          },
-          {
-            left: "Residence verification letter attesting to physical presence during exposure period, sent directly by management company",
-            right: "Sufficient primary evidence",
-          },
-          {
-            left: "Pay stubs showing employer name and address in exposure zone",
-            right: "Non-sufficient primary evidence",
-          },
-          {
-            left: "Lease agreement from the exposure period",
-            right: "Non-sufficient primary evidence",
-          },
-          {
-            left: "Union roster showing member name and general assignment, no specific address",
-            right: "Non-sufficient primary evidence",
-          },
-          {
-            left: "Work ID badge from a site in the exposure zone",
-            right: "Non-sufficient primary evidence",
-          },
-          {
-            left: "Tax return showing residential address in the exposure zone",
-            right: "Non-sufficient primary evidence",
-          },
-          {
-            left: "Victim Presence Statement",
-            right: "Non-sufficient primary evidence",
+            type: "sufficiency-quiz",
+            items: [
+              {
+                label: "EVL on company letterhead, specific address and date range, sent directly to the VCF by the employer",
+                sufficient: true,
+                feedback: "Sufficient. Authoritative source, specific location, specific dates, direct transmission — meets every element of the standard.",
+              },
+              {
+                label: "Certified school transcript sent directly by the school registrar, showing enrollment at a school in the exposure zone during the exposure period",
+                sufficient: true,
+                feedback: "Sufficient. A certified transcript from the registrar meets the direct-transmission-from-authoritative-source standard for school attendance.",
+              },
+              {
+                label: "Residence verification letter from a building management company, attesting to the claimant's physical presence at a specific address during the exposure period, sent directly by management",
+                sufficient: true,
+                feedback: "Sufficient. A residence verification letter sent directly by the managing entity with specific address and dates meets the standard for residents.",
+              },
+              {
+                label: "Pay stubs showing the employer's name and address in the exposure zone",
+                sufficient: false,
+                feedback: "Non-sufficient. Pay stubs show employment connection but do not directly attest to physical presence at a specific location. Submit alongside two eyewitness WPS.",
+              },
+              {
+                label: "Lease agreement from the exposure period for an address in the exposure zone",
+                sufficient: false,
+                feedback: "Non-sufficient. A lease establishes residential connection but not physical presence — the claimant signed a lease but that doesn't confirm they were there. Submit alongside two eyewitness WPS.",
+              },
+              {
+                label: "Union roster showing the claimant's name and a general area assignment, with no specific worksite address",
+                sufficient: false,
+                feedback: "Non-sufficient. Without a specific address, a union roster can't establish exactly where the claimant was. A TPV from the union with specific location and dates would be sufficient — the roster alone is not.",
+              },
+              {
+                label: "Work ID badge from a site in the exposure zone",
+                sufficient: false,
+                feedback: "Non-sufficient. A badge shows affiliation with a site but not the specific dates the claimant was physically present there. Submit alongside two eyewitness WPS.",
+              },
+              {
+                label: "Tax return showing the claimant's residential address in the exposure zone during the exposure period",
+                sufficient: false,
+                feedback: "Non-sufficient. Tax records establish residency connection but not physical presence. Submit alongside two eyewitness WPS.",
+              },
+            ],
           },
         ],
-        successMessage: "The dividing line is always the same — does this come directly from an authoritative source with specific location and date confirmation? If yes, it may be sufficient on its own. If it shows connection to a location without directly attesting to physical presence, it is non-sufficient primary evidence and should be submitted alongside witness statements. Note: two eyewitness Witness Presence Statements can be sufficient to establish presence — but witness statements are in a separate category from primary evidence entirely.",
       },
     },
 

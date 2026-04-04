@@ -331,8 +331,157 @@ export function Blocks({ blocks, cardId }) {
     if (b.type === "multi-select-scenarios")
       return <MultiSelectScenarios key={i} block={b} />;
 
+    if (b.type === "sufficiency-quiz")
+      return <SufficiencyQuiz key={i} block={b} />;
+
     return null;
   });
+}
+
+// ── SufficiencyQuiz ──────────────────────────────────────────────────────────
+// Binary Sufficient / Not Sufficient classifier per item.
+// block.items = [{ label, sufficient (bool), feedback }]
+function SufficiencyQuiz({ block }) {
+  const { reviewMode } = useContext(Ctx);
+  const [answers, setAnswers] = useState(
+    () => block.items.map(() => ({ choice: null })) // choice: null | "s" | "ns"
+  );
+
+  const choose = (idx, choice) => {
+    if (answers[idx].choice !== null || reviewMode) return;
+    setAnswers(prev => prev.map((a, i) => i === idx ? { choice } : a));
+  };
+
+  return (
+    <div className="my-5 space-y-3">
+      {block.items.map((item, idx) => {
+        const { choice } = answers[idx];
+        const answered = choice !== null || reviewMode;
+        const correctChoice = item.sufficient ? "s" : "ns";
+        const isCorrect = choice === correctChoice;
+
+        // Button style helper
+        const btnStyle = (btn) => {
+          // btn = "s" or "ns"
+          const isSuf = btn === "s";
+          const correctBtn = isSuf === item.sufficient; // is this button the right answer?
+          if (!answered) {
+            // default idle state
+            return {
+              background: isSuf ? "#f0faf4" : "#fdf2f2",
+              border: `1.5px solid ${isSuf ? "#b3dcca" : "#f5c0c0"}`,
+              color: isSuf ? "#2d7a55" : "#b54a4a",
+              opacity: 1,
+              cursor: "pointer",
+            };
+          }
+          // answered (or reviewMode) — highlight correct, dim wrong
+          if (correctBtn) {
+            // always highlight the correct button after answer / in review
+            return {
+              background: isSuf ? "#d1fae5" : "#fee2e2",
+              border: `1.5px solid ${isSuf ? B.ok : B.err}`,
+              color: isSuf ? B.ok : B.err,
+              fontWeight: 700,
+              cursor: "default",
+            };
+          }
+          // wrong button — dim it out
+          if (choice === btn && !isCorrect) {
+            // user chose THIS wrong button — show strikethrough dim
+            return {
+              background: isSuf ? "#f0faf4" : "#fdf2f2",
+              border: `1.5px solid ${isSuf ? "#b3dcca" : "#f5c0c0"}`,
+              color: isSuf ? "#2d7a5580" : "#b54a4a80",
+              cursor: "default",
+              textDecoration: "line-through",
+            };
+          }
+          return {
+            background: "transparent",
+            border: "1.5px solid #e2d9cc",
+            color: "#c0b8ae",
+            cursor: "default",
+          };
+        };
+
+        // Row border reflects result
+        const rowBorder = !answered ? B.sand
+          : isCorrect || reviewMode ? B.ok + "55" : B.err + "55";
+        const rowBg = !answered ? B.ww
+          : isCorrect || reviewMode ? "#f0fdf4" : "#fff5f5";
+
+        return (
+          <div
+            key={idx}
+            className="rounded-lg border overflow-hidden"
+            style={{ borderColor: rowBorder, background: rowBg, transition: "border-color 0.2s" }}
+          >
+            <div className="px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+              {/* Label */}
+              <div className="flex-1 text-sm leading-relaxed" style={{ color: B.td }}>
+                {item.label}
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-2 shrink-0">
+                <button
+                  onClick={() => choose(idx, "s")}
+                  className="px-3 py-1.5 rounded text-xs font-bold transition-all"
+                  style={btnStyle("s")}
+                >
+                  ✓ Sufficient
+                </button>
+                <button
+                  onClick={() => choose(idx, "ns")}
+                  className="px-3 py-1.5 rounded text-xs font-bold transition-all"
+                  style={btnStyle("ns")}
+                >
+                  ✗ Not Sufficient
+                </button>
+              </div>
+
+              {/* Result badge */}
+              {answered && !reviewMode && (
+                <div
+                  className="text-xs font-bold shrink-0 px-2 py-1 rounded"
+                  style={{
+                    background: isCorrect ? B.ok + "1a" : B.err + "1a",
+                    color: isCorrect ? B.ok : B.err,
+                    border: `1px solid ${isCorrect ? B.ok + "55" : B.err + "55"}`,
+                  }}
+                >
+                  {isCorrect ? "Correct ✓" : "Incorrect ✗"}
+                </div>
+              )}
+              {reviewMode && (
+                <div
+                  className="text-xs font-bold shrink-0 px-2 py-1 rounded"
+                  style={{ background: B.ok + "1a", color: B.ok, border: `1px solid ${B.ok + "55"}` }}
+                >
+                  {item.sufficient ? "Sufficient" : "Not Sufficient"}
+                </div>
+              )}
+            </div>
+
+            {/* Feedback — shown after answering */}
+            {(answered) && item.feedback && (
+              <div
+                className="px-4 py-2.5 text-xs leading-relaxed border-t"
+                style={{
+                  background: isCorrect || reviewMode ? "#f0fdf4" : "#fff5f5",
+                  color: isCorrect || reviewMode ? "#2d7a55" : "#b54a4a",
+                  borderColor: isCorrect || reviewMode ? B.ok + "33" : B.err + "33",
+                }}
+              >
+                {item.feedback}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 // ── MultiSelectScenarios ─────────────────────────────────────────────────────
