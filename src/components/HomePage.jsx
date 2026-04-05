@@ -56,6 +56,14 @@ const ACTIVITIES = [
     label: "Activity",
     title: "Jeopardy Review",
     desc: "25 questions across two programs, proof of presence, intake documents, timing rules, and firm process. Best played with a group.",
+    style: "jeopardy",
+  },
+  {
+    key: "final-assessment",
+    label: "Assessment",
+    title: "Final Assessment",
+    desc: "20 questions covering all six modules \u2014 two programs, qualified conditions, intake documents, proof of presence, claim lifecycle, complex cases, and firm process.",
+    style: "assessment",
   },
 ];
 
@@ -239,48 +247,67 @@ export default function HomePage({ learner, onStartModule, onStartActivity, edit
       <div className="max-w-[960px] mx-auto px-8 pb-12">
         <h2 className="text-xs font-bold tracking-widest text-brand-tl mb-4">ACTIVITIES</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {ACTIVITIES.map((a) => (
-            <div
-              key={a.key}
-              className="rounded-lg overflow-hidden flex flex-col"
-              style={{ background: "#1a3a8f", border: "1px solid #2a4aaf" }}
-            >
-              <div className="px-5 pt-5 pb-4 flex-1">
-                <div className="flex items-center justify-between mb-2">
-                  <span
-                    className="text-[11px] font-bold tracking-widest"
-                    style={{ color: "rgba(240,192,64,0.7)" }}
+          {ACTIVITIES.map((a) => {
+            const isAssessment = a.style === "assessment";
+            return (
+              <div
+                key={a.key}
+                className="rounded-lg overflow-hidden flex flex-col"
+                style={{
+                  background: isAssessment ? "#009bdf" : "#1a3a8f",
+                  border: `1px solid ${isAssessment ? "#0081ba" : "#2a4aaf"}`,
+                }}
+              >
+                <div className="px-5 pt-5 pb-4 flex-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <span
+                      className="text-[11px] font-bold tracking-widest"
+                      style={{ color: isAssessment ? "rgba(255,255,255,0.6)" : "rgba(240,192,64,0.7)" }}
+                    >
+                      {a.label.toUpperCase()}
+                    </span>
+                    {!isAssessment && (
+                      <span
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                        style={{ background: "rgba(240,192,64,0.15)", color: "#f0c040", border: "1px solid rgba(240,192,64,0.3)" }}
+                      >
+                        Group Play
+                      </span>
+                    )}
+                    {isAssessment && (
+                      <span
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                        style={{ background: "rgba(255,255,255,0.15)", color: "white", border: "1px solid rgba(255,255,255,0.3)" }}
+                      >
+                        20 Questions
+                      </span>
+                    )}
+                  </div>
+                  <h3
+                    className="text-base font-bold font-heading mb-1.5"
+                    style={{ color: isAssessment ? "white" : "#f0c040" }}
                   >
-                    {a.label.toUpperCase()}
-                  </span>
-                  <span
-                    className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                    style={{ background: "rgba(240,192,64,0.15)", color: "#f0c040", border: "1px solid rgba(240,192,64,0.3)" }}
-                  >
-                    Group Play
-                  </span>
+                    {a.title}
+                  </h3>
+                  <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
+                    {a.desc}
+                  </p>
                 </div>
-                <h3
-                  className="text-base font-bold font-heading mb-1.5"
-                  style={{ color: "#f0c040" }}
-                >
-                  {a.title}
-                </h3>
-                <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
-                  {a.desc}
-                </p>
+                <div className="px-5 pb-5">
+                  <button
+                    onClick={() => onStartActivity(a.key)}
+                    className="w-full py-2.5 rounded-md text-sm font-bold border-none cursor-pointer"
+                    style={{
+                      background: isAssessment ? "white" : "#f0c040",
+                      color: isAssessment ? "#009bdf" : "#1a1a1a",
+                    }}
+                  >
+                    {isAssessment ? "Begin →" : "Play →"}
+                  </button>
+                </div>
               </div>
-              <div className="px-5 pb-5">
-                <button
-                  onClick={() => onStartActivity(a.key)}
-                  className="w-full py-2.5 rounded-md text-sm font-bold border-none cursor-pointer"
-                  style={{ background: "#f0c040", color: "#1a1a1a" }}
-                >
-                  Play →
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

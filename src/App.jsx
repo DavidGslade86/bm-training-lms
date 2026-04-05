@@ -7,6 +7,7 @@ import Module4 from "./components/Module4";
 import Module5 from "./components/Module5";
 import Module6 from "./components/Module6";
 import JeopardyGame from "./components/JeopardyGame";
+import FinalAssessment from "./components/FinalAssessment";
 
 export default function App() {
   const [currentView, setCurrentView] = useState("registration");
@@ -35,6 +36,15 @@ export default function App() {
   if (currentView === "jeopardy") {
     return (
       <JeopardyGame
+        learner={learner}
+        onBack={() => setCurrentView(learner ? "home" : "registration")}
+      />
+    );
+  }
+
+  if (currentView === "final-assessment") {
+    return (
+      <FinalAssessment
         learner={learner}
         onBack={() => setCurrentView(learner ? "home" : "registration")}
       />

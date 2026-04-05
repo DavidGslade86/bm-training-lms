@@ -1,0 +1,364 @@
+import { useState, useRef } from "react";
+import { B } from "../data/brand";
+import { FINAL_ASSESSMENT } from "../data/finalAssessmentData";
+import bmLogo from "../assets/Barasch_McGarry_Logo_2020_RGB.png";
+
+const PA_URL = import.meta.env.VITE_POWERAUTOMATE_URL;
+const OPT_LETTERS = ["A", "B", "C", "D"];
+
+export default function FinalAssessment({ learner, onBack }) {
+  const [answers, setAnswers] = useState({});   // { questionIndex: selectedOptionIndex }
+  const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
+  const topRef = useRef(null);
+
+  const questions = FINAL_ASSESSMENT.questions;
+  const sections  = FINAL_ASSESSMENT.sections;
+  const total     = questions.length;
+  const answeredCount = Object.keys(answers).length;
+  const allAnswered   = answeredCount >= total;
+
+  // ── Score calculation (live, but only displayed after submit) ──
+  const score = questions.reduce(
+    (sum, q, qi) => sum + (answers[qi] === q.correctIndex ? 1 : 0), 0
+  );
+  const pct = total > 0 ? Math.round((score / total) * 100) : 0;
+
+  const sectionScores = sections.map((sec) => {
+    const [start, end] = sec.range;
+    let correct = 0, count = 0;
+    for (let i = start; i <= end; i++) {
+      count++;
+      if (answers[i] === questions[i].correctIndex) correct++;
+    }
+    return { label: sec.label, correct, total: count };
+  });
+
+  // ── Handlers ──
+  const handleSelect = (qIdx, optIdx) => {
+    if (submitted) return;
+    setAnswers((prev) => ({ ...prev, [qIdx]: optIdx }));
+  };
+
+  const handleSubmit = async () => {
+    if (!allAnswered) return;
+    setSubmitted(true);
+    topRef.current?.scrollIntoView({ behavior: "smooth" });
+
+    // POST to Power Automate if configured
+    if (PA_URL) {
+      try {
+        setSending(true);
+        await fetch(PA_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "final-assessment",
+            learnerName: learner?.name || "Unknown",
+            learnerEmail: learner?.email || "",
+            learnerRole: learner?.role || "",
+            score,
+            totalQuestions: total,
+            percentage: pct,
+            sectionBreakdown: sectionScores,
+            completedAt: new Date().toISOString(),
+          }),
+        });
+      } catch {
+        // Silently fail — don't block the learner
+      } finally {
+        setSending(false);
+      }
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-brand-cream" ref={topRef}>
+
+      {/* ── Header ── */}
+      <div className="bg-brand-hdr shadow-[0_2px_12px_rgba(0,0,0,0.2)]">
+        <div className="max-w-[720px] mx-auto px-8 py-5 flex items-center justify-between">
+          <div className="flex items-center gap-5">
+            <div className="bg-white rounded px-2 py-1 inline-flex items-center">
+              <img src={bmLogo} alt="B&M" className="h-8" />
+            </div>
+            <div className="w-px h-5 bg-white/15" />
+            <span className="text-sm font-bold text-white font-heading">Final Assessment</span>
+          </div>
+          <button
+            onClick={onBack}
+            className="text-xs text-white/50 hover:text-white transition-colors cursor-pointer bg-transparent border-none"
+          >
+            ← Back to Home
+          </button>
+        </div>
+      </div>
+
+      {/* ── Content ── */}
+      <div className="max-w-[720px] mx-auto px-8 py-10">
+
+        {/* Title */}
+        <div className="mb-2 text-2xl font-bold text-brand-gray-dk font-heading">
+          {FINAL_ASSESSMENT.title}
+        </div>
+        <div className="text-sm mb-1 text-brand-tl">{FINAL_ASSESSMENT.subtitle}</div>
+        {!submitted && (
+          <div className="text-sm mb-8 text-brand-tm leading-relaxed">
+            {FINAL_ASSESSMENT.description}
+          </div>
+        )}
+
+        {/* ── Score summary (after submit) ── */}
+        {submitted && (
+          <div className="mb-8 mt-4">
+            {/* Overall score card */}
+            <div
+              className="rounded-xl p-6 mb-5"
+              style={{
+                background: pct >= 80 ? B.okBg : pct >= 60 ? "#fef9c3" : B.errBg,
+                border: `2px solid ${pct >= 80 ? B.ok : pct >= 60 ? "#f59e0b" : B.err}`,
+              }}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div
+                  className="text-3xl font-bold font-heading"
+                  style={{ color: pct >= 80 ? B.ok : pct >= 60 ? "#92400e" : B.err }}
+                >
+                  {score} / {total}
+                </div>
+                <div
+                  className="text-sm font-bold px-3 py-1 rounded-full"
+                  style={{
+                    background: pct >= 80 ? B.ok : pct >= 60 ? "#f59e0b" : B.err,
+                    color: "white",
+                  }}
+                >
+                  {pct}%
+                </div>
+              </div>
+              <div
+                className="text-sm font-semibold"
+                style={{ color: pct >= 80 ? "#2d5a3f" : pct >= 60 ? "#78350f" : "#9a3030" }}
+              >
+                {pct >= 80
+                  ? "Excellent work! You have a strong grasp of the material."
+                  : pct >= 60
+                  ? "Good effort. Review the sections below to strengthen your understanding."
+                  : "Additional review is recommended. Focus on the sections highlighted below."}
+              </div>
+              {sending && (
+                <div className="text-xs mt-2 text-brand-tl">Submitting results…</div>
+              )}
+            </div>
+
+            {/* Section breakdown table */}
+            <div className="rounded-lg border overflow-hidden mb-6" style={{ borderColor: B.sand }}>
+              <div
+                className="px-5 py-3 text-xs font-bold tracking-widest"
+                style={{ background: B.cream, color: B.tl, borderBottom: `1px solid ${B.sand}` }}
+              >
+                SECTION BREAKDOWN
+              </div>
+              <div style={{ background: B.ww }}>
+                {sectionScores.map((sec, i) => {
+                  const secPct = sec.total > 0 ? Math.round((sec.correct / sec.total) * 100) : 0;
+                  return (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between px-5 py-3 text-sm"
+                      style={{
+                        borderBottom: i < sectionScores.length - 1 ? `1px solid ${B.sand}` : "none",
+                      }}
+                    >
+                      <span className="text-brand-td font-medium">{sec.label}</span>
+                      <span
+                        className="text-xs font-bold px-2 py-0.5 rounded"
+                        style={{
+                          background: secPct >= 80 ? B.okBg : secPct >= 60 ? "#fef9c3" : B.errBg,
+                          color: secPct >= 80 ? B.ok : secPct >= 60 ? "#92400e" : B.err,
+                        }}
+                      >
+                        {sec.correct}/{sec.total}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="text-xs text-brand-tl mb-6">
+              Scroll down to review each question. Correct answers are highlighted in green;
+              incorrect selections are highlighted in red.
+            </div>
+          </div>
+        )}
+
+        {/* ── Questions grouped by section ── */}
+        {sections.map((sec, si) => {
+          const [start, end] = sec.range;
+          return (
+            <div key={si}>
+              {/* Section divider */}
+              <div
+                className="mb-4 mt-8"
+                style={{ borderLeft: `3px solid ${B.blue}`, paddingLeft: 12 }}
+              >
+                <div className="text-sm font-bold text-brand-gray-dk font-heading">
+                  {sec.label}
+                </div>
+              </div>
+
+              {/* Questions in this section */}
+              {questions.slice(start, end + 1).map((q, offset) => {
+                const qi = start + offset;          // global question index
+                const selected  = answers[qi];
+                const isCorrect = submitted && selected === q.correctIndex;
+                const isWrong   = submitted && selected !== undefined && selected !== q.correctIndex;
+
+                return (
+                  <div
+                    key={q.id}
+                    className="rounded-lg p-5 mb-3 transition-colors duration-200"
+                    style={{
+                      background: submitted ? (isCorrect ? B.okBg : isWrong ? B.errBg : B.ww) : B.ww,
+                      border: `1px solid ${submitted ? (isCorrect ? "#b8d5c4" : isWrong ? "#e8b4b4" : B.sand) : B.sand}`,
+                    }}
+                  >
+                    {/* Question header */}
+                    <div className="flex items-center justify-between mb-2">
+                      <div
+                        className="text-xs font-bold tracking-widest"
+                        style={{ color: submitted ? (isCorrect ? B.ok : isWrong ? B.err : B.blue) : B.blue }}
+                      >
+                        Q{qi + 1} / {total}
+                      </div>
+                      {submitted && isCorrect && (
+                        <div className="text-xs font-bold text-brand-ok">✓ Correct</div>
+                      )}
+                      {submitted && isWrong && (
+                        <div className="text-xs font-bold" style={{ color: B.err }}>✗ Incorrect</div>
+                      )}
+                    </div>
+
+                    {/* Question text */}
+                    <div className="text-sm font-bold mb-3 text-brand-gray-dk font-heading">
+                      {q.question}
+                    </div>
+
+                    {/* Options */}
+                    <div className="flex flex-col gap-2">
+                      {q.options.map((o, oi) => {
+                        const isSel   = selected === oi;
+                        const isRight = q.correctIndex === oi;
+
+                        // Option box style
+                        let st = { border: `1.5px solid ${B.sand}`, background: "white", color: B.tm };
+                        if (!submitted) {
+                          if (isSel) st = { border: `1.5px solid ${B.blue}`, background: B.blueLt, color: B.blueDk };
+                        } else {
+                          if (isRight)            st = { border: `1.5px solid ${B.ok}`,  background: B.okBg,    color: "#2d5a3f" };
+                          else if (isSel)         st = { border: `1.5px solid ${B.err}`, background: B.errBg,   color: "#9a3030" };
+                          else                    st = { border: `1.5px solid ${B.sand}`, background: "#f7f5f0", color: "#aaa" };
+                        }
+
+                        // Circle indicator
+                        const cBd = submitted && isRight ? B.ok
+                          : submitted && isSel ? B.err
+                          : isSel ? B.blue : "#ddd";
+                        const cBg = submitted && isRight ? B.ok
+                          : submitted && isSel ? B.err
+                          : isSel ? B.blue : "transparent";
+                        const cCl = (submitted && isRight) || (submitted && isSel) || isSel ? "white" : "#999";
+
+                        return (
+                          <div
+                            key={oi}
+                            onClick={() => handleSelect(qi, oi)}
+                            className="flex items-center gap-3 px-3 py-2.5 rounded text-sm transition-all duration-100"
+                            style={{ ...st, cursor: submitted ? "default" : "pointer" }}
+                          >
+                            <div
+                              className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                              style={{ border: `1.5px solid ${cBd}`, background: cBg, color: cCl }}
+                            >
+                              {OPT_LETTERS[oi]}
+                            </div>
+                            <span>{o}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Feedback (post-submit) */}
+                    {submitted && q.feedback && (
+                      <div
+                        className="mt-3 p-3 rounded-md text-xs leading-relaxed"
+                        style={{
+                          background: isCorrect ? "rgba(74,140,111,0.08)" : "rgba(181,74,74,0.08)",
+                          color: isCorrect ? "#2d5a3f" : "#6b3030",
+                          border: `1px solid ${isCorrect ? "rgba(74,140,111,0.2)" : "rgba(181,74,74,0.2)"}`,
+                        }}
+                      >
+                        {q.feedback}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+
+        {/* ── Progress bar + Submit ── */}
+        {!submitted && (
+          <div className="mt-8 mb-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs text-brand-tl">
+                {answeredCount} of {total} answered
+              </span>
+              {!allAnswered && (
+                <span className="text-xs text-brand-tl">
+                  {total - answeredCount} remaining
+                </span>
+              )}
+            </div>
+            <div className="w-full h-2 rounded-full mb-5" style={{ background: B.sand }}>
+              <div
+                className="h-2 rounded-full transition-all duration-300"
+                style={{
+                  width: `${(answeredCount / total) * 100}%`,
+                  background: allAnswered ? B.ok : B.blue,
+                }}
+              />
+            </div>
+            <button
+              onClick={handleSubmit}
+              disabled={!allAnswered}
+              className="w-full py-3 rounded-lg text-sm font-bold border-none transition-all"
+              style={{
+                background: allAnswered ? B.blue : B.sand,
+                color: allAnswered ? "white" : B.tl,
+                cursor: allAnswered ? "pointer" : "default",
+              }}
+            >
+              {allAnswered ? "Submit Assessment" : `Answer all ${total} questions to submit`}
+            </button>
+          </div>
+        )}
+
+        {/* Back to Home (post-submit) */}
+        {submitted && (
+          <div className="mt-8 mb-4 flex flex-col items-center gap-3">
+            <button
+              onClick={onBack}
+              className="px-8 py-3 rounded-lg text-sm font-bold text-white border-none cursor-pointer"
+              style={{ background: B.blue }}
+            >
+              ← Back to Home
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
