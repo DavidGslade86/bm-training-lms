@@ -41,7 +41,7 @@ export function ET({ cardId, path, value, children, multiline = false, className
   };
 
   if (editing) {
-    const cls = "border-2 border-amber-400 rounded px-2 py-1 bg-amber-50 focus:outline-none w-full text-sm";
+    const cls = "border-2 border-amber-400 rounded px-2 py-1 bg-amber-50 text-gray-900 focus:outline-none w-full text-sm";
     return multiline
       ? <textarea
           className={cls}
@@ -63,7 +63,7 @@ export function ET({ cardId, path, value, children, multiline = false, className
 
   return (
     <span
-      className={`cursor-text rounded transition-all hover:outline hover:outline-2 hover:outline-amber-400/60 hover:outline-offset-1 hover:bg-amber-50/30 ${className}`}
+      className={`cursor-text rounded transition-all hover:outline hover:outline-2 hover:outline-amber-400/60 hover:outline-offset-1 hover:bg-amber-50 hover:text-gray-900 ${className}`}
       title="Click to edit"
       onClick={() => { setDraft(value); setEditing(true); }}
     >
