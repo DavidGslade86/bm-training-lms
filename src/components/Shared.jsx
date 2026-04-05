@@ -189,15 +189,21 @@ export function Blocks({ blocks, cardId }) {
         </div>
       );
 
-    if (b.type === "yajaira-check")
+    if (b.type === "yajaira-check") {
+      const YTag = editMode ? "div" : "p";
       return (
         <div key={i} className="rounded-lg p-4 my-5 flex gap-3 items-start bg-brand-ww border border-brand-sand">
           <div className="w-9 h-9 rounded-full overflow-hidden shrink-0">
             <img src={yajairaImg} alt="Yajaira" className="w-full h-full object-cover"/>
           </div>
-          <p className="text-sm leading-relaxed text-brand-tm"><GT t={b.text}/></p>
+          <YTag className="text-sm leading-relaxed text-brand-tm">
+            {editMode && cardId
+              ? <ET cardId={cardId} path={`data.blocks.${i}.text`} value={b.text} multiline><GT t={b.text}/></ET>
+              : <GT t={b.text}/>}
+          </YTag>
         </div>
       );
+    }
 
     if (b.type === "program-cards")
       return (
@@ -206,12 +212,25 @@ export function Blocks({ blocks, cardId }) {
             <div key={ci} className="rounded-lg p-5 bg-brand-ww border border-brand-sand">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{background:c.iconBg}} /* dynamic: color from card data */>{c.icon}</div>
-                <div className="font-bold text-sm text-brand-gray-dk font-heading"><GT t={c.title}/></div>
+                <div className="font-bold text-sm text-brand-gray-dk font-heading">
+                  {editMode && cardId
+                    ? <ET cardId={cardId} path={`data.blocks.${i}.cards.${ci}.title`} value={c.title}><GT t={c.title}/></ET>
+                    : <GT t={c.title}/>}
+                </div>
               </div>
-              <div className="text-xs mb-3 text-brand-tl"><GT t={c.agency}/></div>
+              <div className="text-xs mb-3 text-brand-tl">
+                {editMode && cardId
+                  ? <ET cardId={cardId} path={`data.blocks.${i}.cards.${ci}.agency`} value={c.agency}>{c.agency}</ET>
+                  : <GT t={c.agency}/>}
+              </div>
               {c.bullets.map((bl, bi) => (
                 <div key={bi} className="flex gap-2 text-sm mb-1 text-brand-tm">
-                  <span style={{color:c.accent}} /* dynamic: accent color from card data */>•</span><span><GT t={bl}/></span>
+                  <span style={{color:c.accent}} /* dynamic: accent color from card data */>•</span>
+                  <span>
+                    {editMode && cardId
+                      ? <ET cardId={cardId} path={`data.blocks.${i}.cards.${ci}.bullets.${bi}`} value={bl}><GT t={bl}/></ET>
+                      : <GT t={bl}/>}
+                  </span>
                 </div>
               ))}
             </div>
@@ -224,14 +243,22 @@ export function Blocks({ blocks, cardId }) {
         <div key={i} className="my-5 rounded-lg overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr>{b.headers.map((h, hi) => <th key={hi} className="text-left px-4 py-3 text-xs font-bold text-white bg-brand-gray-dk">{h}</th>)}</tr>
+              <tr>{b.headers.map((h, hi) => (
+                <th key={hi} className="text-left px-4 py-3 text-xs font-bold text-white bg-brand-gray-dk">
+                  {editMode && cardId
+                    ? <ET cardId={cardId} path={`data.blocks.${i}.headers.${hi}`} value={h}>{h}</ET>
+                    : h}
+                </th>
+              ))}</tr>
             </thead>
             <tbody>
               {b.rows.map((row, ri) => (
                 <tr key={ri}>
                   {row.map((cell, ci) => (
                     <td key={ci} className="px-4 py-2.5 border-b border-brand-sand bg-brand-ww align-top text-[13px]" style={{color:ci===0?B.td:B.tm,fontWeight:ci===0?600:400}} /* dynamic: column-index styling */>
-                      <GT t={cell}/>
+                      {editMode && cardId
+                        ? <ET cardId={cardId} path={`data.blocks.${i}.rows.${ri}.${ci}`} value={cell} multiline><GT t={cell}/></ET>
+                        : <GT t={cell}/>}
                     </td>
                   ))}
                 </tr>
@@ -246,12 +273,24 @@ export function Blocks({ blocks, cardId }) {
         <div key={i} className="grid grid-cols-3 gap-4 my-5">
           {b.tiers.map((t, ti) => (
             <div key={ti} className="rounded-lg p-5" style={{background:t.bg,border:`1px solid ${t.border}`}} /* dynamic: tier-specific colors from data */>
-              <div className="font-bold text-base mb-1 font-heading" style={{color:t.color}} /* dynamic: tier color */><GT t={t.name}/></div>
-              <div className="text-xs font-bold tracking-wide mb-3 uppercase" style={{color:t.color,letterSpacing:1}} /* dynamic: tier color + custom tracking */>{t.label}</div>
+              <div className="font-bold text-base mb-1 font-heading" style={{color:t.color}} /* dynamic: tier color */>
+                {editMode && cardId
+                  ? <ET cardId={cardId} path={`data.blocks.${i}.tiers.${ti}.name`} value={t.name}><GT t={t.name}/></ET>
+                  : <GT t={t.name}/>}
+              </div>
+              <div className="text-xs font-bold tracking-wide mb-3 uppercase" style={{color:t.color,letterSpacing:1}} /* dynamic: tier color + custom tracking */>
+                {editMode && cardId
+                  ? <ET cardId={cardId} path={`data.blocks.${i}.tiers.${ti}.label`} value={t.label}>{t.label}</ET>
+                  : t.label}
+              </div>
               {t.items.map((item, ii) => (
                 <div key={ii} className="flex gap-2 text-xs mb-1 text-brand-tm">
                   <span className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0" style={{background:t.color}} /* dynamic: tier color *//>
-                  <span><GT t={item}/></span>
+                  <span>
+                    {editMode && cardId
+                      ? <ET cardId={cardId} path={`data.blocks.${i}.tiers.${ti}.items.${ii}`} value={item}><GT t={item}/></ET>
+                      : <GT t={item}/>}
+                  </span>
                 </div>
               ))}
             </div>
@@ -264,11 +303,23 @@ export function Blocks({ blocks, cardId }) {
         <div key={i} className="grid grid-cols-2 gap-4 my-5">
           {b.groups.map((g, gi) => (
             <div key={gi} className="rounded-lg p-5 bg-brand-ww border border-brand-sand">
-              <div className="font-bold text-sm mb-3 text-brand-gray-dk font-heading">{g.title}</div>
+              <div className="font-bold text-sm mb-3 text-brand-gray-dk font-heading">
+                {editMode && cardId
+                  ? <ET cardId={cardId} path={`data.blocks.${i}.groups.${gi}.title`} value={g.title}>{g.title}</ET>
+                  : g.title}
+              </div>
               {g.rows.map((r, ri) => (
                 <div key={ri} className="flex justify-between py-1.5 text-xs border-b border-black/5">
-                  <span className="text-brand-tm">{r.period}</span>
-                  <span className="font-bold text-brand-gray-dk">{r.hours}</span>
+                  <span className="text-brand-tm">
+                    {editMode && cardId
+                      ? <ET cardId={cardId} path={`data.blocks.${i}.groups.${gi}.rows.${ri}.period`} value={r.period}>{r.period}</ET>
+                      : r.period}
+                  </span>
+                  <span className="font-bold text-brand-gray-dk">
+                    {editMode && cardId
+                      ? <ET cardId={cardId} path={`data.blocks.${i}.groups.${gi}.rows.${ri}.hours`} value={r.hours}>{r.hours}</ET>
+                      : r.hours}
+                  </span>
                 </div>
               ))}
             </div>
@@ -281,28 +332,49 @@ export function Blocks({ blocks, cardId }) {
         <div key={i} className="my-4">
           {b.items.map((item, ii) => (
             <div key={ii} className="flex items-center gap-4 py-2.5 text-sm border-b border-black/[0.06]">
-              <span className="font-bold min-w-24 text-brand-gray-dk">{item.time}</span>
-              <span className="text-brand-tm"><GT t={item.desc}/></span>
+              <span className="font-bold min-w-24 text-brand-gray-dk">
+                {editMode && cardId
+                  ? <ET cardId={cardId} path={`data.blocks.${i}.items.${ii}.time`} value={item.time}>{item.time}</ET>
+                  : item.time}
+              </span>
+              <span className="text-brand-tm">
+                {editMode && cardId
+                  ? <ET cardId={cardId} path={`data.blocks.${i}.items.${ii}.desc`} value={item.desc}><GT t={item.desc}/></ET>
+                  : <GT t={item.desc}/>}
+              </span>
             </div>
           ))}
         </div>
       );
 
-    if (b.type === "doc-cards")
+    if (b.type === "doc-cards") {
+      const DTag = editMode ? "div" : "p";
       return (
         <div key={i} className="space-y-4 my-5">
           {b.cards.map((c, ci) => (
             <div key={ci} className="rounded-lg border overflow-hidden" style={{borderColor:c.color+"33"}} /* dynamic: tinted border from card color */>
               <div className="flex items-center gap-3 px-5 py-3" style={{background:c.color+"0d"}} /* dynamic: tinted bg from card color */>
                 <div className="w-8 h-8 rounded flex items-center justify-center text-white font-bold text-[10px]" style={{background:c.color}} /* dynamic: badge color */>{c.abbr.slice(0,3)}</div>
-                <div className="font-bold text-sm text-brand-gray-dk font-heading">{c.abbr}</div>
+                <div className="font-bold text-sm text-brand-gray-dk font-heading">
+                  {editMode && cardId
+                    ? <ET cardId={cardId} path={`data.blocks.${i}.cards.${ci}.abbr`} value={c.abbr}>{c.abbr}</ET>
+                    : c.abbr}
+                </div>
               </div>
               <div className="px-5 py-3">
-                <p className="text-sm leading-relaxed mb-3 text-brand-tm"><GT t={c.desc}/></p>
+                <DTag className="text-sm leading-relaxed mb-3 text-brand-tm">
+                  {editMode && cardId
+                    ? <ET cardId={cardId} path={`data.blocks.${i}.cards.${ci}.desc`} value={c.desc} multiline><GT t={c.desc}/></ET>
+                    : <GT t={c.desc}/>}
+                </DTag>
                 {c.notes && c.notes.map((n, ni) => (
                   <div key={ni} className="flex gap-2 text-xs mb-1.5 text-brand-tm">
                     <span className="mt-0.5 shrink-0" style={{color:c.color}} /* dynamic: bullet color */>•</span>
-                    <span className="leading-relaxed"><GT t={n}/></span>
+                    <span className="leading-relaxed">
+                      {editMode && cardId
+                        ? <ET cardId={cardId} path={`data.blocks.${i}.cards.${ci}.notes.${ni}`} value={n} multiline><GT t={n}/></ET>
+                        : <GT t={n}/>}
+                    </span>
                   </div>
                 ))}
                 {(c.formImages || c.formImage) && (
@@ -313,6 +385,7 @@ export function Blocks({ blocks, cardId }) {
           ))}
         </div>
       );
+    }
 
     if (b.type === "map-diagram")
       return (

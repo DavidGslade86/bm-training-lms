@@ -1,11 +1,11 @@
 import { useState, useContext } from "react";
 import { B } from "../data/brand";
 import { Ctx } from "../state";
-import { Nav } from "./Shared";
+import { Nav, ET } from "./Shared";
 import { GT } from "./Glossary";
 
-export default function AssessmentCard({ data }) {
-  const {s, d, reviewMode} = useContext(Ctx);
+export default function AssessmentCard({ data, cardId }) {
+  const {s, d, reviewMode, editMode} = useContext(Ctx);
   // wrongPicks[qi] = Set of option indices chosen incorrectly for question qi
   const [wrongPicks, setWrongPicks] = useState({});
   const [showAllAnswers, setShowAllAnswers] = useState(false);
@@ -15,8 +15,16 @@ export default function AssessmentCard({ data }) {
 
   return (
     <div>
-      <div className="mb-1 text-2xl font-bold text-brand-gray-dk font-heading">{data.title}</div>
-      <div className="text-sm mb-2 text-brand-tl">{data.subtitle}</div>
+      <div className="mb-1 text-2xl font-bold text-brand-gray-dk font-heading">
+        {editMode && cardId
+          ? <ET cardId={cardId} path="data.title" value={data.title}>{data.title}</ET>
+          : data.title}
+      </div>
+      <div className="text-sm mb-2 text-brand-tl">
+        {editMode && cardId
+          ? <ET cardId={cardId} path="data.subtitle" value={data.subtitle}>{data.subtitle}</ET>
+          : data.subtitle}
+      </div>
       <div className="text-xs mb-6 text-brand-tl">
         Select the correct answer for each question. You must answer correctly to advance — the correct answer is not revealed on a wrong pick, so read carefully.
       </div>
@@ -40,7 +48,11 @@ export default function AssessmentCard({ data }) {
               {correct && <div className="text-xs font-bold text-brand-ok">✓ Correct{!reviewMode && tries > 1 ? ` (${tries} attempts)` : ""}</div>}
             </div>
 
-            <div className="text-sm font-bold mb-3 text-brand-gray-dk font-heading"><GT t={q.question}/></div>
+            <div className="text-sm font-bold mb-3 text-brand-gray-dk font-heading">
+              {editMode && cardId
+                ? <ET cardId={cardId} path={`data.questions.${qi}.question`} value={q.question} multiline><GT t={q.question}/></ET>
+                : <GT t={q.question}/>}
+            </div>
 
             <div className="flex flex-col gap-2">
               {q.options.map((o, oi) => {
@@ -79,7 +91,11 @@ export default function AssessmentCard({ data }) {
                       style={{border:`1.5px solid ${circleBorder}`, background:circleBg, color:circleColor}} /* dynamic: answer-state indicator */>
                       {L[oi]}
                     </div>
-                    <span>{o}</span>
+                    <span>
+                      {editMode && cardId
+                        ? <ET cardId={cardId} path={`data.questions.${qi}.options.${oi}`} value={o} multiline>{o}</ET>
+                        : o}
+                    </span>
                   </div>
                 );
               })}
