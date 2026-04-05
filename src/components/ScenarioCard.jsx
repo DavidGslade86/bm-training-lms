@@ -1,11 +1,11 @@
 import { useState, useContext } from "react";
 import { B } from "../data/brand";
 import { Ctx } from "../state";
-import { Nav } from "./Shared";
+import { Nav, ET } from "./Shared";
 import { GT } from "./Glossary";
 
 export default function ScenarioCard({ data, cardId }) {
-  const {s, d, reviewMode} = useContext(Ctx);
+  const {s, d, reviewMode, editMode} = useContext(Ctx);
   const cur = s.scenProg[cardId] || 0;
   const sa  = s.scenAns[cardId]  || {};
   const allDone = cur >= data.steps.length;
@@ -15,9 +15,21 @@ export default function ScenarioCard({ data, cardId }) {
 
   return (
     <div>
-      <div className="mb-1 text-2xl font-bold" style={{color:B.grayDk,fontFamily:"Georgia,serif"}}>{data.title}</div>
-      <div className="text-sm mb-2" style={{color:B.tl}}>{data.subtitle}</div>
-      <p className="text-sm mb-5" style={{color:B.tm}}>{data.intro}</p>
+      <div className="mb-1 text-2xl font-bold" style={{color:B.grayDk,fontFamily:"Georgia,serif"}}>
+        {editMode && cardId
+          ? <ET cardId={cardId} path="data.title" value={data.title}>{data.title}</ET>
+          : data.title}
+      </div>
+      <div className="text-sm mb-2" style={{color:B.tl}}>
+        {editMode && cardId
+          ? <ET cardId={cardId} path="data.subtitle" value={data.subtitle}>{data.subtitle}</ET>
+          : data.subtitle}
+      </div>
+      <div className="text-sm mb-5" style={{color:B.tm}}>
+        {editMode && cardId
+          ? <ET cardId={cardId} path="data.intro" value={data.intro} multiline>{data.intro}</ET>
+          : <p className="m-0">{data.intro}</p>}
+      </div>
 
       {/* ── Salesforce note block (optional) ── */}
       {data.noteText && (
@@ -32,7 +44,9 @@ export default function ScenarioCard({ data, cardId }) {
             Salesforce Note
           </div>
           <pre className="text-xs leading-relaxed whitespace-pre-wrap m-0" style={{ color: "#1a1a1a", fontFamily: "inherit" }}>
-            {data.noteText}
+            {editMode && cardId
+              ? <ET cardId={cardId} path="data.noteText" value={data.noteText} multiline>{data.noteText}</ET>
+              : data.noteText}
           </pre>
         </div>
       )}
@@ -53,8 +67,16 @@ export default function ScenarioCard({ data, cardId }) {
                 {box.icon}
               </div>
               <div>
-                <div className="text-sm font-bold mb-1" style={{ color: box.color }}>{box.title}</div>
-                <div className="text-sm leading-relaxed" style={{ color: "#374151" }}>{box.desc}</div>
+                <div className="text-sm font-bold mb-1" style={{ color: box.color }}>
+                  {editMode && cardId
+                    ? <ET cardId={cardId} path={`data.pathwayBoxes.${bi}.title`} value={box.title}>{box.title}</ET>
+                    : box.title}
+                </div>
+                <div className="text-sm leading-relaxed" style={{ color: "#374151" }}>
+                  {editMode && cardId
+                    ? <ET cardId={cardId} path={`data.pathwayBoxes.${bi}.desc`} value={box.desc} multiline>{box.desc}</ET>
+                    : box.desc}
+                </div>
               </div>
             </div>
           ))}
@@ -77,8 +99,16 @@ export default function ScenarioCard({ data, cardId }) {
               {!reviewMode && correct && tryCount > 0 && <div style={{fontSize:11,color:B.ok}}>✓ ({tryCount} attempt{tryCount>1?"s":""})</div>}
             </div>
 
-            <div className="text-sm mb-4" style={{color:"rgba(255,255,255,0.85)"}}><GT t={st.text} dark/></div>
-            <div className="text-sm font-bold mb-3" style={{color:B.blue}}><GT t={st.question} dark/></div>
+            <div className="text-sm mb-4" style={{color:"rgba(255,255,255,0.85)"}}>
+              {editMode && cardId
+                ? <ET cardId={cardId} path={`data.steps.${si}.text`} value={st.text} multiline><GT t={st.text} dark/></ET>
+                : <GT t={st.text} dark/>}
+            </div>
+            <div className="text-sm font-bold mb-3" style={{color:B.blue}}>
+              {editMode && cardId
+                ? <ET cardId={cardId} path={`data.steps.${si}.question`} value={st.question} multiline><GT t={st.question} dark/></ET>
+                : <GT t={st.question} dark/>}
+            </div>
 
             <div className="flex flex-col gap-2">
               {st.options.map((o, oi) => {
@@ -110,7 +140,9 @@ export default function ScenarioCard({ data, cardId }) {
                     }}
                     className="px-4 py-3 rounded-md text-sm"
                     style={{background:bg,border:`1.5px solid ${bd}`,color:cl,cursor:clickable?"pointer":"default",transition:"all 0.12s"}}>
-                    {o}
+                    {editMode && cardId
+                      ? <ET cardId={cardId} path={`data.steps.${si}.options.${oi}`} value={o} multiline>{o}</ET>
+                      : o}
                   </div>
                 );
               })}
@@ -118,7 +150,9 @@ export default function ScenarioCard({ data, cardId }) {
 
             {(correct || reviewMode) && (
               <div className="rounded-md p-4 mt-4 text-sm" style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(255,255,255,0.85)"}}>
-                <GT t={st.feedback} dark/>
+                {editMode && cardId
+                  ? <ET cardId={cardId} path={`data.steps.${si}.feedback`} value={st.feedback} multiline><GT t={st.feedback} dark/></ET>
+                  : <GT t={st.feedback} dark/>}
               </div>
             )}
           </div>

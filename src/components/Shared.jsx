@@ -41,12 +41,13 @@ export function ET({ cardId, path, value, children, multiline = false, className
   };
 
   if (editing) {
-    const cls = "border-2 border-amber-400 rounded px-2 py-1 bg-amber-50 text-gray-900 focus:outline-none w-full text-sm";
+    const cls = "border-2 border-amber-400 rounded px-2 py-1 bg-amber-50 text-gray-900 focus:outline-none w-full text-sm min-w-[180px]";
     return multiline
       ? <textarea
-          className={cls}
+          className={`${cls} resize-y`}
           value={draft}
-          rows={3}
+          rows={4}
+          style={{ minHeight: "80px" }}
           onChange={(e) => setDraft(e.target.value)}
           onBlur={save}
           autoFocus

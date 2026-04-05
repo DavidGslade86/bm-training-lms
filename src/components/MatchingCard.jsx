@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef, useContext } from "react";
 import { B } from "../data/brand";
 import { Ctx } from "../state";
-import { P, Nav } from "./Shared";
+import { P, Nav, ET } from "./Shared";
 import yajairaImg from "../assets/Yajaira_Torso.png";
 
 export default function MatchingCard({ data, cardId }) {
-  const {s, d, reviewMode} = useContext(Ctx);
+  const {s, d, reviewMode, editMode} = useContext(Ctx);
   const done = s.matchDone[cardId];
   const [selL, setSelL] = useState(null);
   const matches = s.matchPairs[cardId] || {};
@@ -32,8 +32,16 @@ export default function MatchingCard({ data, cardId }) {
 
   return (
     <div>
-      <div className="text-xs font-bold tracking-widest mb-2 text-brand-blue">{data.label}</div>
-      <p className="text-sm mb-5 text-brand-tm">{data.instruction}</p>
+      <div className="text-xs font-bold tracking-widest mb-2 text-brand-blue">
+        {editMode && cardId
+          ? <ET cardId={cardId} path="data.label" value={data.label}>{data.label}</ET>
+          : data.label}
+      </div>
+      <div className="text-sm mb-5 text-brand-tm">
+        {editMode && cardId
+          ? <ET cardId={cardId} path="data.instruction" value={data.instruction} multiline>{data.instruction}</ET>
+          : <p className="m-0">{data.instruction}</p>}
+      </div>
 
       <div className="grid grid-cols-2 gap-4">
         {/* Left column: illnesses */}
@@ -50,7 +58,10 @@ export default function MatchingCard({ data, cardId }) {
               <div key={i} onClick={()=>!m&&!done&&!reviewMode&&setSelL(i)}
                 className="px-4 py-3 rounded-md text-sm mb-2 font-medium"
                 style={{background:bg,border:`2px solid ${bd}`,color:cl,cursor:m||done||reviewMode?"default":"pointer"}} /* dynamic: match-state styling */>
-                {m && <span className="mr-2">✓</span>}{p.left}
+                {m && <span className="mr-2">✓</span>}
+                {editMode && cardId
+                  ? <ET cardId={cardId} path={`data.pairs.${i}.left`} value={p.left}>{p.left}</ET>
+                  : p.left}
               </div>
             );
           })}
@@ -81,7 +92,10 @@ export default function MatchingCard({ data, cardId }) {
                 }}
                 className="px-4 py-3 rounded-md text-sm mb-2 font-medium"
                 style={{background:bg,border:`2px solid ${bd}`,color:cl,cursor:m||done||selL===null||reviewMode?"default":"pointer"}} /* dynamic: match-state styling */>
-                {m && <span className="mr-2">✓</span>}{r}
+                {m && <span className="mr-2">✓</span>}
+                {editMode && cardId
+                  ? <ET cardId={cardId} path={`data.pairs.${data.pairs.findIndex(p=>p.right===r)}.right`} value={r}>{r}</ET>
+                  : r}
               </div>
             );
           })}
@@ -98,7 +112,11 @@ export default function MatchingCard({ data, cardId }) {
             <img src={yajairaImg} alt="Yajaira" className="w-full h-full object-cover"/>
           </div>
           <div>
-            <p className="text-sm text-brand-tm">{data.successMessage}</p>
+            <div className="text-sm text-brand-tm">
+              {editMode && cardId
+                ? <ET cardId={cardId} path="data.successMessage" value={data.successMessage} multiline>{data.successMessage}</ET>
+                : data.successMessage}
+            </div>
             {!reviewMode && missCount > 0 && (
               <p className="text-xs mt-2 text-brand-tl">
                 {missCount} incorrect attempt{missCount>1?"s":""} — consider reviewing the timing requirements above before continuing.
