@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { KEYS } from "./hooks/useLocalStorage";
 import RegistrationScreen from "./components/RegistrationScreen";
 import HomePage from "./components/HomePage";
 import Module2 from "./components/Module2";
@@ -10,11 +11,26 @@ import JeopardyGame from "./components/JeopardyGame";
 import FinalAssessment from "./components/FinalAssessment";
 
 export default function App() {
-  const [currentView, setCurrentView] = useState("registration");
-  const [learner, setLearner] = useState(null);
-  const [moduleStartedAt, setModuleStartedAt] = useState(null);
-  const [editMode, setEditMode] = useState(false);
-  const [guestReview, setGuestReview] = useState(false);
+  // Restore session from localStorage (survives page refresh)
+  const stored = (() => {
+    try { return JSON.parse(localStorage.getItem(KEYS.session())); }
+    catch { return null; }
+  })();
+
+  const [currentView, setCurrentView] = useState(stored?.currentView || "registration");
+  const [learner, setLearner]         = useState(stored?.learner || null);
+  const [moduleStartedAt, setModuleStartedAt] = useState(stored?.moduleStartedAt || null);
+  const [editMode, setEditMode]       = useState(false); // never persisted — requires password gate
+  const [guestReview, setGuestReview] = useState(stored?.guestReview || false);
+
+  // Persist session on every state change
+  useEffect(() => {
+    try {
+      localStorage.setItem(KEYS.session(), JSON.stringify({
+        learner, currentView, guestReview, moduleStartedAt,
+      }));
+    } catch { /* storage full — silently fail */ }
+  }, [learner, currentView, guestReview, moduleStartedAt]);
 
   const handleRegistration = (l) => {
     setGuestReview(false);

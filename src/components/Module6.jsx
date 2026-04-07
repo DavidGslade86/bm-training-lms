@@ -1,9 +1,11 @@
-import { useState, useReducer, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { B } from "../data/brand";
 import bmLogo from "../assets/Barasch_McGarry_Logo_2020_RGB.png";
 import { MODULE6 } from "../data/module6Data";
 import { initState, red, Ctx } from "../state";
 import { useEditableContent } from "../hooks/useEditableContent";
+import { usePersistedReducer } from "../hooks/usePersistedReducer";
+import { KEYS } from "../hooks/useLocalStorage";
 import StoryCard from "./StoryCard";
 import ContentCard from "./ContentCard";
 import QuizCard from "./QuizCard";
@@ -16,13 +18,13 @@ import TranscriptCard from "./cards/TranscriptCard";
 import GlossaryDrawer from "./GlossaryDrawer";
 
 export default function Module6({ learner, moduleStartedAt, onHome, onSignIn, editMode, onExitEditMode, forceReview = false }) {
-  const [s, d] = useReducer(red, initState);
+  const MODULE_ID = "module-6";
+  const [s, d] = usePersistedReducer(red, initState, KEYS.module(MODULE_ID, learner?.email || "anonymous"));
   const [glossOpen, setGlossOpen] = useState(false);
   const [reviewMode, setReviewMode] = useState(forceReview);
   const toggleReviewMode = () => { if (!forceReview) setReviewMode(v => !v); };
 
   // Edit mode: merged cards + edit utilities
-  const MODULE_ID = "module-6";
   const { cards: mergedCards, updateCard, resetModule, hasEdits, editCount } = useEditableContent(MODULE_ID, MODULE6.cards);
 
   // "Preview as learner" temporarily hides edit controls without exiting edit mode

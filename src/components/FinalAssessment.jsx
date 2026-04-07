@@ -1,16 +1,29 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { B } from "../data/brand";
 import { FINAL_ASSESSMENT } from "../data/finalAssessmentData";
+import { KEYS } from "../hooks/useLocalStorage";
 import bmLogo from "../assets/Barasch_McGarry_Logo_2020_RGB.png";
 
 const PA_URL = import.meta.env.VITE_POWERAUTOMATE_URL;
 const OPT_LETTERS = ["A", "B", "C", "D"];
 
 export default function FinalAssessment({ learner, onBack }) {
-  const [answers, setAnswers] = useState({});   // { questionIndex: selectedOptionIndex }
-  const [submitted, setSubmitted] = useState(false);
+  const assessKey = KEYS.assessment(learner?.email || "anonymous");
+  const stored = (() => {
+    try { return JSON.parse(localStorage.getItem(assessKey)); }
+    catch { return null; }
+  })();
+
+  const [answers, setAnswers] = useState(stored?.answers || {});
+  const [submitted, setSubmitted] = useState(stored?.submitted || false);
   const [sending, setSending] = useState(false);
   const topRef = useRef(null);
+
+  // Persist answers + submitted state
+  useEffect(() => {
+    try { localStorage.setItem(assessKey, JSON.stringify({ answers, submitted })); }
+    catch { /* storage full — silently fail */ }
+  }, [answers, submitted, assessKey]);
 
   const questions = FINAL_ASSESSMENT.questions;
   const sections  = FINAL_ASSESSMENT.sections;
