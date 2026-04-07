@@ -39,7 +39,7 @@ export default function JeopardyGame({ learner, onBack }) {
 
       {/* Game */}
       <iframe
-        src="/JeopardyGame.html"
+        src={`${import.meta.env.BASE_URL}JeopardyGame.html`}
         title="Jeopardy Review"
         style={{ flex: 1, width: "100%", border: "none", display: "block" }}
       />

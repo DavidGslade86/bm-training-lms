@@ -146,6 +146,10 @@ export default function Module2({ learner, moduleStartedAt, onHome, onSignIn, ed
             )}
             {learner && <span className="text-xs text-white/35">{learner.name}</span>}
             <span className="text-xs text-white/40">Section {s.cur+1} of {cards.length}</span>
+            <button onClick={onHome}
+              className="px-3 py-1.5 rounded text-xs font-semibold cursor-pointer border-none"
+              style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.15)" }}
+            >← Return Home</button>
           </div>
         </div>
 

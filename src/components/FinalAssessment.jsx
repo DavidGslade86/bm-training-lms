@@ -79,17 +79,18 @@ export default function FinalAssessment({ learner, onBack }) {
       <div className="bg-brand-hdr shadow-[0_2px_12px_rgba(0,0,0,0.2)]">
         <div className="max-w-[720px] mx-auto px-8 py-5 flex items-center justify-between">
           <div className="flex items-center gap-5">
-            <div className="bg-white rounded px-2 py-1 inline-flex items-center">
+            <button onClick={onBack} className="bg-white rounded px-2 py-1 inline-flex items-center border-none cursor-pointer">
               <img src={bmLogo} alt="B&M" className="h-8" />
-            </div>
+            </button>
             <div className="w-px h-5 bg-white/15" />
             <span className="text-sm font-bold text-white font-heading">Final Assessment</span>
           </div>
           <button
             onClick={onBack}
-            className="text-xs text-white/50 hover:text-white transition-colors cursor-pointer bg-transparent border-none"
+            className="px-3 py-1.5 rounded text-xs font-semibold cursor-pointer border-none"
+            style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.15)" }}
           >
-            ← Back to Home
+            ← Return Home
           </button>
         </div>
       </div>

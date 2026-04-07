@@ -32,12 +32,12 @@ export default function App() {
     setCurrentView(moduleKey);
   };
 
-  // Jeopardy is accessible without registration
+  // Jeopardy and Final Assessment always navigate back to the module landing page
   if (currentView === "jeopardy") {
     return (
       <JeopardyGame
         learner={learner}
-        onBack={() => setCurrentView(learner ? "home" : "registration")}
+        onBack={() => setCurrentView("home")}
       />
     );
   }
@@ -46,7 +46,7 @@ export default function App() {
     return (
       <FinalAssessment
         learner={learner}
-        onBack={() => setCurrentView(learner ? "home" : "registration")}
+        onBack={() => setCurrentView("home")}
       />
     );
   }
