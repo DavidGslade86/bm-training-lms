@@ -14,16 +14,23 @@ export default function FinalAssessment({ learner, onBack }) {
     catch { return null; }
   })();
 
-  const [answers, setAnswers] = useState(stored?.answers || {});
-  const [submitted, setSubmitted] = useState(stored?.submitted || false);
-  const [sending, setSending] = useState(false);
+  const [answers, setAnswers]       = useState(stored?.answers   || {});
+  const [submitted, setSubmitted]   = useState(stored?.submitted || false);
+  const [startedAt]                 = useState(stored?.startedAt || Date.now());
+  const [completedAt, setCompletedAt] = useState(stored?.completedAt || null);
+  const [copied, setCopied]         = useState(false);
+  const [submitState, setSubmitState] = useState(stored?.submitState || "idle"); // idle | submitting | success | error
+  const [submittedAt, setSubmittedAt] = useState(stored?.submittedAt || null);
   const topRef = useRef(null);
 
-  // Persist answers + submitted state
+  // Persist answers + submitted state + timing + submission state
   useEffect(() => {
-    try { localStorage.setItem(assessKey, JSON.stringify({ answers, submitted })); }
-    catch { /* storage full — silently fail */ }
-  }, [answers, submitted, assessKey]);
+    try {
+      localStorage.setItem(assessKey, JSON.stringify({
+        answers, submitted, startedAt, completedAt, submitState, submittedAt,
+      }));
+    } catch { /* storage full — silently fail */ }
+  }, [answers, submitted, startedAt, completedAt, submitState, submittedAt, assessKey]);
 
   const questions = FINAL_ASSESSMENT.questions;
   const sections  = FINAL_ASSESSMENT.sections;
@@ -31,7 +38,7 @@ export default function FinalAssessment({ learner, onBack }) {
   const answeredCount = Object.keys(answers).length;
   const allAnswered   = answeredCount >= total;
 
-  // ── Score calculation (live, but only displayed after submit) ──
+  // ── Score calculation ──
   const score = questions.reduce(
     (sum, q, qi) => sum + (answers[qi] === q.correctIndex ? 1 : 0), 0
   );
@@ -47,42 +54,140 @@ export default function FinalAssessment({ learner, onBack }) {
     return { label: sec.label, correct, total: count };
   });
 
+  // ── Timing ──
+  const elapsedSec = completedAt
+    ? Math.round((completedAt - startedAt) / 1000)
+    : Math.round((Date.now() - startedAt) / 1000);
+  const elapsedStr = elapsedSec < 60
+    ? `${elapsedSec}s`
+    : `${Math.floor(elapsedSec/60)}m ${elapsedSec%60}s`;
+
+  // ── Per-question detail for export ──
+  const questionDetails = questions.map((q, qi) => {
+    const selected   = answers[qi];
+    const isCorrect  = selected === q.correctIndex;
+    return {
+      q: `Q${qi+1}`,
+      section: q.section || "",
+      text: q.question,
+      selected: selected !== undefined ? OPT_LETTERS[selected] : "—",
+      correct: OPT_LETTERS[q.correctIndex],
+      isCorrect,
+    };
+  });
+
+  // ── Completion payload (LMS-ready) ──
+  const completedAtDate = completedAt ? new Date(completedAt) : new Date();
+  const payload = {
+    userId:           learner?.email || "",
+    displayName:      learner?.name  || "",
+    role:             learner?.role  || "",
+    moduleId:         "final-assessment",
+    moduleTitle:      "Final Assessment — B&M Training Pathway",
+    completedAt:      completedAtDate.toISOString(),
+    timeOnTaskSec:    elapsedSec || 0,
+    assessScore:      score,
+    assessTotal:      total,
+    assessPercentage: pct,
+    sectionBreakdown: sectionScores
+      .map(s => `${s.label}:${s.correct}/${s.total}`).join("|"),
+    questionDetails:  questionDetails
+      .map(r => `${r.q}:${r.selected}${r.isCorrect ? "✓" : "✗"}(${r.correct})`).join("|"),
+  };
+
+  // ── CSV export ──
+  const downloadCSV = () => {
+    const headers = Object.keys(payload);
+    const values  = headers.map(k => {
+      const v = String(payload[k]);
+      return v.includes(",") || v.includes('"') ? `"${v.replace(/"/g,'""')}"` : v;
+    });
+    const csv = [headers.join(","), values.join(",")].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url  = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const safeName = (learner?.name || "learner").replace(/\s+/g,"-").toLowerCase();
+    a.href = url; a.download = `bm-final-assessment-${safeName}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+  };
+
+  // ── Plain-text summary ──
+  const summary = `BARASCH & McGARRY — FINAL ASSESSMENT REPORT
+${"=".repeat(50)}
+Learner:    ${payload.displayName} (${payload.userId})
+Role:       ${payload.role}
+Completed:  ${completedAtDate.toLocaleString()}
+Time:       ${elapsedStr}
+
+OVERALL SCORE
+${"─".repeat(30)}
+${score} / ${total} correct  (${pct}%)
+
+SECTION BREAKDOWN
+${"─".repeat(30)}
+${sectionScores.map(s => `${s.label.padEnd(28," ")} ${s.correct}/${s.total}`).join("\n")}
+
+QUESTION DETAIL
+${"─".repeat(30)}
+${questionDetails.map(r =>
+  `${r.q} ${r.isCorrect ? "✓" : "✗"}  selected ${r.selected} · correct ${r.correct}`
+).join("\n")}
+
+Generated: ${completedAtDate.toISOString()}`;
+
+  const copyToClipboard = () => {
+    navigator.clipboard?.writeText(summary).then(() => {
+      setCopied(true); setTimeout(() => setCopied(false), 2500);
+    }).catch(() => {
+      const ta = document.createElement("textarea");
+      ta.value = summary; document.body.appendChild(ta);
+      ta.select(); document.execCommand("copy");
+      document.body.removeChild(ta);
+      setCopied(true); setTimeout(() => setCopied(false), 2500);
+    });
+  };
+
+  const openEmail = () => {
+    const subject = encodeURIComponent(`Final Assessment — ${payload.displayName} — ${score}/${total}`);
+    const body    = encodeURIComponent(summary);
+    window.open(`mailto:?subject=${subject}&body=${body}`);
+  };
+
+  // ── Power Automate submission ──
+  const canSubmit = PA_URL && PA_URL.trim().length > 0;
+
+  const submitToPA = async () => {
+    if (!canSubmit || submitState === "submitting") return;
+    setSubmitState("submitting");
+    if (import.meta.env.DEV) console.log("Final Assessment payload:", payload);
+    try {
+      const res = await fetch(PA_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (res.status === 200 || res.status === 202) {
+        setSubmitState("success");
+        setSubmittedAt(new Date().toLocaleString());
+      } else {
+        setSubmitState("error");
+      }
+    } catch {
+      setSubmitState("error");
+    }
+  };
+
   // ── Handlers ──
   const handleSelect = (qIdx, optIdx) => {
     if (submitted) return;
     setAnswers((prev) => ({ ...prev, [qIdx]: optIdx }));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!allAnswered) return;
     setSubmitted(true);
+    setCompletedAt(Date.now());
     topRef.current?.scrollIntoView({ behavior: "smooth" });
-
-    // POST to Power Automate if configured
-    if (PA_URL) {
-      try {
-        setSending(true);
-        await fetch(PA_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: "final-assessment",
-            learnerName: learner?.name || "Unknown",
-            learnerEmail: learner?.email || "",
-            learnerRole: learner?.role || "",
-            score,
-            totalQuestions: total,
-            percentage: pct,
-            sectionBreakdown: sectionScores,
-            completedAt: new Date().toISOString(),
-          }),
-        });
-      } catch {
-        // Silently fail — don't block the learner
-      } finally {
-        setSending(false);
-      }
-    }
   };
 
   return (
@@ -122,37 +227,35 @@ export default function FinalAssessment({ learner, onBack }) {
           </div>
         )}
 
-        {/* ── Score summary (after submit) ── */}
+        {/* ─────────────────────────────────────────────────────── */}
+        {/*  POST-SUBMIT: Hero + Breakdown + Save Results panel    */}
+        {/* ─────────────────────────────────────────────────────── */}
         {submitted && (
           <div className="mb-8 mt-4">
-            {/* Overall score card */}
-            <div
-              className="rounded-xl p-6 mb-5"
-              style={{
-                background: pct >= 80 ? B.okBg : pct >= 60 ? "#fef9c3" : B.errBg,
-                border: `2px solid ${pct >= 80 ? B.ok : pct >= 60 ? "#f59e0b" : B.err}`,
-              }}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div
-                  className="text-3xl font-bold font-heading"
-                  style={{ color: pct >= 80 ? B.ok : pct >= 60 ? "#92400e" : B.err }}
-                >
-                  {score} / {total}
-                </div>
-                <div
-                  className="text-sm font-bold px-3 py-1 rounded-full"
-                  style={{
-                    background: pct >= 80 ? B.ok : pct >= 60 ? "#f59e0b" : B.err,
-                    color: "white",
-                  }}
-                >
-                  {pct}%
-                </div>
+
+            {/* Hero card */}
+            <div className="rounded-lg p-10 text-center text-white mb-6 bg-brand-hdr">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto mb-4"
+                style={{ background: pct >= 80 ? B.ok : pct >= 60 ? "#f59e0b" : B.err }}
+              >
+                {pct >= 80 ? "✓" : pct >= 60 ? "!" : "✗"}
+              </div>
+              <div className="text-2xl font-bold mb-1 text-brand-blue font-heading">Final Assessment Complete</div>
+              <p className="text-sm mb-1 text-white/55">
+                {learner?.name && <span className="text-white/80 font-semibold">{learner.name} · </span>}
+                B&amp;M Training Pathway
+              </p>
+              <p className="text-xs mb-6 text-white/35">
+                Completed {completedAtDate.toLocaleString()} · {elapsedStr} on assessment
+              </p>
+              <div className="inline-block rounded-lg px-10 py-5 bg-white/[0.07]">
+                <div className="text-5xl font-bold mb-1 text-brand-blue font-heading">{score}/{total}</div>
+                <div className="text-xs text-white/40">{pct}% correct</div>
               </div>
               <div
-                className="text-sm font-semibold"
-                style={{ color: pct >= 80 ? "#2d5a3f" : pct >= 60 ? "#78350f" : "#9a3030" }}
+                className="text-sm font-semibold mt-5"
+                style={{ color: pct >= 80 ? "#a8e6c9" : pct >= 60 ? "#fde68a" : "#fca5a5" }}
               >
                 {pct >= 80
                   ? "Excellent work! You have a strong grasp of the material."
@@ -160,47 +263,86 @@ export default function FinalAssessment({ learner, onBack }) {
                   ? "Good effort. Review the sections below to strengthen your understanding."
                   : "Additional review is recommended. Focus on the sections highlighted below."}
               </div>
-              {sending && (
-                <div className="text-xs mt-2 text-brand-tl">Submitting results…</div>
-              )}
             </div>
 
-            {/* Section breakdown table */}
-            <div className="rounded-lg border overflow-hidden mb-6" style={{ borderColor: B.sand }}>
-              <div
-                className="px-5 py-3 text-xs font-bold tracking-widest"
-                style={{ background: B.cream, color: B.tl, borderBottom: `1px solid ${B.sand}` }}
-              >
-                SECTION BREAKDOWN
-              </div>
-              <div style={{ background: B.ww }}>
+            {/* Section breakdown */}
+            <div className="rounded-lg p-6 mb-4 bg-brand-ww border border-brand-sand">
+              <div className="text-xs font-bold tracking-widest mb-4 text-brand-tl">SECTION BREAKDOWN</div>
+              <div className="grid grid-cols-2 gap-3">
                 {sectionScores.map((sec, i) => {
                   const secPct = sec.total > 0 ? Math.round((sec.correct / sec.total) * 100) : 0;
+                  const color  = secPct >= 80 ? B.ok : secPct >= 60 ? "#d97706" : B.err;
                   return (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between px-5 py-3 text-sm"
-                      style={{
-                        borderBottom: i < sectionScores.length - 1 ? `1px solid ${B.sand}` : "none",
-                      }}
-                    >
-                      <span className="text-brand-td font-medium">{sec.label}</span>
-                      <span
-                        className="text-xs font-bold px-2 py-0.5 rounded"
-                        style={{
-                          background: secPct >= 80 ? B.okBg : secPct >= 60 ? "#fef9c3" : B.errBg,
-                          color: secPct >= 80 ? B.ok : secPct >= 60 ? "#92400e" : B.err,
-                        }}
-                      >
+                    <div key={i} className="rounded p-3 bg-brand-cream border border-brand-sand">
+                      <div className="text-xs mb-1 text-brand-tl">{sec.label}</div>
+                      <div className="text-xl font-bold font-heading" style={{ color }}>
                         {sec.correct}/{sec.total}
-                      </span>
+                      </div>
+                      <div className="text-xs mt-0.5 text-brand-tl">{secPct}% correct</div>
                     </div>
                   );
                 })}
               </div>
             </div>
 
-            <div className="text-xs text-brand-tl mb-6">
+            {/* ── SAVE YOUR RESULTS panel ── */}
+            <div className="rounded-lg p-6 mb-6 bg-brand-ww border border-brand-sand">
+              <div className="text-xs font-bold tracking-widest mb-1 text-brand-tl">SAVE YOUR RESULTS</div>
+              <p className="text-xs mb-4 text-brand-tl">
+                Your completion data needs to be submitted so your progress can be recorded.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={downloadCSV}
+                  className="flex items-center gap-[7px] px-4 py-[9px] bg-brand-blue text-white border-none rounded-md cursor-pointer text-xs font-bold"
+                >
+                  ⬇ Download CSV
+                </button>
+                <button
+                  onClick={copyToClipboard}
+                  className="flex items-center gap-[7px] px-4 py-[9px] rounded-md cursor-pointer text-xs font-semibold transition-all duration-200"
+                  style={{
+                    background: copied ? B.ok : "white",
+                    color:      copied ? "white" : B.gray,
+                    border:    `1.5px solid ${copied ? B.ok : B.sand}`,
+                  }}
+                >
+                  {copied ? "✓ Copied!" : "📋 Copy Summary"}
+                </button>
+                <button
+                  onClick={openEmail}
+                  className="flex items-center gap-[7px] px-4 py-[9px] bg-white text-brand-gray border-[1.5px] border-brand-sand rounded-md cursor-pointer text-xs font-semibold"
+                >
+                  ✉ Open Email Draft
+                </button>
+                {canSubmit && submitState === "success" && (
+                  <span className="flex items-center gap-[7px] px-4 py-[9px] text-xs font-semibold text-brand-ok">
+                    ✓ Submitted to training record{submittedAt && ` · ${submittedAt}`}
+                  </span>
+                )}
+                {canSubmit && submitState !== "success" && (
+                  <button
+                    onClick={submitToPA}
+                    disabled={submitState === "submitting"}
+                    className="flex items-center gap-[7px] px-4 py-[9px] rounded-md text-xs font-bold border-none cursor-pointer bg-brand-ok text-white disabled:opacity-60 disabled:cursor-wait"
+                  >
+                    {submitState === "submitting" ? "Submitting…" : "📤 Submit to Training Record"}
+                  </button>
+                )}
+              </div>
+              {submitState === "error" && (
+                <p className="text-xs mt-2 font-semibold text-brand-err">
+                  Submission failed — please use Download CSV as a backup
+                </p>
+              )}
+              <p className="text-xs mt-3 text-brand-tl">
+                <strong>CSV</strong> — one-row spreadsheet-ready file ·{" "}
+                <strong>Copy</strong> — formatted text for email ·{" "}
+                <strong>Email</strong> — opens your mail client with subject + body pre-filled
+              </p>
+            </div>
+
+            <div className="text-xs text-brand-tl mb-2">
               Scroll down to review each question. Correct answers are highlighted in green;
               incorrect selections are highlighted in red.
             </div>
