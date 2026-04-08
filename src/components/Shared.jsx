@@ -259,13 +259,50 @@ export function Blocks({ blocks, cardId }) {
         </div>
       );
 
-    if (b.type === "comparison-table")
+    if (b.type === "comparison-table") {
+      // Optional style: "pos-neg" — tints the two data columns (sufficient =
+      // green, non-sufficient = amber) so the two categories are visually
+      // distinct. Assumes a 3-column layout: [row-label, positive, negative].
+      const isPosNeg = b.style === "pos-neg";
+      // Detect a row-label column: if there are 3+ headers (label + ≥2 data),
+      // column 0 is the row-label column even if its header text is "".
+      const hasLabelCol = b.headers.length >= 3;
+
+      // Per-column styling helpers
+      const headerBg = (ci) => {
+        if (!isPosNeg) return undefined;
+        const dataCol = hasLabelCol ? ci - 1 : ci;
+        if (dataCol === -1) return "#4b5563"; // label-column header — neutral dark
+        if (dataCol === 0) return "#3d7a56";  // sufficient — green
+        if (dataCol === 1) return "#a8651d";  // non-sufficient — amber
+        return undefined;
+      };
+      const cellBg = (ci) => {
+        if (!isPosNeg) return undefined;
+        const dataCol = hasLabelCol ? ci - 1 : ci;
+        if (dataCol === -1) return "#f5f1e8"; // label cell — cream
+        if (dataCol === 0) return "#f0f7f3";  // soft green
+        if (dataCol === 1) return "#fdf6ec";  // soft amber
+        return undefined;
+      };
+      const cellBorder = (ci) => {
+        if (!isPosNeg) return B.sand;
+        const dataCol = hasLabelCol ? ci - 1 : ci;
+        if (dataCol === 0) return "#cfe3d6";
+        if (dataCol === 1) return "#ecd9b8";
+        return B.sand;
+      };
+
       return (
         <div key={i} className="my-5 rounded-lg overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr>{b.headers.map((h, hi) => (
-                <th key={hi} className="text-left px-4 py-3 text-xs font-bold text-white bg-brand-gray-dk">
+                <th
+                  key={hi}
+                  className="text-left px-4 py-3 text-xs font-bold text-white"
+                  style={{ background: headerBg(hi) || "#1f2937" }}
+                >
                   {editMode && cardId
                     ? <ET cardId={cardId} path={`data.blocks.${i}.headers.${hi}`} value={h}>{h}</ET>
                     : h}
@@ -276,7 +313,16 @@ export function Blocks({ blocks, cardId }) {
               {b.rows.map((row, ri) => (
                 <tr key={ri}>
                   {row.map((cell, ci) => (
-                    <td key={ci} className="px-4 py-2.5 border-b border-brand-sand bg-brand-ww align-top text-[13px]" style={{color:ci===0?B.td:B.tm,fontWeight:ci===0?600:400}} /* dynamic: column-index styling */>
+                    <td
+                      key={ci}
+                      className="px-4 py-2.5 align-top text-[13px] border-b"
+                      style={{
+                        background: cellBg(ci) || B.ww,
+                        borderColor: cellBorder(ci),
+                        color: ci === 0 && hasLabelCol ? B.td : B.tm,
+                        fontWeight: ci === 0 && hasLabelCol ? 600 : 400,
+                      }}
+                    >
                       {editMode && cardId
                         ? <ET cardId={cardId} path={`data.blocks.${i}.rows.${ri}.${ci}`} value={cell} multiline><GT t={cell}/></ET>
                         : <GT t={cell}/>}
@@ -288,6 +334,7 @@ export function Blocks({ blocks, cardId }) {
           </table>
         </div>
       );
+    }
 
     if (b.type === "tier-cards")
       return (

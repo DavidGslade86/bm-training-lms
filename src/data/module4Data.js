@@ -117,17 +117,13 @@ export const MODULE4 = {
           },
           {
             "type": "comparison-table",
+            "style": "pos-neg",
             "headers": [
               "",
-              "Sufficient primary evidence",
-              "Non-sufficient primary evidence"
+              "Sufficient Primary Evidence",
+              "Non-Sufficient Primary Evidence"
             ],
             "rows": [
-              [
-                "What it is",
-                "Documents from an authoritative source that directly attest to presence with specific dates and location",
-                "Documents that show connection to a location — financial, employment, residential — without directly attesting to physical presence"
-              ],
               [
                 "Examples",
                 "EVL, TPV, certified school transcript, qualifying residence verification letter",
@@ -169,6 +165,20 @@ export const MODULE4 = {
           },
           {
             "type": "subheading",
+            "text": "A note on NYPD"
+          },
+          {
+            "type": "paragraph",
+            "text": "NYPD claimants are a special case. The standard EVL/TPV path is not available for NYPD officers — instead, the VCF accepts an **NYPD Notice of Participation (NOP)** as primary evidence, but only if it was signed during or before 2007. A pre-2008 NOP is treated by the VCF as the equivalent of one non-family eyewitness Witness Presence Statement, which means it must be submitted with **one additional eyewitness WPS** to satisfy POP. If the client only has a post-2007 NOP — or no NOP at all — the only path is **two eyewitness WPS**. There is no employer outreach process for NYPD; do not attempt to obtain an EVL or TPV from the department."
+          },
+          {
+            "type": "callout",
+            "style": "warn",
+            "icon": "🚔",
+            "text": "**The two NYPD pathways:** (1) a pre-2008 NOP **plus** one non-family eyewitness WPS, or (2) two non-family eyewitness WPS. Confirm the NOP signing year before deciding which path to follow."
+          },
+          {
+            "type": "subheading",
             "text": "Supporting document status"
           },
           {
@@ -188,12 +198,18 @@ export const MODULE4 = {
         "intro": "Several types of documents can be sufficient on their own when properly executed. Let's explore what 'properly executed' means.",
         "blocks": [
           {
+            "type": "callout",
+            "style": "warn",
+            "icon": "📞",
+            "text": "**Universal requirement — a working phone number.** Every form of sufficient primary evidence must include a **working phone number for the entity that issued it** so the VCF can call to confirm the information on the document. This applies to every category below: EVLs, TPVs, union records, school transcripts, and residence verification letters. If the document does not include a number where the VCF can reach a real person at the entity, it is not sufficient on its own — request a corrected document before transmitting it."
+          },
+          {
             "type": "subheading",
             "text": "Employment Verification Letter (EVL)"
           },
           {
             "type": "paragraph",
-            "text": "A letter from an employer, on **company letterhead**, confirming the claimant's employment. To be sufficient it must: state the **specific address** where the claimant worked during the exposure period, confirm **dates of employment** that overlap with the VCF exposure window, come from someone with authority to attest to employment records - generally somone in the **HR or Legal Departments**, if submitting a Private Physician Package (which we will discuss in a future module) must state either full-time employment status or the hours worked at each location, and any EVL or TPV must be transmitted **directly to the VCF** at VCF.Thirdpartyverification@usdoj.gov with the subject line: Third Party Verification Form."
+            "text": "A letter from an employer, on **company letterhead**, confirming the claimant's employment. To be sufficient it must: state the **specific address** where the claimant worked during the exposure period, confirm **dates of employment** that overlap with the VCF exposure window, come from someone with authority to attest to employment records — generally someone in the **HR or Legal Departments**, include a **working phone number for the employer** that the VCF can call to confirm the information, if submitting a Private Physician Package (which we will discuss in a future module) state either full-time employment status or the hours worked at each location, and be transmitted **directly to the VCF** at VCF.Thirdpartyverification@usdoj.gov with the subject line: Third Party Verification Form."
           },
           {
             "type": "callout",
@@ -207,7 +223,7 @@ export const MODULE4 = {
           },
           {
             "type": "paragraph",
-            "text": "The VCF's standardized form, completed by an employer or organization. The same sufficiency standards apply — specific dates, specific location, if submitting a Privat Physician Package full-time status or hours worked at each location, sent directly to VCF.Thirdpartyverification@usdoj.gov with the subject line: Third Party Verification Form. The same workflow applies: ask the organization to send to us first for review, then ask them to transmit directly to the VCF and CC us."
+            "text": "The VCF's standardized form, completed by an employer or organization. The same sufficiency standards apply — specific dates, specific location, **a working phone number for the issuing entity** that the VCF can call to verify, if submitting a Private Physician Package full-time status or hours worked at each location, sent directly to VCF.Thirdpartyverification@usdoj.gov with the subject line: Third Party Verification Form. The same workflow applies: ask the organization to send to us first for review, then ask them to transmit directly to the VCF and CC us."
           },
           {
             "type": "subheading",
@@ -215,7 +231,7 @@ export const MODULE4 = {
           },
           {
             "type": "paragraph",
-            "text": "Union work history records can be sufficient if the union submits them directly to the VCF and the record includes specific work location, dates, and is signed by someone with authority to attest to the member's work history. In practice, many union records don't include all of this — they may be general rosters without location detail. Check policies and procedures and the entity account in Salesforce before reaching out to a union, as many have specific processes and required forms. If what the union can provide doesn't meet the sufficiency standard, it is still worth collecting and submitting as non-sufficient primary evidence alongside witness statements, as long as the records don't contradict the WPS."
+            "text": "Union work history records can be sufficient if the union submits them directly to the VCF and the record includes specific work location, dates, **a working phone number for the union office that the VCF can call to confirm the information**, and is signed by someone with authority to attest to the member's work history. In practice, many union records don't include all of this — they may be general rosters without location detail. Check policies and procedures and the entity account in Salesforce before reaching out to a union, as many have specific processes and required forms. If what the union can provide doesn't meet the sufficiency standard, it is still worth collecting and submitting as non-sufficient primary evidence alongside witness statements, as long as the records don't contradict the WPS."
           },
           {
             "type": "subheading",
@@ -223,7 +239,13 @@ export const MODULE4 = {
           },
           {
             "type": "paragraph",
-            "text": "Sufficient primary evidence for claimants who were students during the exposure period. Must be certified by the school (official seal or registrar certification), and either sent directly to the VCF or submitted by us with a letter from the attorney confirming the document was received directly from the school and is unaltered. Must show enrollment at a school within the exposure zone during the exposure period."
+            "text": "Sufficient primary evidence for claimants who were students during the exposure period. Must be certified by the school (official seal or registrar certification), include **a working phone number for the registrar's office or main school line** that the VCF can call to confirm the record, and either be sent directly to the VCF or submitted by us with a letter from the attorney confirming the document was received directly from the school and is unaltered. Must show enrollment at a school within the exposure zone during the exposure period."
+          },
+          {
+            "type": "callout",
+            "style": "info",
+            "icon": "🏫",
+            "text": "**[To be confirmed]** An **unofficial transcript** issued by the school may also be sufficient, as long as it still originates from the school and is sent or transmitted by school staff (not the claimant). The same direct-from-school transmission and working-phone-number requirements still apply. **Verify this with a supervising attorney before relying on an unofficial transcript as sufficient primary evidence.**"
           },
           {
             "type": "subheading",
@@ -231,7 +253,7 @@ export const MODULE4 = {
           },
           {
             "type": "paragraph",
-            "text": "For residents, a letter from a building management company can be sufficient — but only if it specifically attests to physical presence during the exposure period, not just tenancy. A letter that confirms a lease existed is non-sufficient. A letter that explains how the management company knows the claimant was physically residing there during the exposure window is a different document. If the letter can't attest to the presence of the claimant in the building, treat it as non-sufficient primary evidence."
+            "text": "For residents, a letter from a building management company can be sufficient — but only if it specifically attests to physical presence during the exposure period, not just tenancy, and includes **a working phone number for the management company** that the VCF can call to confirm. A letter that confirms a lease existed is non-sufficient. A letter that explains how the management company knows the claimant was physically residing there during the exposure window is a different document. If the letter can't attest to the presence of the claimant in the building, treat it as non-sufficient primary evidence."
           },
           {
             "type": "callout",
