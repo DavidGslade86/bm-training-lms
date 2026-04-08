@@ -464,6 +464,18 @@ export const MODULE4 = {
                   "Must be hand-signed — a clear photo or scan of the signature page is acceptable",
                   "Electronic signatures not accepted"
                 ]
+              },
+              {
+                "name": "Witness identifiers",
+                "label": "Required on every statement",
+                "color": "#a8651d",
+                "bg": "#fdf6ec",
+                "border": "#ecd9b8",
+                "items": [
+                  "**Witness date of birth** — required on every WPS",
+                  "**Witness phone number** — must be a working number where the VCF can reach the witness to confirm the statement",
+                  "**Witness VCF# (if applicable)** — include when the witness has their own VCF claim, especially if that claim was successful"
+                ]
               }
             ]
           },
@@ -473,7 +485,35 @@ export const MODULE4 = {
           },
           {
             "type": "paragraph",
-            "text": "A Witness Presence Statement needs enough specificity to be independently verifiable. The witness must describe: where exactly they saw the claimant (specific address or cross streets), when (dates or date range), what the claimant was doing there, and how the witness knows this — what the witness was doing and why they can verify the claimant's timeline and location. Vague statements are not sufficient. Specific statements that place the claimant at a named address doing a specific activity during a specific time period are what the VCF needs."
+            "text": "A Witness Presence Statement needs enough specificity to be independently verifiable. The witness must describe: where exactly they saw the claimant (specific address or cross streets), when (dates or date range), what the claimant was doing there, and how the witness knows this — what the witness was doing and why they can verify the claimant's timeline and location. The statement must also include the **witness's date of birth** and a **working phone number** the VCF can use to reach them. If the witness has their own VCF claim, include their **VCF claim number** — this is especially valuable if that claim was successful. Vague statements are not sufficient. Specific statements that place the claimant at a named address doing a specific activity during a specific time period are what the VCF needs."
+          },
+          {
+            "type": "subheading",
+            "text": "Special case — Dust affiant (non-eyewitness)"
+          },
+          {
+            "type": "paragraph",
+            "text": "A dust affiant is a non-eyewitness witness who encountered the client on or about 9/11/2001 and observed the client covered in dust from one of the falling buildings. The dust affiant did not see the client in the exposure zone — they saw the client after the client had left it, and the dust on the client is what establishes that the client was there. We discuss dust affiants in more depth in a later module; for now, understand that they are a recognized alternative to eyewitness WPS in the right circumstances."
+          },
+          {
+            "type": "callout",
+            "style": "info",
+            "icon": "🌫️",
+            "text": "**Dust WPS — what the statement must include:**\n• The witness **encountered the client on or about 9/11/2001** and personally saw the client **covered in dust**\n• The witness **is aware the client was caught in a dust cloud** from one of the falling buildings\n• A description of the **color, amount, and location of the dust** on the client\n• **When and where** the witness saw the client\n• **What the client said** about where they were engulfed in dust\n• A description of **the client's demeanor** at the time"
+          },
+          {
+            "type": "subheading",
+            "text": "Special case — Supervisor statement (non-eyewitness)"
+          },
+          {
+            "type": "paragraph",
+            "text": "The VCF's Policies and Procedures recognize a supervisor who sent a subordinate to the 9/11 exposure area — and who has knowledge that the client actually reported to that exposure area — as a valid witness, even if the supervisor did not personally observe the client on site. This is sometimes the cleanest path for responders and workers whose direct eyewitnesses are unavailable."
+          },
+          {
+            "type": "callout",
+            "style": "info",
+            "icon": "📋",
+            "text": "**Cover letter language — supervisor statements.** When we submit a supervisor WPS, we include the VCF's own guidance in the explanatory cover letter:\n\n*\"This Witness Statement is submitted in keeping with section 1.8 of the VCF Policies and Procedures: 'In general, witnesses must show that they directly observed you at the eligible location, or must have been a supervisor or dispatcher who ordered you to that location and has knowledge that you in fact reported to the location.'\"*"
           },
           {
             "type": "yajaira-check",

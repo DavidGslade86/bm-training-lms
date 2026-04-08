@@ -188,7 +188,7 @@ export function Blocks({ blocks, cardId }) {
             ? <ET cardId={cardId} path={`data.blocks.${i}.icon`} value={b.icon} className="text-lg shrink-0">{b.icon}</ET>
             : <span className="text-lg shrink-0">{b.icon}</span>}
           <div className="flex-1">
-            <div className="text-sm leading-relaxed text-brand-tm">
+            <div className="text-sm leading-relaxed text-brand-tm whitespace-pre-line">
               {editMode && cardId
                 ? <ET cardId={cardId} path={`data.blocks.${i}.text`} value={b.text} multiline><GT t={b.text}/></ET>
                 : <GT t={b.text}/>}
@@ -336,9 +336,12 @@ export function Blocks({ blocks, cardId }) {
       );
     }
 
-    if (b.type === "tier-cards")
+    if (b.type === "tier-cards") {
+      // Use a 2-column grid when there are 4 cards (cleaner than a 4-wide
+      // row at typical reading widths), 3-column grid otherwise.
+      const gridCls = b.tiers.length === 4 ? "grid-cols-2" : "grid-cols-3";
       return (
-        <div key={i} className="grid grid-cols-3 gap-4 my-5">
+        <div key={i} className={`grid ${gridCls} gap-4 my-5`}>
           {b.tiers.map((t, ti) => (
             <div key={ti} className="rounded-lg p-5" style={{background:t.bg,border:`1px solid ${t.border}`}} /* dynamic: tier-specific colors from data */>
               <div className="font-bold text-base mb-1 font-heading" style={{color:t.color}} /* dynamic: tier color */>
@@ -365,6 +368,7 @@ export function Blocks({ blocks, cardId }) {
           ))}
         </div>
       );
+    }
 
     if (b.type === "exposure-grid")
       return (
