@@ -103,6 +103,23 @@ export function Nav({ ok }) {
   );
 }
 
+// ─── resolveFormImage: rewrite legacy /src/assets/... paths to public/ + BASE_URL ──
+// Data files written by Edit Mode use string paths like "/src/assets/forms/retainer-1.png".
+// In production those don't resolve. Public-folder copies live at public/forms/ and
+// public/review_forms/, served from `${BASE_URL}forms/...` and `${BASE_URL}review_forms/...`.
+// This helper translates either form to a working URL.
+export function resolveFormImage(src) {
+  if (!src) return src;
+  const base = import.meta.env.BASE_URL || "/";
+  // Strip leading "/src/assets/" if present
+  let rest = src.replace(/^\/?src\/assets\//, "");
+  // Strip any leading slash so we can prefix BASE_URL cleanly
+  rest = rest.replace(/^\//, "");
+  // If src was already absolute (http) leave alone
+  if (/^https?:\/\//i.test(src)) return src;
+  return `${base}${rest}`;
+}
+
 // ─── FormImageViewer: paginated form preview ─────────
 function FormImageViewer({ images, alt }) {
   const [page, setPage] = useState(0);
@@ -128,10 +145,13 @@ function FormImageViewer({ images, alt }) {
           </div>
         )}
       </div>
-      <img src={images[page]} alt={`${alt} — page ${page + 1}`} className="w-full rounded border border-brand-sand"/>
+      <img src={resolveFormImage(images[page])} alt={`${alt} — page ${page + 1}`} className="w-full rounded border border-brand-sand"/>
     </div>
   );
 }
+
+// Re-export FormImageViewer so other components can use the same paginated viewer
+export { FormImageViewer };
 
 // ─── Blocks: renders typed content blocks ────────────
 // cardId is optional; when provided and editMode is active, paragraph/subheading/callout blocks become editable.
@@ -401,6 +421,23 @@ export function Blocks({ blocks, cardId }) {
           </div>
         </div>
       );
+
+    if (b.type === "image") {
+      // Generic image block. b.src may be a /src/assets/... path (rewritten
+      // to public/) or an http URL. b.caption is optional.
+      return (
+        <div key={i} className="my-5 rounded-lg overflow-hidden border border-brand-sand bg-brand-ww">
+          <img
+            src={resolveFormImage(b.src)}
+            alt={b.alt || b.caption || ""}
+            className="w-full block"
+          />
+          {b.caption && (
+            <div className="px-4 py-2 text-xs text-brand-tl">{b.caption}</div>
+          )}
+        </div>
+      );
+    }
 
     if (b.type === "multi-select-scenarios")
       return <MultiSelectScenarios key={i} block={b} />;

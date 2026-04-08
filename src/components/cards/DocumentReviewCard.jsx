@@ -1,7 +1,7 @@
 import { useState, useContext, useMemo } from "react";
 import { B } from "../../data/brand";
 import { Ctx } from "../../state";
-import { Nav, ET } from "../Shared";
+import { Nav, ET, FormImageViewer } from "../Shared";
 import { GT } from "../Glossary";
 
 // ═══════════════════════════════════════════════════════
@@ -18,9 +18,13 @@ export default function DocumentReviewCard({ data, cardId }) {
   const [active, setActive] = useState(null);           // active error id (expanded)
   const [wrongPicks, setWrongPicks] = useState({});      // { [errorId]: Set<optionIndex> }
 
-  // mode: "find-errors" (default) | "action-items"
+  // mode: "find-errors" (default) | "action-items" | "image-review"
+  // image-review: each document has a multi-page formImages preview, and the
+  // per-error rows are simplified to a numbered question with answer choices
+  // shown inline (no expand step, no zone/displayed prompt).
   const mode = data.mode || "find-errors";
   const isActionItems = mode === "action-items";
+  const isImageReview = mode === "image-review";
 
   // Total errors across all documents
   const totalErrors = useMemo(
@@ -49,6 +53,8 @@ export default function DocumentReviewCard({ data, cardId }) {
   const instructions = data.instructions || (
     isActionItems
       ? "Review the note below and identify what action is required for each item."
+      : isImageReview
+      ? "Review each document and select the correct answer for each question."
       : "Review the document below and find everything that needs to be corrected."
   );
 
@@ -70,6 +76,21 @@ export default function DocumentReviewCard({ data, cardId }) {
           ? <ET cardId={cardId} path="data.instructions" value={instructions} multiline><GT t={instructions} /></ET>
           : <p className="m-0"><GT t={instructions} /></p>}
       </div>
+
+      {/* ── Header note (e.g. CMS reference info) ── */}
+      {data.headerNote && (
+        <div
+          className="mb-5 rounded-lg px-4 py-3 flex gap-3 text-sm"
+          style={{ background: B.blueLt, border: `1px solid #b3dcf2`, color: B.td }}
+        >
+          <span className="text-base shrink-0">ℹ️</span>
+          <div className="flex-1">
+            {editMode && cardId
+              ? <ET cardId={cardId} path="data.headerNote" value={data.headerNote} multiline><GT t={data.headerNote} /></ET>
+              : <GT t={data.headerNote} />}
+          </div>
+        </div>
+      )}
 
       {/* ── Salesforce note block (optional) ── */}
       {data.noteText && (
@@ -106,92 +127,73 @@ export default function DocumentReviewCard({ data, cardId }) {
       </div>
 
       {/* ── Documents ── */}
-      {data.documents.map((doc, di) => (
-        <div key={di} className="mb-6 rounded-lg border overflow-hidden" style={{ borderColor: B.sand }} /* dynamic: brand border */>
-          {/* Document header bar */}
-          <div
-            className="px-5 py-3 font-bold text-sm border-b"
-            style={{ background: B.cream, borderColor: B.sand, color: B.td }} /* dynamic: brand colors */
-          >
-            {editMode && cardId
-              ? <ET cardId={cardId} path={`data.documents.${di}.name`} value={doc.name}>{doc.name}</ET>
-              : doc.name}
-          </div>
+      {data.documents.map((doc, di) => {
+        const docHasImages = !!(doc.formImages && doc.formImages.length > 0);
+        const useImageLayout = isImageReview || docHasImages;
 
-          {/* Error zones rendered as form fields */}
-          <div className="p-4 space-y-3" style={{ background: B.ww }} /* dynamic: brand bg */>
-            {doc.errors.map((err, ei) => {
-              const isFound  = reviewMode || !!found[err.id];
-              const isActive = !reviewMode && active === err.id;
-              const wrongs   = wrongPicks[err.id] || new Set();
+        return (
+          <div key={di} className="mb-6 rounded-lg border overflow-hidden" style={{ borderColor: B.sand }} /* dynamic: brand border */>
+            {/* Document header bar */}
+            <div
+              className="px-5 py-3 font-bold text-sm border-b"
+              style={{ background: B.cream, borderColor: B.sand, color: B.td }} /* dynamic: brand colors */
+            >
+              {editMode && cardId
+                ? <ET cardId={cardId} path={`data.documents.${di}.name`} value={doc.name}>{doc.name}</ET>
+                : doc.name}
+            </div>
 
-              return (
-                <div key={err.id}>
-                  {/* ── Zone row ── */}
-                  <div
-                    className="rounded-lg border-2 p-3.5 transition-colors"
-                    style={{
-                      borderColor: isFound ? B.ok : isActive ? B.blue : B.sand,
-                      background:  isFound ? B.okBg : isActive ? B.blueLt : "white",
-                      cursor: isFound || reviewMode ? "default" : "pointer",
-                    }} /* dynamic: border/bg change on found/active state */
-                    onClick={() => { if (!isFound && !reviewMode) setActive(isActive ? null : err.id); }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div
-                          className="text-[11px] font-bold uppercase tracking-wider mb-1"
-                          style={{ color: isFound ? B.ok : B.grayLt }} /* dynamic: label color */
-                        >
-                          {editMode && cardId
-                            ? <ET cardId={cardId} path={`data.documents.${di}.errors.${ei}.zone`} value={err.zone}>{err.zone}</ET>
-                            : err.zone}
-                        </div>
-                        <div
-                          className="text-sm font-medium"
-                          style={{ color: isFound ? B.ok : B.td }} /* dynamic: value color */
-                        >
-                          {isFound ? "\u2713 " : ""}
-                          {editMode && cardId
-                            ? <ET cardId={cardId} path={`data.documents.${di}.errors.${ei}.displayed`} value={err.displayed}>{err.displayed}</ET>
-                            : err.displayed}
-                        </div>
-                      </div>
-                      {!isFound && !reviewMode && (
-                        <div
-                          className="text-xs px-2 py-1 rounded shrink-0 ml-3"
-                          style={{ color: B.blue, background: B.blueLt }} /* dynamic: brand badge */
-                        >
-                          {isActive ? "\u25B2" : "Review \u25BC"}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+            {/* ── Form image preview (image-review mode) ── */}
+            {useImageLayout && docHasImages && (
+              <div className="px-5 pt-4" style={{ background: B.ww }}>
+                <FormImageViewer images={doc.formImages} alt={doc.name} />
+              </div>
+            )}
 
-                  {/* ── Options panel (expanded) — hidden in review mode ── */}
-                  {isActive && !isFound && !reviewMode && (
-                    <div className="mt-2 ml-4 p-3 rounded-lg border" style={{ borderColor: B.sand, background: "white" }} /* dynamic: brand border */>
-                      <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: B.grayLt }} /* dynamic: label color */>
-                        {isActionItems ? "What action is required?" : "What's wrong with this field?"}
+            {/* Error zones rendered as form fields */}
+            <div className="p-4 space-y-3" style={{ background: B.ww }} /* dynamic: brand bg */>
+              {doc.errors.map((err, ei) => {
+                const isFound  = reviewMode || !!found[err.id];
+                const isActive = !reviewMode && active === err.id;
+                const wrongs   = wrongPicks[err.id] || new Set();
+
+                // ── IMAGE-REVIEW LAYOUT: inline question with always-visible options ──
+                if (useImageLayout) {
+                  return (
+                    <div
+                      key={err.id}
+                      className="rounded-lg border-2 p-4"
+                      style={{
+                        borderColor: isFound ? B.ok : B.sand,
+                        background: isFound ? B.okBg : "white",
+                      }}
+                    >
+                      <div
+                        className="text-[11px] font-bold uppercase tracking-wider mb-3"
+                        style={{ color: isFound ? B.ok : B.blue }}
+                      >
+                        {isFound ? "✓ " : ""}Question {ei + 1}
                       </div>
                       <div className="space-y-1.5">
                         {err.options.map((opt, oi) => {
-                          const isWrong = wrongs.has(oi);
+                          const isWrong   = wrongs.has(oi);
+                          const isCorrect = isFound && oi === err.correctOption;
                           return (
                             <button
                               key={oi}
-                              disabled={isWrong}
-                              onClick={(e) => { e.stopPropagation(); handlePick(err, oi); }}
+                              disabled={isFound || isWrong || reviewMode}
+                              onClick={() => handlePick(err, oi)}
                               className="w-full text-left px-3 py-2 rounded text-sm transition-colors"
                               style={{
-                                background: isWrong ? B.errBg : "transparent",
-                                color:   isWrong ? B.err : B.td,
-                                border:  `1px solid ${isWrong ? B.err : B.sand}`,
+                                background: isCorrect ? B.okBg : isWrong ? B.errBg : "transparent",
+                                color: isCorrect ? B.ok : isWrong ? B.err : B.td,
+                                border: `1px solid ${isCorrect ? B.ok : isWrong ? B.err : B.sand}`,
                                 opacity: isWrong ? 0.5 : 1,
-                                cursor:  isWrong ? "default" : "pointer",
-                              }} /* dynamic: wrong-pick styling */
+                                cursor: isFound || isWrong || reviewMode ? "default" : "pointer",
+                                fontWeight: isCorrect ? 600 : 400,
+                              }}
                             >
-                              {isWrong ? "\u2717 " : ""}
+                              {isCorrect ? "✓ " : isWrong ? "✗ " : ""}
                               {editMode && cardId
                                 ? <ET cardId={cardId} path={`data.documents.${di}.errors.${ei}.options.${oi}`} value={opt}>{opt}</ET>
                                 : opt}
@@ -199,26 +201,116 @@ export default function DocumentReviewCard({ data, cardId }) {
                           );
                         })}
                       </div>
+                      {isFound && (
+                        <div
+                          className="mt-3 px-3 py-2 rounded-lg text-xs leading-relaxed"
+                          style={{ background: B.okBg, color: B.ok }}
+                        >
+                          {editMode && cardId
+                            ? <ET cardId={cardId} path={`data.documents.${di}.errors.${ei}.feedback`} value={err.feedback} multiline><GT t={err.feedback} /></ET>
+                            : <GT t={err.feedback} />}
+                        </div>
+                      )}
                     </div>
-                  )}
+                  );
+                }
 
-                  {/* ── Feedback (after finding the error, or always in review mode) ── */}
-                  {isFound && (
+                // ── DEFAULT LAYOUT (find-errors / action-items): clickable zone row ──
+                return (
+                  <div key={err.id}>
+                    {/* ── Zone row ── */}
                     <div
-                      className="mt-2 ml-4 px-3 py-2 rounded-lg text-xs leading-relaxed"
-                      style={{ background: B.okBg, color: B.ok }} /* dynamic: ok styling */
+                      className="rounded-lg border-2 p-3.5 transition-colors"
+                      style={{
+                        borderColor: isFound ? B.ok : isActive ? B.blue : B.sand,
+                        background:  isFound ? B.okBg : isActive ? B.blueLt : "white",
+                        cursor: isFound || reviewMode ? "default" : "pointer",
+                      }} /* dynamic: border/bg change on found/active state */
+                      onClick={() => { if (!isFound && !reviewMode) setActive(isActive ? null : err.id); }}
                     >
-                      {editMode && cardId
-                        ? <ET cardId={cardId} path={`data.documents.${di}.errors.${ei}.feedback`} value={err.feedback} multiline><GT t={err.feedback} /></ET>
-                        : <GT t={err.feedback} />}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div
+                            className="text-[11px] font-bold uppercase tracking-wider mb-1"
+                            style={{ color: isFound ? B.ok : B.grayLt }} /* dynamic: label color */
+                          >
+                            {editMode && cardId
+                              ? <ET cardId={cardId} path={`data.documents.${di}.errors.${ei}.zone`} value={err.zone}>{err.zone}</ET>
+                              : err.zone}
+                          </div>
+                          <div
+                            className="text-sm font-medium"
+                            style={{ color: isFound ? B.ok : B.td }} /* dynamic: value color */
+                          >
+                            {isFound ? "\u2713 " : ""}
+                            {editMode && cardId
+                              ? <ET cardId={cardId} path={`data.documents.${di}.errors.${ei}.displayed`} value={err.displayed}>{err.displayed}</ET>
+                              : err.displayed}
+                          </div>
+                        </div>
+                        {!isFound && !reviewMode && (
+                          <div
+                            className="text-xs px-2 py-1 rounded shrink-0 ml-3"
+                            style={{ color: B.blue, background: B.blueLt }} /* dynamic: brand badge */
+                          >
+                            {isActive ? "\u25B2" : "Review \u25BC"}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
-              );
-            })}
+
+                    {/* ── Options panel (expanded) — hidden in review mode ── */}
+                    {isActive && !isFound && !reviewMode && (
+                      <div className="mt-2 ml-4 p-3 rounded-lg border" style={{ borderColor: B.sand, background: "white" }} /* dynamic: brand border */>
+                        <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: B.grayLt }} /* dynamic: label color */>
+                          {isActionItems ? "What action is required?" : "What's wrong with this field?"}
+                        </div>
+                        <div className="space-y-1.5">
+                          {err.options.map((opt, oi) => {
+                            const isWrong = wrongs.has(oi);
+                            return (
+                              <button
+                                key={oi}
+                                disabled={isWrong}
+                                onClick={(e) => { e.stopPropagation(); handlePick(err, oi); }}
+                                className="w-full text-left px-3 py-2 rounded text-sm transition-colors"
+                                style={{
+                                  background: isWrong ? B.errBg : "transparent",
+                                  color:   isWrong ? B.err : B.td,
+                                  border:  `1px solid ${isWrong ? B.err : B.sand}`,
+                                  opacity: isWrong ? 0.5 : 1,
+                                  cursor:  isWrong ? "default" : "pointer",
+                                }} /* dynamic: wrong-pick styling */
+                              >
+                                {isWrong ? "\u2717 " : ""}
+                                {editMode && cardId
+                                  ? <ET cardId={cardId} path={`data.documents.${di}.errors.${ei}.options.${oi}`} value={opt}>{opt}</ET>
+                                  : opt}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ── Feedback (after finding the error, or always in review mode) ── */}
+                    {isFound && (
+                      <div
+                        className="mt-2 ml-4 px-3 py-2 rounded-lg text-xs leading-relaxed"
+                        style={{ background: B.okBg, color: B.ok }} /* dynamic: ok styling */
+                      >
+                        {editMode && cardId
+                          ? <ET cardId={cardId} path={`data.documents.${di}.errors.${ei}.feedback`} value={err.feedback} multiline><GT t={err.feedback} /></ET>
+                          : <GT t={err.feedback} />}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       {/* ── Completion message ── */}
       {allFound && data.completionMessage && (

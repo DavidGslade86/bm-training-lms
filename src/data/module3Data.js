@@ -369,10 +369,15 @@ export const MODULE3 = {
       "data": {
         "title": "What’s Wrong With This Document?",
         "subtitle": "Find every error before you can submit",
-        "instructions": "Below are completed documents from a client intake kit. Each has errors that would cause problems during preliminary review. Click on a highlighted section to identify the problem. Find all errors to continue.",
+        "instructions": "Below are completed documents from a client intake kit. Each has errors that would cause problems during preliminary review. Review each form, then select the correct answer for each question.",
+        "mode": "image-review",
+        "headerNote": "**Reference:** The victim's CMS account lists their legal name as **Maria Yajaira Diaz**.",
         "documents": [
           {
             "name": "CIRF — Claim Information Resolution Form",
+            "formImages": [
+              "/src/assets/review_forms/CIRF_pg1.png"
+            ],
             "errors": [
               {
                 "id": "cirf-1",
@@ -417,6 +422,11 @@ export const MODULE3 = {
           },
           {
             "name": "VCF Signature Page",
+            "formImages": [
+              "/src/assets/review_forms/Sig_pg1.png",
+              "/src/assets/review_forms/Sig_pg2.png",
+              "/src/assets/review_forms/Sig_pg3.png"
+            ],
             "errors": [
               {
                 "id": "cirf-4",
@@ -448,6 +458,12 @@ export const MODULE3 = {
           },
           {
             "name": "Exhibit A — Authorization for Release of Medical Records",
+            "formImages": [
+              "/src/assets/review_forms/ExhbA_pg1.png",
+              "/src/assets/review_forms/ExhbA_pg2.png",
+              "/src/assets/review_forms/ExhbA_pg3.png",
+              "/src/assets/review_forms/ExhbA_pg4.png"
+            ],
             "errors": [
               {
                 "id": "exa-1",
