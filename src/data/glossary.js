@@ -162,6 +162,7 @@ for (const e of GLOSSARY) {
 const ALIASES = {
   "interstitial lung diseases": "interstitial lung disease",
   "latency":                    "latency period",
+  "er call":                    "eligibility ready call",
 };
 for (const [alias, canonical] of Object.entries(ALIASES)) {
   if (GMAP[canonical] && !GMAP[alias]) {
