@@ -144,38 +144,59 @@ export const GLOSSARY = [
 // IS and IT excluded from main regex (too short / common English words)
 // They are matched separately via a case-sensitive strict pass in GlossaryInline.
 export const STRICT_ABBRS = new Set(["is", "it"]);
-export const GMAP = {};
-const _GSEARCH = [];
-for (const e of GLOSSARY) {
-  const addKey = (k, entry) => {
-    const kl = k.toLowerCase();
-    if (k && !GMAP[kl]) {
-      GMAP[kl] = entry;
-      if (!STRICT_ABBRS.has(kl)) _GSEARCH.push(k);
-    }
-  };
-  if (e.abbr) addKey(e.abbr, e);
-  if (e.term) addKey(e.term, e);
-}
 
 // Aliases: surface form → canonical GMAP key
-const ALIASES = {
+// Used both by the static index and by buildGlossaryIndex for runtime edits.
+export const ALIASES = {
   "interstitial lung diseases": "interstitial lung disease",
   "latency":                    "latency period",
   "er call":                    "eligibility ready call",
 };
-for (const [alias, canonical] of Object.entries(ALIASES)) {
-  if (GMAP[canonical] && !GMAP[alias]) {
-    GMAP[alias] = GMAP[canonical];
-    _GSEARCH.push(alias);
+
+const _esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// ─── buildGlossaryIndex(entries) ─────────────────────
+// Build a fresh GMAP / regex source pair from any glossary array.
+// Used by the static export below AND by useEditableGlossary at runtime
+// so that learner-added or edited entries can be matched in body text.
+export function buildGlossaryIndex(entries) {
+  const gmap = {};
+  const search = [];
+  for (const e of entries) {
+    const addKey = (k, entry) => {
+      if (!k) return;
+      const kl = k.toLowerCase();
+      if (!gmap[kl]) {
+        gmap[kl] = entry;
+        if (!STRICT_ABBRS.has(kl)) search.push(k);
+      }
+    };
+    if (e.abbr) addKey(e.abbr, e);
+    if (e.term) addKey(e.term, e);
   }
+  for (const [alias, canonical] of Object.entries(ALIASES)) {
+    if (gmap[canonical] && !gmap[alias]) {
+      gmap[alias] = gmap[canonical];
+      search.push(alias);
+    }
+  }
+  search.sort((a, b) => b.length - a.length); // longest match first
+  const regexSrc = search.length
+    ? `\\b(${search.map(_esc).join('|')})\\b`
+    : "(?!)"; // never matches if empty
+  return {
+    GMAP: gmap,
+    GREGEX_SRC: regexSrc,
+    STRICT_RX_SRC: `\\b(IS|IT)\\b`,
+  };
 }
 
-_GSEARCH.sort((a, b) => b.length - a.length); // longest match first
-const _esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-export const GREGEX_SRC = `\\b(${_GSEARCH.map(_esc).join('|')})\\b`;
-// Strict case-sensitive regex for IS / IT (exact uppercase only)
-export const STRICT_RX_SRC = `\\b(IS|IT)\\b`;
+// Default static index — built once from the source GLOSSARY array.
+// Kept for callers that don't go through the React context (e.g. Jeopardy iframe).
+const _staticIndex = buildGlossaryIndex(GLOSSARY);
+export const GMAP = _staticIndex.GMAP;
+export const GREGEX_SRC = _staticIndex.GREGEX_SRC;
+export const STRICT_RX_SRC = _staticIndex.STRICT_RX_SRC;
 
 // ─── Category colours + short labels ─────────────────
 export const CAT_COLOR = {

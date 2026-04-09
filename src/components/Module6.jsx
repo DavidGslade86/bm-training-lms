@@ -300,7 +300,7 @@ export default function Module6({ learner, moduleStartedAt, onHome, onSignIn, ed
           </div>
         )}
 
-        <GlossaryDrawer open={glossOpen} onClose={()=>setGlossOpen(false)}/>
+        <GlossaryDrawer open={glossOpen} onClose={()=>setGlossOpen(false)} editMode={effectiveEditMode}/>
       </div>
     </Ctx.Provider>
   );

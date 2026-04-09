@@ -1,5 +1,12 @@
 import { useState, useRef } from "react";
-import { GMAP, GREGEX_SRC, STRICT_RX_SRC, CAT_COLOR, CAT_LABEL } from "../data/glossary";
+import {
+  GMAP as STATIC_GMAP,
+  GREGEX_SRC as STATIC_GREGEX_SRC,
+  STRICT_RX_SRC as STATIC_STRICT_RX_SRC,
+  CAT_COLOR,
+  CAT_LABEL,
+} from "../data/glossary";
+import { useEditableGlossary } from "../hooks/useEditableGlossary";
 
 // ─── Popup tooltip shown on click ────────────────────
 export function GlossaryPopup({ entry, rect }) {
@@ -47,7 +54,15 @@ export function GlossaryTerm({ entry, children }) {
 // ─── Two-pass tokenizer ───────────────────────────────
 // Pass 1: case-sensitive strict regex for IS, IT
 // Pass 2: case-insensitive main regex for everything else
+//
+// Reads regex sources + GMAP from the GlossaryProvider context if mounted,
+// otherwise falls back to the static module-level exports.
 export function GlossaryInline({ text }) {
+  const ctx = useEditableGlossary();
+  const GMAP = ctx?.GMAP || STATIC_GMAP;
+  const GREGEX_SRC = ctx?.GREGEX_SRC || STATIC_GREGEX_SRC;
+  const STRICT_RX_SRC = ctx?.STRICT_RX_SRC || STATIC_STRICT_RX_SRC;
+
   if (!text) return null;
   const strictRx = new RegExp(STRICT_RX_SRC, "g"); // NO 'i' flag
   const mainRx = new RegExp(GREGEX_SRC, "gi");

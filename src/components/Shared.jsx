@@ -491,10 +491,10 @@ export function Blocks({ blocks, cardId }) {
     }
 
     if (b.type === "multi-select-scenarios")
-      return <MultiSelectScenarios key={i} block={b} />;
+      return <MultiSelectScenarios key={i} block={b} cardId={cardId} blockIndex={i} />;
 
     if (b.type === "sufficiency-quiz")
-      return <SufficiencyQuiz key={i} block={b} />;
+      return <SufficiencyQuiz key={i} block={b} cardId={cardId} blockIndex={i} />;
 
     return null;
   });
@@ -503,13 +503,15 @@ export function Blocks({ blocks, cardId }) {
 // ── SufficiencyQuiz ──────────────────────────────────────────────────────────
 // Binary Sufficient / Not Sufficient classifier per item.
 // block.items = [{ label, sufficient (bool), feedback }]
-function SufficiencyQuiz({ block }) {
-  const { reviewMode } = useContext(Ctx);
+function SufficiencyQuiz({ block, cardId, blockIndex }) {
+  const { reviewMode, editMode, updateCard } = useContext(Ctx);
+  const editable = editMode && cardId && blockIndex !== undefined;
   const [answers, setAnswers] = useState(
     () => block.items.map(() => ({ choice: null })) // choice: null | "s" | "ns"
   );
 
   const choose = (idx, choice) => {
+    if (editable) return; // disable interactive picks while editing so the row remains stable
     if (answers[idx].choice !== null || reviewMode) return;
     setAnswers(prev => prev.map((a, i) => i === idx ? { choice } : a));
   };
@@ -582,7 +584,9 @@ function SufficiencyQuiz({ block }) {
             <div className="px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
               {/* Label */}
               <div className="flex-1 text-sm leading-relaxed" style={{ color: B.td }}>
-                {item.label}
+                {editable
+                  ? <ET cardId={cardId} path={`data.blocks.${blockIndex}.items.${idx}.label`} value={item.label} multiline>{item.label}</ET>
+                  : item.label}
               </div>
 
               {/* Buttons */}
@@ -626,17 +630,34 @@ function SufficiencyQuiz({ block }) {
               )}
             </div>
 
-            {/* Feedback — shown after answering */}
-            {(answered) && item.feedback && (
+            {/* Feedback — shown after answering, or always in edit mode */}
+            {(answered || editable) && item.feedback && (
               <div
                 className="px-4 py-2.5 text-xs leading-relaxed border-t"
                 style={{
-                  background: isCorrect || reviewMode ? "#f0fdf4" : "#fff5f5",
-                  color: isCorrect || reviewMode ? "#2d7a55" : "#b54a4a",
-                  borderColor: isCorrect || reviewMode ? B.ok + "33" : B.err + "33",
+                  background: isCorrect || reviewMode || editable ? "#f0fdf4" : "#fff5f5",
+                  color: isCorrect || reviewMode || editable ? "#2d7a55" : "#b54a4a",
+                  borderColor: isCorrect || reviewMode || editable ? B.ok + "33" : B.err + "33",
                 }}
               >
-                {item.feedback}
+                {editable
+                  ? <ET cardId={cardId} path={`data.blocks.${blockIndex}.items.${idx}.feedback`} value={item.feedback} multiline>{item.feedback}</ET>
+                  : item.feedback}
+              </div>
+            )}
+
+            {/* Edit mode: sufficient flag toggle */}
+            {editable && (
+              <div className="px-4 py-2 flex items-center gap-2 border-t" style={{ borderColor: "#fcd34d", background: "#fffbeb" }}>
+                <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "#92400e" }}>Correct answer:</span>
+                <select
+                  value={item.sufficient ? "true" : "false"}
+                  onChange={(e) => updateCard?.(cardId, `data.blocks.${blockIndex}.items.${idx}.sufficient`, e.target.value === "true")}
+                  className="text-[11px] border border-amber-400 rounded px-1.5 py-0.5 bg-white cursor-pointer focus:outline-none"
+                >
+                  <option value="true">Sufficient</option>
+                  <option value="false">Not Sufficient</option>
+                </select>
               </div>
             )}
           </div>
@@ -647,14 +668,16 @@ function SufficiencyQuiz({ block }) {
 }
 
 // ── MultiSelectScenarios ─────────────────────────────────────────────────────
-function MultiSelectScenarios({ block }) {
-  const { reviewMode } = useContext(Ctx);
+function MultiSelectScenarios({ block, cardId, blockIndex }) {
+  const { reviewMode, editMode, updateCard } = useContext(Ctx);
+  const editable = editMode && cardId && blockIndex !== undefined;
   // Per-scenario state: selected indices + submitted flag
   const [states, setStates] = useState(
     () => block.scenarios.map(() => ({ selected: new Set(), submitted: false }))
   );
 
   const toggle = (si, oi) => {
+    if (editable) return; // disable picks in edit mode
     if (states[si].submitted) return;
     setStates(prev => {
       const next = prev.map((st, idx) => {
@@ -671,6 +694,15 @@ function MultiSelectScenarios({ block }) {
     setStates(prev => prev.map((st, idx) =>
       idx === si ? { ...st, submitted: true } : st
     ));
+  };
+
+  // Toggle a correct-answer index for scenario si in edit mode
+  const toggleCorrect = (si, oi) => {
+    if (!editable) return;
+    const sc = block.scenarios[si];
+    const cur = new Set(sc.correct || []);
+    cur.has(oi) ? cur.delete(oi) : cur.add(oi);
+    updateCard?.(cardId, `data.blocks.${blockIndex}.scenarios.${si}.correct`, [...cur].sort((a,b)=>a-b));
   };
 
   return (
@@ -694,13 +726,17 @@ function MultiSelectScenarios({ block }) {
               <div className="text-[10px] font-bold tracking-widest mb-1" style={{ color: B.blue }}>
                 SCENARIO {si + 1}
               </div>
-              <div className="text-sm leading-relaxed text-white/90">{sc.text}</div>
+              <div className="text-sm leading-relaxed text-white/90">
+                {editable
+                  ? <ET cardId={cardId} path={`data.blocks.${blockIndex}.scenarios.${si}.text`} value={sc.text} multiline>{sc.text}</ET>
+                  : sc.text}
+              </div>
             </div>
 
             {/* Options */}
             <div className="px-5 py-4 space-y-2" style={{ background: B.ww }}>
               <div className="text-xs font-bold mb-3" style={{ color: B.tl }}>
-                Select all that apply:
+                {editable ? "Edit options + click ✓ checkbox to mark correct answers:" : "Select all that apply:"}
               </div>
               {block.options.map((opt, oi) => {
                 const checked = wasSelected(oi) || (reviewMode && isCorrect(oi));
@@ -711,25 +747,32 @@ function MultiSelectScenarios({ block }) {
                   if (isCorrect(oi)) { borderColor = B.ok; bg = B.okBg; labelColor = B.ok; }
                   else if (wasSelected(oi)) { borderColor = B.err; bg = B.errBg; labelColor = B.err; }
                 }
+                // In edit mode, show correctness via the persisted scenario data
+                if (editable && isCorrect(oi)) { borderColor = B.ok; bg = B.okBg; labelColor = B.ok; }
                 return (
                   <label
                     key={oi}
                     className="flex items-start gap-3 px-3 py-2.5 rounded-lg border cursor-pointer transition-colors"
-                    style={{ borderColor, background: bg, cursor: submitted || reviewMode ? "default" : "pointer" }}
+                    style={{ borderColor, background: bg, cursor: editable ? "default" : (submitted || reviewMode ? "default" : "pointer") }}
                   >
                     <input
                       type="checkbox"
-                      checked={checked}
-                      onChange={() => toggle(si, oi)}
-                      disabled={submitted || reviewMode}
+                      checked={editable ? isCorrect(oi) : checked}
+                      onChange={() => editable ? toggleCorrect(si, oi) : toggle(si, oi)}
+                      disabled={!editable && (submitted || reviewMode)}
                       className="mt-0.5 shrink-0 cursor-pointer"
-                      style={{ accentColor: B.blue }}
+                      style={{ accentColor: editable ? B.ok : B.blue }}
+                      title={editable ? "Toggle correct answer" : ""}
                     />
-                    <span className="text-sm" style={{ color: labelColor }}>{opt}</span>
-                    {(submitted || reviewMode) && isCorrect(oi) && (
+                    <span className="text-sm flex-1" style={{ color: labelColor }}>
+                      {editable
+                        ? <ET cardId={cardId} path={`data.blocks.${blockIndex}.options.${oi}`} value={opt}>{opt}</ET>
+                        : opt}
+                    </span>
+                    {!editable && (submitted || reviewMode) && isCorrect(oi) && (
                       <span className="ml-auto text-xs font-bold shrink-0" style={{ color: B.ok }}>✓</span>
                     )}
-                    {submitted && !reviewMode && wasSelected(oi) && !isCorrect(oi) && (
+                    {!editable && submitted && !reviewMode && wasSelected(oi) && !isCorrect(oi) && (
                       <span className="ml-auto text-xs font-bold shrink-0" style={{ color: B.err }}>✗</span>
                     )}
                   </label>
@@ -738,7 +781,7 @@ function MultiSelectScenarios({ block }) {
             </div>
 
             {/* Submit button */}
-            {!submitted && !reviewMode && (
+            {!submitted && !reviewMode && !editable && (
               <div className="px-5 pb-4" style={{ background: B.ww }}>
                 <button
                   onClick={() => submit(si)}
@@ -752,16 +795,18 @@ function MultiSelectScenarios({ block }) {
             )}
 
             {/* Feedback */}
-            {(submitted || reviewMode) && sc.feedback && (
+            {(submitted || reviewMode || editable) && sc.feedback && (
               <div
                 className="px-5 py-3 text-sm leading-relaxed border-t"
                 style={{
-                  background: allCorrect || reviewMode ? B.okBg : B.errBg,
-                  color: allCorrect || reviewMode ? B.ok : B.err,
-                  borderColor: allCorrect || reviewMode ? B.ok + "33" : B.err + "33",
+                  background: allCorrect || reviewMode || editable ? B.okBg : B.errBg,
+                  color: allCorrect || reviewMode || editable ? B.ok : B.err,
+                  borderColor: allCorrect || reviewMode || editable ? B.ok + "33" : B.err + "33",
                 }}
               >
-                {sc.feedback}
+                {editable
+                  ? <ET cardId={cardId} path={`data.blocks.${blockIndex}.scenarios.${si}.feedback`} value={sc.feedback} multiline>{sc.feedback}</ET>
+                  : sc.feedback}
               </div>
             )}
           </div>

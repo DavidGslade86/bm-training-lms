@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { KEYS } from "./hooks/useLocalStorage";
+import { GlossaryProvider } from "./hooks/useEditableGlossary";
 import RegistrationScreen from "./components/RegistrationScreen";
 import HomePage from "./components/HomePage";
 import Module2 from "./components/Module2";
@@ -11,6 +12,14 @@ import JeopardyGame from "./components/JeopardyGame";
 import FinalAssessment from "./components/FinalAssessment";
 
 export default function App() {
+  return (
+    <GlossaryProvider>
+      <AppInner />
+    </GlossaryProvider>
+  );
+}
+
+function AppInner() {
   // Restore session from localStorage (survives page refresh)
   const stored = (() => {
     try { return JSON.parse(localStorage.getItem(KEYS.session())); }
