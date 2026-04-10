@@ -1,13 +1,16 @@
 import { useState, useRef, useEffect } from "react";
 import { B } from "../data/brand";
-import { FINAL_ASSESSMENT } from "../data/finalAssessmentData";
+import { getModule } from "../services/contentService";
+import { recordFinalAssessment } from "../services/completionService";
+import { useUser } from "../context/UserContext";
 import { KEYS } from "../hooks/useLocalStorage";
 import bmLogo from "../assets/Barasch_McGarry_Logo_2020_RGB.png";
 
-const PA_URL = import.meta.env.VITE_POWERAUTOMATE_URL;
 const OPT_LETTERS = ["A", "B", "C", "D"];
 
-export default function FinalAssessment({ learner, onBack }) {
+export default function FinalAssessment({ onBack }) {
+  const { user: learner } = useUser();
+  const [assessmentData, setAssessmentData] = useState(null);
   const assessKey = KEYS.assessment(learner?.email || "anonymous");
   const stored = (() => {
     try { return JSON.parse(localStorage.getItem(assessKey)); }
@@ -32,8 +35,20 @@ export default function FinalAssessment({ learner, onBack }) {
     } catch { /* storage full — silently fail */ }
   }, [answers, submitted, startedAt, completedAt, submitState, submittedAt, assessKey]);
 
-  const questions = FINAL_ASSESSMENT.questions;
-  const sections  = FINAL_ASSESSMENT.sections;
+  // Async-load assessment data from the content service
+  useEffect(() => {
+    let cancelled = false;
+    getModule("final-assessment").then((data) => {
+      if (!cancelled) setAssessmentData(data);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Default to an empty shape until the assessment loads so every hook
+  // below runs in a stable order. A loading gate is rendered near the
+  // end of this component, after all hooks have been called.
+  const questions = assessmentData?.questions || [];
+  const sections  = assessmentData?.sections  || [];
   const total     = questions.length;
   const answeredCount = Object.keys(answers).length;
   const allAnswered   = answeredCount >= total;
@@ -153,26 +168,19 @@ Generated: ${completedAtDate.toISOString()}`;
     window.open(`mailto:?subject=${subject}&body=${body}`);
   };
 
-  // ── Power Automate submission ──
-  const canSubmit = PA_URL && PA_URL.trim().length > 0;
+  // ── Completion submission — goes through completionService, which
+  //    handles localStorage persistence + the Power Automate webhook.
+  const canSubmit = Boolean(import.meta.env.VITE_POWERAUTOMATE_URL && import.meta.env.VITE_POWERAUTOMATE_URL.trim().length > 0);
 
   const submitToPA = async () => {
     if (!canSubmit || submitState === "submitting") return;
     setSubmitState("submitting");
-    if (import.meta.env.DEV) console.log("Final Assessment payload:", payload);
-    try {
-      const res = await fetch(PA_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (res.status === 200 || res.status === 202) {
-        setSubmitState("success");
-        setSubmittedAt(new Date().toLocaleString());
-      } else {
-        setSubmitState("error");
-      }
-    } catch {
+    const userId = learner?.email || "anonymous";
+    const result = await recordFinalAssessment(userId, payload);
+    if (result.success) {
+      setSubmitState("success");
+      setSubmittedAt(new Date().toLocaleString());
+    } else {
       setSubmitState("error");
     }
   };
@@ -189,6 +197,15 @@ Generated: ${completedAtDate.toISOString()}`;
     setCompletedAt(Date.now());
     topRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  // Loading gate — all hooks above must run on every render.
+  if (!assessmentData) {
+    return (
+      <div className="min-h-screen bg-brand-cream flex items-center justify-center text-brand-tl text-sm">
+        Loading assessment…
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-brand-cream" ref={topRef}>
@@ -218,12 +235,12 @@ Generated: ${completedAtDate.toISOString()}`;
 
         {/* Title */}
         <div className="mb-2 text-2xl font-bold text-brand-gray-dk font-heading">
-          {FINAL_ASSESSMENT.title}
+          {assessmentData.title}
         </div>
-        <div className="text-sm mb-1 text-brand-tl">{FINAL_ASSESSMENT.subtitle}</div>
+        <div className="text-sm mb-1 text-brand-tl">{assessmentData.subtitle}</div>
         {!submitted && (
           <div className="text-sm mb-8 text-brand-tm leading-relaxed">
-            {FINAL_ASSESSMENT.description}
+            {assessmentData.description}
           </div>
         )}
 

@@ -2,10 +2,12 @@ import { useState, useContext } from "react";
 import { B } from "../data/brand";
 import { Ctx } from "../state";
 import { P } from "./Shared";
+import { useUser } from "../context/UserContext";
 import yajairaImg from "../assets/Yajaira_Torso.png";
 
 export default function CompletionCard() {
-  const {s, learner, moduleStartedAt, cards, moduleId, moduleTitle, reviewMode} = useContext(Ctx);
+  const {s, moduleStartedAt, cards, moduleId, moduleTitle, reviewMode} = useContext(Ctx);
+  const { user: learner, recordCompletion } = useUser();
   const [copied, setCopied] = useState(false);
   const [submitState, setSubmitState] = useState("idle"); // idle | submitting | success | error
   const [submittedAt, setSubmittedAt] = useState(null);
@@ -98,27 +100,18 @@ Generated: ${completedAt.toISOString()}`;
     window.open(`mailto:?subject=${subject}&body=${body}`);
   };
 
-  // ── Power Automate submission ──────────────────────────────────────
-  const paUrl = import.meta.env.VITE_POWERAUTOMATE_URL;
-  const canSubmit = paUrl && paUrl.trim().length > 0;
+  // ── Completion submission — routed through the completion service,
+  //    which handles localStorage persistence + Power Automate webhook.
+  const canSubmit = Boolean(import.meta.env.VITE_POWERAUTOMATE_URL && import.meta.env.VITE_POWERAUTOMATE_URL.trim().length > 0);
 
   const submitToPA = async () => {
     if (!canSubmit || submitState === "submitting") return;
     setSubmitState("submitting");
-    if (import.meta.env.DEV) console.log("Power Automate payload:", payload);
-    try {
-      const res = await fetch(paUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (res.status === 200 || res.status === 202) {
-        setSubmitState("success");
-        setSubmittedAt(new Date().toLocaleString());
-      } else {
-        setSubmitState("error");
-      }
-    } catch {
+    const result = await recordCompletion(moduleId || "module-2-foundational-concepts", payload);
+    if (result.success) {
+      setSubmitState("success");
+      setSubmittedAt(new Date().toLocaleString());
+    } else {
       setSubmitState("error");
     }
   };

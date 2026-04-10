@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { B } from "../data/brand";
 import bmLogo from "../assets/Barasch_McGarry_Logo_2020_RGB.png";
-import { MODULE5 } from "../data/module5Data";
+import { getModule } from "../services/contentService";
+import { useUser } from "../context/UserContext";
 import { initState, red, Ctx } from "../state";
 import { useEditableContent } from "../hooks/useEditableContent";
 import { usePersistedReducer } from "../hooks/usePersistedReducer";
@@ -17,15 +18,29 @@ import DocumentReviewCard from "./cards/DocumentReviewCard";
 import TranscriptCard from "./cards/TranscriptCard";
 import GlossaryDrawer from "./GlossaryDrawer";
 
-export default function Module5({ learner, moduleStartedAt, onHome, onSignIn, editMode, onExitEditMode, forceReview = false }) {
+export default function Module5({ moduleStartedAt, onHome, onSignIn, editMode, onExitEditMode, forceReview = false }) {
   const MODULE_ID = "module-5";
+  const { user: learner } = useUser();
+  const [moduleData, setModuleData] = useState(null);
   const [s, d] = usePersistedReducer(red, initState, KEYS.module(MODULE_ID, learner?.email || "anonymous"));
   const [glossOpen, setGlossOpen] = useState(false);
   const [reviewMode, setReviewMode] = useState(forceReview);
   const toggleReviewMode = () => { if (!forceReview) setReviewMode(v => !v); };
 
-  // Edit mode: merged cards + edit utilities
-  const { cards: mergedCards, updateCard, resetModule, hasEdits, editCount } = useEditableContent(MODULE_ID, MODULE5.cards);
+  // Async-load module data from the content service
+  useEffect(() => {
+    let cancelled = false;
+    getModule(MODULE_ID).then((data) => {
+      if (!cancelled) setModuleData(data);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Edit mode: merged cards + edit utilities. Base cards come from the
+  // async service — default to [] until the load resolves so all hooks
+  // below run in a stable order.
+  const baseCards = moduleData?.cards || [];
+  const { cards: mergedCards, updateCard, resetModule, hasEdits, editCount } = useEditableContent(MODULE_ID, baseCards);
 
   // "Preview as learner" temporarily hides edit controls without exiting edit mode
   const [editPreview, setEditPreview] = useState(false);
@@ -40,6 +55,15 @@ export default function Module5({ learner, moduleStartedAt, onHome, onSignIn, ed
   useEffect(() => { if (!editMode) setEditPreview(false); }, [editMode]);
 
   useEffect(() => { window.scrollTo({top:0, behavior:"smooth"}); }, [s.cur]);
+
+  // Loading gate — all hooks above must run on every render
+  if (!moduleData) {
+    return (
+      <div className="min-h-screen bg-brand-cream flex items-center justify-center text-brand-tl text-sm">
+        Loading module…
+      </div>
+    );
+  }
 
   const cards = mergedCards;
   const card  = cards[s.cur];

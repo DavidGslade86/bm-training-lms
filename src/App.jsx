@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { KEYS } from "./hooks/useLocalStorage";
 import { GlossaryProvider } from "./hooks/useEditableGlossary";
+import { useUser } from "./context/UserContext";
 import RegistrationScreen from "./components/RegistrationScreen";
 import HomePage from "./components/HomePage";
 import Module2 from "./components/Module2";
@@ -11,6 +11,12 @@ import Module6 from "./components/Module6";
 import JeopardyGame from "./components/JeopardyGame";
 import FinalAssessment from "./components/FinalAssessment";
 
+// Navigation-only session blob. User identity lives in UserContext;
+// this key only holds the UI-state bits (currentView, guestReview,
+// moduleStartedAt) so a page refresh lands the learner back where
+// they were.
+const SESSION_KEY = "bm-lms-session";
+
 export default function App() {
   return (
     <GlossaryProvider>
@@ -20,30 +26,31 @@ export default function App() {
 }
 
 function AppInner() {
-  // Restore session from localStorage (survives page refresh)
+  const { user, setUser } = useUser();
+
+  // Restore nav state from localStorage (survives page refresh)
   const stored = (() => {
-    try { return JSON.parse(localStorage.getItem(KEYS.session())); }
+    try { return JSON.parse(localStorage.getItem(SESSION_KEY)); }
     catch { return null; }
   })();
 
-  const [currentView, setCurrentView] = useState(stored?.currentView || "registration");
-  const [learner, setLearner]         = useState(stored?.learner || null);
+  const [currentView, setCurrentView] = useState(stored?.currentView || (user ? "home" : "registration"));
   const [moduleStartedAt, setModuleStartedAt] = useState(stored?.moduleStartedAt || null);
   const [editMode, setEditMode]       = useState(false); // never persisted — requires password gate
   const [guestReview, setGuestReview] = useState(stored?.guestReview || false);
 
-  // Persist session on every state change
+  // Persist nav state on every relevant change
   useEffect(() => {
     try {
-      localStorage.setItem(KEYS.session(), JSON.stringify({
-        learner, currentView, guestReview, moduleStartedAt,
+      localStorage.setItem(SESSION_KEY, JSON.stringify({
+        currentView, guestReview, moduleStartedAt,
       }));
     } catch { /* storage full — silently fail */ }
-  }, [learner, currentView, guestReview, moduleStartedAt]);
+  }, [currentView, guestReview, moduleStartedAt]);
 
   const handleRegistration = (l) => {
     setGuestReview(false);
-    setLearner(l);
+    setUser(l);
     setCurrentView("home");
   };
 
@@ -61,7 +68,6 @@ function AppInner() {
   if (currentView === "jeopardy") {
     return (
       <JeopardyGame
-        learner={learner}
         onBack={() => setCurrentView("home")}
       />
     );
@@ -70,7 +76,6 @@ function AppInner() {
   if (currentView === "final-assessment") {
     return (
       <FinalAssessment
-        learner={learner}
         onBack={() => setCurrentView("home")}
       />
     );
@@ -89,7 +94,6 @@ function AppInner() {
   if (currentView === "module-2") {
     return (
       <Module2
-        learner={learner}
         moduleStartedAt={moduleStartedAt}
         onHome={() => setCurrentView("home")}
         onSignIn={() => { setGuestReview(false); setCurrentView("registration"); }}
@@ -103,7 +107,6 @@ function AppInner() {
   if (currentView === "module-3") {
     return (
       <Module3
-        learner={learner}
         moduleStartedAt={moduleStartedAt}
         onHome={() => setCurrentView("home")}
         onSignIn={() => { setGuestReview(false); setCurrentView("registration"); }}
@@ -117,7 +120,6 @@ function AppInner() {
   if (currentView === "module-4") {
     return (
       <Module4
-        learner={learner}
         moduleStartedAt={moduleStartedAt}
         onHome={() => setCurrentView("home")}
         onSignIn={() => { setGuestReview(false); setCurrentView("registration"); }}
@@ -131,7 +133,6 @@ function AppInner() {
   if (currentView === "module-5") {
     return (
       <Module5
-        learner={learner}
         moduleStartedAt={moduleStartedAt}
         onHome={() => setCurrentView("home")}
         onSignIn={() => { setGuestReview(false); setCurrentView("registration"); }}
@@ -145,7 +146,6 @@ function AppInner() {
   if (currentView === "module-6") {
     return (
       <Module6
-        learner={learner}
         moduleStartedAt={moduleStartedAt}
         onHome={() => setCurrentView("home")}
         onSignIn={() => { setGuestReview(false); setCurrentView("registration"); }}
@@ -159,7 +159,6 @@ function AppInner() {
   // currentView === "home" (default after registration)
   return (
     <HomePage
-      learner={learner}
       onStartModule={startModule}
       onStartActivity={(key) => setCurrentView(key)}
       editMode={editMode}

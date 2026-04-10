@@ -1,54 +1,13 @@
 import { useState, useEffect } from "react";
 import bmLogo from "../assets/Barasch_McGarry_Logo_2020_RGB.png";
+import { getAllModules } from "../services/contentService";
+import { useUser } from "../context/UserContext";
 
 // WARNING: VITE_ADMIN_PASSWORD is a client-side gate only. It prevents
 // accidental editing by non-administrators, but is not a security boundary —
 // the value is visible in the compiled JS bundle. Do not rely on it for
 // protecting sensitive data.
 const ADMIN_PW = import.meta.env.VITE_ADMIN_PASSWORD;
-
-const MODULES = [
-  {
-    key: "module-2",
-    number: "Module 2",
-    title: "Foundational Concepts",
-    desc: "The two federal programs, qualified illnesses, timing rules, and proof of presence.",
-    time: "~45 min",
-    status: "available",
-  },
-  {
-    key: "module-3",
-    number: "Module 3",
-    title: "From Sign-Up to Submitted",
-    desc: "The intake process, authorization documents, document integrity, and WTCHP enrollment.",
-    time: "~40 min",
-    status: "available",
-  },
-  {
-    key: "module-4",
-    number: "Module 4",
-    title: "Proof of Presence: Building the Case",
-    desc: "Sufficient vs. non-sufficient primary evidence, EVLs, TPVs, witness rules, and how to build a POP package.",
-    time: "~45 min",
-    status: "available",
-  },
-  {
-    key: "module-5",
-    number: "Module 5",
-    title: "From Certification to Close",
-    desc: "The claim lifecycle from the Eligibility Ready Note through the Loss Calculation Letter and award review.",
-    time: "~40 min",
-    status: "available",
-  },
-  {
-    key: "module-6",
-    number: "Module 6",
-    title: "Complex Cases",
-    desc: "FA claims, the Private Physician Process, and the Expedite pathway.",
-    time: "~35 min",
-    status: "available",
-  },
-];
 
 const ACTIVITIES = [
   {
@@ -67,21 +26,32 @@ const ACTIVITIES = [
   },
 ];
 
-export default function HomePage({ learner, onStartModule, onStartActivity, editMode, onEnterEditMode, onExitEditMode }) {
+export default function HomePage({ onStartModule, onStartActivity, editMode, onEnterEditMode, onExitEditMode }) {
+  const { user: learner } = useUser();
+  const [modules, setModules] = useState([]);
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [adminPw, setAdminPw] = useState("");
   const [authError, setAuthError] = useState("");
   const [moduleEdits, setModuleEdits] = useState({});
 
+  // Load the module list from the content service
+  useEffect(() => {
+    let cancelled = false;
+    getAllModules().then((list) => {
+      if (!cancelled) setModules(list || []);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
   // Scan localStorage for edits per available module
   const refreshEdits = () => {
     const edits = {};
-    MODULES.forEach((m) => {
+    modules.forEach((m) => {
       try {
-        const stored = localStorage.getItem(`bm-lms-edits-${m.key}`);
+        const stored = localStorage.getItem(`bm-lms-edits-${m.id}`);
         if (stored) {
           const parsed = JSON.parse(stored);
-          edits[m.key] = Object.keys(parsed).some(
+          edits[m.id] = Object.keys(parsed).some(
             (k) => Object.keys(parsed[k] || {}).length > 0
           );
         }
@@ -92,7 +62,7 @@ export default function HomePage({ learner, onStartModule, onStartActivity, edit
     setModuleEdits(edits);
   };
 
-  useEffect(refreshEdits, [editMode]);
+  useEffect(refreshEdits, [editMode, modules]);
 
   const tryAuth = () => {
     if (!ADMIN_PW || ADMIN_PW.trim() === "") {
@@ -172,12 +142,12 @@ export default function HomePage({ learner, onStartModule, onStartActivity, edit
       {/* Module grid */}
       <div className="max-w-[960px] mx-auto px-8 py-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {MODULES.map((m) => {
+          {modules.map((m) => {
             const available = m.status === "available";
-            const hasEdits  = !!moduleEdits[m.key];
+            const hasEdits  = !!moduleEdits[m.id];
             return (
               <div
-                key={m.key}
+                key={m.id}
                 className={`rounded-lg border overflow-hidden flex flex-col ${
                   available
                     ? "bg-brand-ww border-brand-sand"
@@ -210,13 +180,13 @@ export default function HomePage({ learner, onStartModule, onStartActivity, edit
                     </span>
                   </div>
                   <h3 className="text-base font-bold font-heading text-brand-gray-dk mb-1.5">{m.title}</h3>
-                  <p className="text-xs text-brand-tm leading-relaxed mb-3">{m.desc}</p>
+                  <p className="text-xs text-brand-tm leading-relaxed mb-3">{m.description}</p>
                   <span className="text-[11px] text-brand-tl">{m.time}</span>
                 </div>
                 <div className="px-5 pb-5 flex flex-col gap-2">
                   {available ? (
                     <button
-                      onClick={() => onStartModule(m.key)}
+                      onClick={() => onStartModule(m.id)}
                       className="w-full py-2.5 rounded-md text-sm font-bold text-white bg-brand-blue border-none cursor-pointer"
                     >
                       {editMode ? "Edit Module →" : "Begin Module →"}
@@ -229,7 +199,7 @@ export default function HomePage({ learner, onStartModule, onStartActivity, edit
                   {/* Clear edits button — only shown in edit mode when edits exist */}
                   {hasEdits && editMode && (
                     <button
-                      onClick={() => clearModuleEdits(m.key)}
+                      onClick={() => clearModuleEdits(m.id)}
                       className="w-full py-1.5 rounded-md text-xs font-semibold cursor-pointer border-none"
                       style={{ background: "#fef9c3", border: "1px solid #fcd34d", color: "#92400e" }}
                     >
