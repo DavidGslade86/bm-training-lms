@@ -20,6 +20,7 @@ import { MODULE5 } from "../data/module5Data";
 import { MODULE6 } from "../data/module6Data";
 import { FINAL_ASSESSMENT } from "../data/finalAssessmentData";
 import { GLOSSARY } from "../data/glossary";
+import { JOURNEYS } from "../data/journeys";
 import { API_ENABLED, apiGet } from "./api";
 
 // ── Module lookup map ──────────────────────────────────
@@ -91,31 +92,12 @@ const MODULE_METADATA = [
 
 /**
  * Return all journey definitions.
- * Today: stub — no journeys are defined yet (Phase 2 work).
+ * Today: loads from src/data/journeys.js.
  * Later: GET /api/journeys
  */
 export async function getJourneys() {
   if (API_ENABLED) return apiGet("/api/journeys");
-
-  // Phase 2: will load from src/data/journeys.js. For now we
-  // return a single default journey describing the full training
-  // pathway so callers have a documented shape to code against.
-  return [
-    {
-      id: "bm-training-pathway",
-      title: "B&M Training Pathway",
-      description:
-        "The complete training sequence from Module 2 through the Final Assessment.",
-      moduleIds: [
-        "module-2",
-        "module-3",
-        "module-4",
-        "module-5",
-        "module-6",
-        "final-assessment",
-      ],
-    },
-  ];
+  return JOURNEYS;
 }
 
 /**

@@ -3,6 +3,7 @@ import { GlossaryProvider } from "./hooks/useEditableGlossary";
 import { useUser } from "./context/UserContext";
 import RegistrationScreen from "./components/RegistrationScreen";
 import HomePage from "./components/HomePage";
+import JourneyView from "./components/JourneyView";
 import Module2 from "./components/Module2";
 import Module3 from "./components/Module3";
 import Module4 from "./components/Module4";
@@ -12,9 +13,9 @@ import JeopardyGame from "./components/JeopardyGame";
 import FinalAssessment from "./components/FinalAssessment";
 
 // Navigation-only session blob. User identity lives in UserContext;
-// this key only holds the UI-state bits (currentView, guestReview,
-// moduleStartedAt) so a page refresh lands the learner back where
-// they were.
+// this key only holds the UI-state bits (currentView, previousView,
+// guestReview, moduleStartedAt) so a page refresh lands the learner
+// back where they were.
 const SESSION_KEY = "bm-lms-session";
 
 export default function App() {
@@ -35,6 +36,7 @@ function AppInner() {
   })();
 
   const [currentView, setCurrentView] = useState(stored?.currentView || (user ? "home" : "registration"));
+  const [previousView, setPreviousView] = useState(stored?.previousView || null);
   const [moduleStartedAt, setModuleStartedAt] = useState(stored?.moduleStartedAt || null);
   const [editMode, setEditMode]       = useState(false); // never persisted — requires password gate
   const [guestReview, setGuestReview] = useState(stored?.guestReview || false);
@@ -43,44 +45,62 @@ function AppInner() {
   useEffect(() => {
     try {
       localStorage.setItem(SESSION_KEY, JSON.stringify({
-        currentView, guestReview, moduleStartedAt,
+        currentView, previousView, guestReview, moduleStartedAt,
       }));
     } catch { /* storage full — silently fail */ }
-  }, [currentView, guestReview, moduleStartedAt]);
+  }, [currentView, previousView, guestReview, moduleStartedAt]);
 
   const handleRegistration = (l) => {
     setGuestReview(false);
     setUser(l);
     setCurrentView("home");
+    setPreviousView(null);
   };
 
   const handleGuestReview = () => {
     setGuestReview(true);
     setCurrentView("home");
+    setPreviousView(null);
   };
 
+  /** Navigate to a journey detail view. */
+  const viewJourney = (journeyId) => {
+    setPreviousView(currentView);
+    setCurrentView(`journey-${journeyId}`);
+  };
+
+  /** Start a module — track where the learner came from so we can navigate back. */
   const startModule = (moduleKey) => {
     setModuleStartedAt(Date.now());
+    setPreviousView(currentView);
     setCurrentView(moduleKey);
   };
 
-  // Jeopardy and Final Assessment always navigate back to the module landing page
+  /**
+   * "Back" handler used by modules and activities. Returns the learner
+   * to wherever they came from — a journey view or the home page.
+   */
+  const goBack = () => {
+    const dest = previousView || "home";
+    setCurrentView(dest);
+    setPreviousView(null);
+  };
+
+  // ── Jeopardy ────────────────────────────────────────
   if (currentView === "jeopardy") {
     return (
-      <JeopardyGame
-        onBack={() => setCurrentView("home")}
-      />
+      <JeopardyGame onBack={goBack} />
     );
   }
 
+  // ── Final Assessment ────────────────────────────────
   if (currentView === "final-assessment") {
     return (
-      <FinalAssessment
-        onBack={() => setCurrentView("home")}
-      />
+      <FinalAssessment onBack={goBack} />
     );
   }
 
+  // ── Registration ────────────────────────────────────
   if (currentView === "registration") {
     return (
       <RegistrationScreen
@@ -91,76 +111,40 @@ function AppInner() {
     );
   }
 
-  if (currentView === "module-2") {
+  // ── Journey detail views ────────────────────────────
+  if (currentView.startsWith("journey-")) {
+    const journeyId = currentView.replace("journey-", "");
     return (
-      <Module2
-        moduleStartedAt={moduleStartedAt}
-        onHome={() => setCurrentView("home")}
-        onSignIn={() => { setGuestReview(false); setCurrentView("registration"); }}
-        editMode={editMode}
-        onExitEditMode={() => setEditMode(false)}
-        forceReview={guestReview}
+      <JourneyView
+        journeyId={journeyId}
+        onBack={() => { setCurrentView("home"); setPreviousView(null); }}
+        onStartModule={startModule}
       />
     );
   }
 
-  if (currentView === "module-3") {
-    return (
-      <Module3
-        moduleStartedAt={moduleStartedAt}
-        onHome={() => setCurrentView("home")}
-        onSignIn={() => { setGuestReview(false); setCurrentView("registration"); }}
-        editMode={editMode}
-        onExitEditMode={() => setEditMode(false)}
-        forceReview={guestReview}
-      />
-    );
-  }
+  // ── Module views ────────────────────────────────────
+  const moduleProps = {
+    moduleStartedAt,
+    onHome: goBack,
+    onSignIn: () => { setGuestReview(false); setCurrentView("registration"); },
+    editMode,
+    onExitEditMode: () => setEditMode(false),
+    forceReview: guestReview,
+  };
 
-  if (currentView === "module-4") {
-    return (
-      <Module4
-        moduleStartedAt={moduleStartedAt}
-        onHome={() => setCurrentView("home")}
-        onSignIn={() => { setGuestReview(false); setCurrentView("registration"); }}
-        editMode={editMode}
-        onExitEditMode={() => setEditMode(false)}
-        forceReview={guestReview}
-      />
-    );
-  }
+  if (currentView === "module-2") return <Module2 {...moduleProps} />;
+  if (currentView === "module-3") return <Module3 {...moduleProps} />;
+  if (currentView === "module-4") return <Module4 {...moduleProps} />;
+  if (currentView === "module-5") return <Module5 {...moduleProps} />;
+  if (currentView === "module-6") return <Module6 {...moduleProps} />;
 
-  if (currentView === "module-5") {
-    return (
-      <Module5
-        moduleStartedAt={moduleStartedAt}
-        onHome={() => setCurrentView("home")}
-        onSignIn={() => { setGuestReview(false); setCurrentView("registration"); }}
-        editMode={editMode}
-        onExitEditMode={() => setEditMode(false)}
-        forceReview={guestReview}
-      />
-    );
-  }
-
-  if (currentView === "module-6") {
-    return (
-      <Module6
-        moduleStartedAt={moduleStartedAt}
-        onHome={() => setCurrentView("home")}
-        onSignIn={() => { setGuestReview(false); setCurrentView("registration"); }}
-        editMode={editMode}
-        onExitEditMode={() => setEditMode(false)}
-        forceReview={guestReview}
-      />
-    );
-  }
-
-  // currentView === "home" (default after registration)
+  // ── Home (default after registration) ───────────────
   return (
     <HomePage
       onStartModule={startModule}
-      onStartActivity={(key) => setCurrentView(key)}
+      onStartActivity={(key) => { setPreviousView("home"); setCurrentView(key); }}
+      onViewJourney={viewJourney}
       editMode={editMode}
       onEnterEditMode={() => setEditMode(true)}
       onExitEditMode={() => setEditMode(false)}
