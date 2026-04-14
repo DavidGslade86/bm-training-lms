@@ -27,7 +27,7 @@ export default function App() {
 }
 
 function AppInner() {
-  const { user, setUser } = useUser();
+  const { user, setUser, clearSession } = useUser();
 
   // Restore nav state from localStorage (survives page refresh)
   const stored = (() => {
@@ -61,6 +61,27 @@ function AppInner() {
     setGuestReview(true);
     setCurrentView("home");
     setPreviousView(null);
+  };
+
+  /** Clear the user + return to registration. Called from the HomePage header. */
+  const handleLogOut = () => {
+    clearSession();
+    setGuestReview(false);
+    setCurrentView("registration");
+    setPreviousView(null);
+  };
+
+  /**
+   * "Sign in to log progress" — exits guest-review mode on the home page.
+   * If the learner already has an account, we drop the review flag and stay
+   * put. Otherwise we send them to the registration screen.
+   */
+  const handleSignInForProgress = () => {
+    setGuestReview(false);
+    if (!user) {
+      setCurrentView("registration");
+      setPreviousView(null);
+    }
   };
 
   /** Navigate to a journey detail view. */
@@ -148,6 +169,9 @@ function AppInner() {
       editMode={editMode}
       onEnterEditMode={() => setEditMode(true)}
       onExitEditMode={() => setEditMode(false)}
+      onLogOut={handleLogOut}
+      onSignIn={handleSignInForProgress}
+      guestReview={guestReview}
     />
   );
 }

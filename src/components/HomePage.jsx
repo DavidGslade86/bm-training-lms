@@ -56,6 +56,9 @@ export default function HomePage({
   editMode,
   onEnterEditMode,
   onExitEditMode,
+  onLogOut,
+  onSignIn,
+  guestReview = false,
 }) {
   const { user: learner, moduleCompletions } = useUser();
   const [modules, setModules] = useState([]);
@@ -174,8 +177,51 @@ export default function HomePage({
                 Editing
               </span>
             )}
-            {learner && (
-              <span className="text-xs text-white/40">Welcome, {learner.name}</span>
+
+            {/* Signed-in user: show greeting + Log out */}
+            {learner && !guestReview && (
+              <>
+                <span className="text-xs text-white/40">Welcome, {learner.name}</span>
+                {onLogOut && (
+                  <button
+                    onClick={onLogOut}
+                    className="flex items-center gap-1.5 px-3 py-[5px] rounded-md cursor-pointer text-xs font-semibold transition-all duration-150"
+                    style={{
+                      background: "rgba(255,255,255,0.08)",
+                      color: "rgba(255,255,255,0.75)",
+                      border: "1.5px solid rgba(255,255,255,0.2)",
+                    }}
+                    title="Sign out and clear the current session"
+                  >
+                    Log out
+                  </button>
+                )}
+              </>
+            )}
+
+            {/* Guest / review mode: show badge + Sign in to log progress */}
+            {guestReview && (
+              <>
+                <span
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                  style={{
+                    background: "rgba(255,255,255,0.1)",
+                    color: "rgba(255,255,255,0.75)",
+                    border: "1px solid rgba(255,255,255,0.2)",
+                  }}
+                >
+                  Review Mode
+                </span>
+                {onSignIn && (
+                  <button
+                    onClick={onSignIn}
+                    className="flex items-center gap-1.5 px-3 py-[5px] rounded-md cursor-pointer text-xs font-semibold transition-all duration-150"
+                    style={{ background: "white", color: "#1a3a8f", border: "1.5px solid white" }}
+                  >
+                    Sign in to log progress &rarr;
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>
