@@ -23,3 +23,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# Claude Code — per-machine / harness-generated only.
+# Keep tracked: .claude/launch.json and any shared config the team uses.
+.claude/settings.local.json
+.claude/worktrees/
