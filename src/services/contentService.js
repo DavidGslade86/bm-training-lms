@@ -154,3 +154,66 @@ export async function getParentJourneyId(moduleId) {
   );
   return parent?.id || null;
 }
+
+/**
+ * Figure out what comes after the given module inside its parent journey.
+ *
+ * Returns one of:
+ *   { kind: "module",     path, label, journeyId }  — another module follows
+ *   { kind: "assessment", path, label, journeyId }  — this was the last
+ *                                                     module and the
+ *                                                     journey has a capstone
+ *   { kind: "journey",    path, label, journeyId }  — last module, no
+ *                                                     capstone; link back
+ *                                                     to the journey landing
+ *   null                                             — module is not part
+ *                                                     of any journey (e.g.
+ *                                                     reached via the global
+ *                                                     module catalog)
+ *
+ * The `label` is shaped for the "next step" button on CompletionCard — e.g.
+ * "Next: Module 3 — From Sign-Up to Submitted" or "Begin Capstone Assessment".
+ */
+export async function getNextStep(moduleId) {
+  const journeys = await getJourneys();
+  const journey = journeys?.find((j) =>
+    j.modules?.some((m) => m.id === moduleId)
+  );
+  if (!journey) return null;
+
+  const idx = journey.modules.findIndex((m) => m.id === moduleId);
+  const next = journey.modules[idx + 1];
+
+  // Another module follows — deep-link straight to it.
+  if (next) {
+    const allModules = await getAllModules();
+    const meta = allModules.find((m) => m.id === next.id);
+    const label = meta
+      ? `Next: ${meta.number} — ${meta.title}`
+      : "Next module";
+    return {
+      kind: "module",
+      path: `/modules/${next.id}`,
+      label,
+      journeyId: journey.id,
+    };
+  }
+
+  // Last module — offer the capstone if the journey has one.
+  if (journey.assessment) {
+    return {
+      kind: "assessment",
+      path: `/journeys/${journey.id}/assessment`,
+      label: "Begin Capstone Assessment",
+      journeyId: journey.id,
+    };
+  }
+
+  // Last module and no capstone — send them back to the journey page.
+  return {
+    kind: "journey",
+    path: `/journeys/${journey.id}`,
+    label: "Back to Learning Journey",
+    journeyId: journey.id,
+  };
+}

@@ -1,13 +1,17 @@
 import { useState, useContext, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { B } from "../data/brand";
 import { Ctx } from "../state";
 import { P } from "./Shared";
 import { useUser } from "../context/UserContext";
+import { getNextStep } from "../services/contentService";
 import yajairaImg from "../assets/Yajaira_Torso.png";
 
 export default function CompletionCard() {
   const {s, moduleStartedAt, cards, moduleId, moduleTitle, reviewMode} = useContext(Ctx);
   const { user: learner, markComplete, recordCompletion } = useUser();
+  const navigate = useNavigate();
+  const [nextStep, setNextStep] = useState(null);
   const [copied, setCopied] = useState(false);
   const [submitState, setSubmitState] = useState("idle"); // idle | submitting | success | error
   const [submittedAt, setSubmittedAt] = useState(null);
@@ -64,6 +68,18 @@ export default function CompletionCard() {
     markComplete(id, payload);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [moduleId, learner?.email, reviewMode]);
+
+  // ── Resolve "what comes next" in the parent journey ──────────────
+  // Drives the button at the bottom of the page — could be the next
+  // module, the capstone assessment, or the journey landing page.
+  useEffect(() => {
+    let cancelled = false;
+    if (!moduleId) return;
+    getNextStep(moduleId).then((step) => {
+      if (!cancelled) setNextStep(step);
+    });
+    return () => { cancelled = true; };
+  }, [moduleId]);
 
   // ── CSV export ───────────────────────────────────────────────────
   const downloadCSV = () => {
@@ -232,6 +248,22 @@ Generated: ${completedAt.toISOString()}`;
         </div>
         <p className="text-sm text-white/55">And Yajaira? Now that she is enrolled in the Health Program, we are going to work on her VCF claim.</p>
       </div>
+
+      {/* Next-step navigation — continues the learning journey without
+          forcing the learner back to the homepage. Hidden when the
+          module isn't part of any journey (e.g. standalone catalog
+          visit). */}
+      {nextStep && (
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={() => navigate(nextStep.path)}
+            className="px-8 py-3 rounded-lg text-sm font-bold text-white border-none cursor-pointer transition-opacity hover:opacity-90"
+            style={{ background: nextStep.kind === "assessment" ? B.ok : B.blue }}
+          >
+            {nextStep.label} →
+          </button>
+        </div>
+      )}
     </div>
   );
 }
