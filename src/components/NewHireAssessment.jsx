@@ -1,15 +1,28 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { B } from "../data/brand";
 import { getModule } from "../services/contentService";
-import { recordFinalAssessment } from "../services/completionService";
+import { recordNewHireAssessment } from "../services/completionService";
 import { useUser } from "../context/UserContext";
 import { KEYS } from "../hooks/useLocalStorage";
 import bmLogo from "../assets/Barasch_McGarry_Logo_2020_RGB.png";
 
 const OPT_LETTERS = ["A", "B", "C", "D"];
 
-export default function FinalAssessment({ onBack }) {
-  const { user: learner } = useUser();
+// ═══════════════════════════════════════════════════════
+//  NewHireAssessment — /journeys/:journeyId/assessment
+//
+//  Journey-scoped capstone assessment. Currently only the
+//  "new-hire" journey has one; when other journeys get their
+//  own, this component can look up the right data per
+//  journeyId. For now the moduleId is hardcoded as
+//  "new-hire-assessment".
+// ═══════════════════════════════════════════════════════
+export default function NewHireAssessment() {
+  const navigate = useNavigate();
+  const { journeyId } = useParams();
+  const onBack = () => navigate(`/journeys/${journeyId || "new-hire"}`);
+  const { user: learner, markComplete } = useUser();
   const [assessmentData, setAssessmentData] = useState(null);
   const assessKey = KEYS.assessment(learner?.email || "anonymous");
   const stored = (() => {
@@ -38,7 +51,7 @@ export default function FinalAssessment({ onBack }) {
   // Async-load assessment data from the content service
   useEffect(() => {
     let cancelled = false;
-    getModule("final-assessment").then((data) => {
+    getModule("new-hire-assessment").then((data) => {
       if (!cancelled) setAssessmentData(data);
     });
     return () => { cancelled = true; };
@@ -97,8 +110,8 @@ export default function FinalAssessment({ onBack }) {
     userId:           learner?.email || "",
     displayName:      learner?.name  || "",
     role:             learner?.role  || "",
-    moduleId:         "final-assessment",
-    moduleTitle:      "Final Assessment — B&M Training Pathway",
+    moduleId:         "new-hire-assessment",
+    moduleTitle:      "Capstone Assessment — New Hire Pathway",
     completedAt:      completedAtDate.toISOString(),
     timeOnTaskSec:    elapsedSec || 0,
     assessScore:      score,
@@ -122,12 +135,12 @@ export default function FinalAssessment({ onBack }) {
     const url  = URL.createObjectURL(blob);
     const a = document.createElement("a");
     const safeName = (learner?.name || "learner").replace(/\s+/g,"-").toLowerCase();
-    a.href = url; a.download = `bm-final-assessment-${safeName}.csv`;
+    a.href = url; a.download = `bm-new-hire-assessment-${safeName}.csv`;
     a.click(); URL.revokeObjectURL(url);
   };
 
   // ── Plain-text summary ──
-  const summary = `BARASCH & McGARRY — FINAL ASSESSMENT REPORT
+  const summary = `BARASCH & McGARRY — NEW HIRE CAPSTONE ASSESSMENT REPORT
 ${"=".repeat(50)}
 Learner:    ${payload.displayName} (${payload.userId})
 Role:       ${payload.role}
@@ -163,7 +176,7 @@ Generated: ${completedAtDate.toISOString()}`;
   };
 
   const openEmail = () => {
-    const subject = encodeURIComponent(`Final Assessment — ${payload.displayName} — ${score}/${total}`);
+    const subject = encodeURIComponent(`Capstone Assessment — ${payload.displayName} — ${score}/${total}`);
     const body    = encodeURIComponent(summary);
     window.open(`mailto:?subject=${subject}&body=${body}`);
   };
@@ -176,7 +189,7 @@ Generated: ${completedAtDate.toISOString()}`;
     if (!canSubmit || submitState === "submitting") return;
     setSubmitState("submitting");
     const userId = learner?.email || "anonymous";
-    const result = await recordFinalAssessment(userId, payload);
+    const result = await recordNewHireAssessment(userId, payload);
     if (result.success) {
       setSubmitState("success");
       setSubmittedAt(new Date().toLocaleString());
@@ -193,9 +206,22 @@ Generated: ${completedAtDate.toISOString()}`;
 
   const handleSubmit = () => {
     if (!allAnswered) return;
+    const now = Date.now();
     setSubmitted(true);
-    setCompletedAt(Date.now());
+    setCompletedAt(now);
     topRef.current?.scrollIntoView({ behavior: "smooth" });
+
+    // Mark the capstone complete LOCALLY so the New Hire Pathway
+    // progress bar updates the moment the learner submits. The PA
+    // webhook only fires later, on the explicit "Submit to Training
+    // Record" button. Guarded by learner.email — anonymous review
+    // sessions don't log completions.
+    if (learner?.email) {
+      // Recompute the payload with the just-set completedAt so the
+      // recorded completedAt matches what the UI will display.
+      const localPayload = { ...payload, completedAt: new Date(now).toISOString() };
+      markComplete("new-hire-assessment", localPayload);
+    }
   };
 
   // Loading gate — all hooks above must run on every render.
@@ -218,14 +244,14 @@ Generated: ${completedAtDate.toISOString()}`;
               <img src={bmLogo} alt="B&M" className="h-8" />
             </button>
             <div className="w-px h-5 bg-white/15" />
-            <span className="text-sm font-bold text-white font-heading">Final Assessment</span>
+            <span className="text-sm font-bold text-white font-heading">Capstone Assessment</span>
           </div>
           <button
             onClick={onBack}
             className="px-3 py-1.5 rounded text-xs font-semibold cursor-pointer border-none"
             style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.15)" }}
           >
-            ← Return Home
+            ← Back to Journey
           </button>
         </div>
       </div>
@@ -258,7 +284,7 @@ Generated: ${completedAtDate.toISOString()}`;
               >
                 {pct >= 80 ? "✓" : pct >= 60 ? "!" : "✗"}
               </div>
-              <div className="text-2xl font-bold mb-1 text-brand-blue font-heading">Final Assessment Complete</div>
+              <div className="text-2xl font-bold mb-1 text-brand-blue font-heading">Capstone Assessment Complete</div>
               <p className="text-sm mb-1 text-white/55">
                 {learner?.name && <span className="text-white/80 font-semibold">{learner.name} · </span>}
                 B&amp;M Training Pathway
@@ -527,7 +553,7 @@ Generated: ${completedAtDate.toISOString()}`;
               className="px-8 py-3 rounded-lg text-sm font-bold text-white border-none cursor-pointer"
               style={{ background: B.blue }}
             >
-              ← Back to Home
+              ← Back to Journey
             </button>
           </div>
         )}

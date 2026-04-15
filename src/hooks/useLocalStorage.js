@@ -10,6 +10,10 @@ const PREFIX = "bm-lms";
 export const KEYS = {
   session:    ()                 => `${PREFIX}-session`,
   module:     (moduleKey, email) => `${PREFIX}-progress-${moduleKey}-${email}`,
+  // Capstone assessment draft/answers. Name retains the legacy
+  // "final-assessment" slug so existing users don't lose in-progress
+  // answers when upgrading. Completion records (separate key) are
+  // migrated in UserContext.loadPersistedUser.
   assessment: (email)            => `${PREFIX}-final-assessment-${email}`,
 };
 

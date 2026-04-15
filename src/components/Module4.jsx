@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { B } from "../data/brand";
 import bmLogo from "../assets/Barasch_McGarry_Logo_2020_RGB.png";
-import { getModule } from "../services/contentService";
+import { getModule, getParentJourneyId } from "../services/contentService";
 import { useUser } from "../context/UserContext";
+import { useSession } from "../context/SessionContext";
 import { initState, red, Ctx } from "../state";
 import { useEditableContent } from "../hooks/useEditableContent";
 import { usePersistedReducer } from "../hooks/usePersistedReducer";
@@ -18,10 +20,18 @@ import DocumentReviewCard from "./cards/DocumentReviewCard";
 import TranscriptCard from "./cards/TranscriptCard";
 import GlossaryDrawer from "./GlossaryDrawer";
 
-export default function Module4({ moduleStartedAt, onHome, onSignIn, editMode, onExitEditMode, forceReview = false }) {
+export default function Module4() {
   const MODULE_ID = "module-4";
+  const navigate = useNavigate();
   const { user: learner } = useUser();
+  const { editMode, setEditMode, moduleStartedAt, guestReview, setGuestReview } = useSession();
+  const forceReview = guestReview;
+  const onHome    = () => navigate("/");
+  const onSignIn  = () => { setGuestReview(false); navigate("/"); };
+  const onExitEditMode = () => setEditMode(false);
   const [moduleData, setModuleData] = useState(null);
+  const [parentJourneyId, setParentJourneyId] = useState(null);
+  const onBackToJourney = () => navigate(parentJourneyId ? `/journeys/${parentJourneyId}` : "/");
   const [s, d] = usePersistedReducer(red, initState, KEYS.module(MODULE_ID, learner?.email || "anonymous"));
   const [glossOpen, setGlossOpen] = useState(false);
   const [reviewMode, setReviewMode] = useState(forceReview);
@@ -32,6 +42,11 @@ export default function Module4({ moduleStartedAt, onHome, onSignIn, editMode, o
     let cancelled = false;
     getModule(MODULE_ID).then((data) => {
       if (!cancelled) setModuleData(data);
+    });
+    // Look up which journey owns this module so the header back button
+    // can return the learner to the journey they came from (not straight home).
+    getParentJourneyId(MODULE_ID).then((id) => {
+      if (!cancelled) setParentJourneyId(id);
     });
     return () => { cancelled = true; };
   }, []);
@@ -175,10 +190,11 @@ export default function Module4({ moduleStartedAt, onHome, onSignIn, editMode, o
             )}
             {learner && <span className="text-xs text-white/35">{learner.name}</span>}
             <span className="text-xs text-white/40">Section {s.cur+1} of {cards.length}</span>
-            <button onClick={onHome}
+            <button onClick={onBackToJourney}
               className="px-3 py-1.5 rounded text-xs font-semibold cursor-pointer border-none"
               style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.15)" }}
-            >← Return Home</button>
+              title={parentJourneyId ? "Return to the journey landing page" : "Return to Home"}
+            >← Back to Learning Journey</button>
           </div>
         </div>
 

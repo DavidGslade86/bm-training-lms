@@ -1,8 +1,20 @@
-export const FINAL_ASSESSMENT = {
-  id: "final-assessment",
-  title: "Final Assessment",
+// ═══════════════════════════════════════════════════════
+//  New Hire Pathway — Capstone Assessment
+//
+//  Journey-scoped assessment for the "new-hire" journey. The
+//  moduleId "new-hire-assessment" is how completions are keyed
+//  in localStorage today, and how the future API will route
+//  submissions to POST /api/assessments.
+//
+//  Previously this was the top-level "final-assessment" and
+//  lived alongside Jeopardy as an Activity. It's now a capstone
+//  card inside JourneyView for the New Hire Pathway.
+// ═══════════════════════════════════════════════════════
+export const NEW_HIRE_ASSESSMENT = {
+  id: "new-hire-assessment",
+  title: "Capstone Assessment — New Hire Pathway",
   subtitle: "Modules 2 through 6 — 20 questions",
-  description: "A comprehensive assessment covering the full B&M training pathway. Answer all 20 questions and submit at the end to see your results.",
+  description: "A comprehensive assessment covering the full New Hire Pathway. Answer all 20 questions and submit at the end to see your results.",
   sections: [
     { label: "Two Programs", range: [0, 2] },
     { label: "Qualified Conditions", range: [3, 5] },

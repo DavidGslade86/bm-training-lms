@@ -25,7 +25,7 @@ export const JOURNEYS = [
       { id: "module-5", required: true },
       { id: "module-6", required: true },
     ],
-    assessment: "final-assessment",
+    assessment: "new-hire-assessment",
   },
   {
     id: "ca-i-track",

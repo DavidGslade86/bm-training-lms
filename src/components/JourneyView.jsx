@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   BookOpen,
   UserCheck,
@@ -27,10 +28,16 @@ function isModuleComplete(shortId, completions) {
   return Object.keys(completions).some((k) => k.startsWith(shortId + "-"));
 }
 
-export default function JourneyView({ journeyId, onBack, onStartModule }) {
+export default function JourneyView() {
+  const navigate = useNavigate();
+  const { journeyId } = useParams();
   const { user: learner, moduleCompletions } = useUser();
   const [journey, setJourney] = useState(null);
   const [moduleMeta, setModuleMeta] = useState([]);
+
+  const onBack = () => navigate("/");
+  const onStartModule = (moduleId) => navigate(`/modules/${moduleId}`);
+  const onStartAssessment = () => navigate(`/journeys/${journeyId}/assessment`);
 
   // Load journey + module metadata
   useEffect(() => {
@@ -249,7 +256,7 @@ export default function JourneyView({ journeyId, onBack, onStartModule }) {
                       className="text-[11px] font-bold tracking-widest"
                       style={{ color: allRequiredDone ? "rgba(255,255,255,0.7)" : "#9a9088" }}
                     >
-                      FINAL ASSESSMENT
+                      CAPSTONE ASSESSMENT
                     </span>
                     {assessmentComplete && (
                       <span
@@ -264,22 +271,22 @@ export default function JourneyView({ journeyId, onBack, onStartModule }) {
                     className="text-base font-bold font-heading mb-0.5"
                     style={{ color: allRequiredDone ? "white" : "#6b6255" }}
                   >
-                    {journey.completionLabel || "Final Assessment"}
+                    {journey.completionLabel || "Capstone Assessment"}
                   </h3>
                   <p
                     className="text-xs leading-relaxed"
                     style={{ color: allRequiredDone ? "rgba(255,255,255,0.7)" : "#9a9088" }}
                   >
                     {allRequiredDone
-                      ? "All required modules complete \u2014 you're ready for the final assessment."
-                      : `Complete all ${totalModules} required modules to unlock the final assessment.`}
+                      ? "All required modules complete \u2014 you're ready for the capstone assessment."
+                      : `Complete all ${totalModules} required modules to unlock the capstone assessment.`}
                   </p>
                 </div>
 
                 {/* Button */}
                 {allRequiredDone && !assessmentComplete && (
                   <button
-                    onClick={() => onStartModule(journey.assessment)}
+                    onClick={onStartAssessment}
                     className="shrink-0 px-5 py-2.5 rounded-md text-sm font-bold border-none cursor-pointer whitespace-nowrap"
                     style={{ background: "white", color: journey.color }}
                   >
@@ -288,7 +295,7 @@ export default function JourneyView({ journeyId, onBack, onStartModule }) {
                 )}
                 {assessmentComplete && (
                   <button
-                    onClick={() => onStartModule(journey.assessment)}
+                    onClick={onStartAssessment}
                     className="shrink-0 px-5 py-2.5 rounded-md text-sm font-bold cursor-pointer whitespace-nowrap"
                     style={{ background: "transparent", color: "white", border: "1.5px solid rgba(255,255,255,0.4)" }}
                   >

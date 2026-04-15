@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   BookOpen,
   UserCheck,
@@ -11,6 +12,7 @@ import {
 import bmLogo from "../assets/Barasch_McGarry_Logo_2020_RGB.png";
 import { getAllModules, getJourneys } from "../services/contentService";
 import { useUser } from "../context/UserContext";
+import { useSession } from "../context/SessionContext";
 
 // WARNING: VITE_ADMIN_PASSWORD is a client-side gate only. It prevents
 // accidental editing by non-administrators, but is not a security boundary —
@@ -21,6 +23,9 @@ const ADMIN_PW = import.meta.env.VITE_ADMIN_PASSWORD;
 // ── Icon lookup ──────────────────────────────────────
 const ICON_MAP = { BookOpen, UserCheck, ClipboardList, Cpu, Zap };
 
+// The capstone assessment now lives inside the New Hire Pathway journey
+// (see JourneyView). ACTIVITIES is reserved for truly additional content
+// that is not part of any journey — currently just Jeopardy.
 const ACTIVITIES = [
   {
     key: "jeopardy",
@@ -28,13 +33,6 @@ const ACTIVITIES = [
     title: "Jeopardy Review",
     desc: "25 questions across two programs, proof of presence, intake documents, timing rules, and firm process. Best played with a group.",
     style: "jeopardy",
-  },
-  {
-    key: "final-assessment",
-    label: "Assessment",
-    title: "Final Assessment",
-    desc: "20 questions covering all six modules \u2014 two programs, qualified conditions, intake documents, proof of presence, claim lifecycle, complex cases, and firm process.",
-    style: "assessment",
   },
 ];
 
@@ -49,18 +47,10 @@ function isModuleComplete(shortId, completions) {
   return Object.keys(completions).some((k) => k.startsWith(shortId + "-"));
 }
 
-export default function HomePage({
-  onStartModule,
-  onStartActivity,
-  onViewJourney,
-  editMode,
-  onEnterEditMode,
-  onExitEditMode,
-  onLogOut,
-  onSignIn,
-  guestReview = false,
-}) {
-  const { user: learner, moduleCompletions } = useUser();
+export default function HomePage() {
+  const navigate = useNavigate();
+  const { user: learner, moduleCompletions, clearSession } = useUser();
+  const { guestReview, setGuestReview, editMode, setEditMode } = useSession();
   const [modules, setModules] = useState([]);
   const [journeys, setJourneys] = useState([]);
   const [showAllModules, setShowAllModules] = useState(false);
@@ -110,7 +100,7 @@ export default function HomePage({
       setShowAdminModal(false);
       setAdminPw("");
       setAuthError("");
-      onEnterEditMode();
+      setEditMode(true);
     } else {
       setAuthError("Incorrect password \u2014 try again.");
     }
@@ -126,6 +116,20 @@ export default function HomePage({
     setAdminPw("");
     setAuthError("");
   };
+
+  // ── Navigation handlers (replace old callback props) ──
+  const handleStartModule = (moduleId) => navigate(`/modules/${moduleId}`);
+  const handleViewJourney = (journeyId) => navigate(`/journeys/${journeyId}`);
+  const handleStartActivity = (key) => {
+    if (key === "jeopardy") navigate("/jeopardy");
+  };
+  const handleLogOut = () => {
+    clearSession();
+    setGuestReview(false);
+  };
+  // In review (guest) mode there is no user record to clear — just flip the
+  // flag back to false and RootRoute will render the RegistrationScreen.
+  const handleSignIn = () => setGuestReview(false);
 
   // ── Journey progress helpers ─────────────────────────
   const journeyProgress = (j) => {
@@ -146,7 +150,7 @@ export default function HomePage({
         >
           <span>&#9999;&#65039; Edit Mode &mdash; content changes are saved to browser storage</span>
           <button
-            onClick={onExitEditMode}
+            onClick={() => setEditMode(false)}
             className="px-3 py-1 rounded text-xs font-bold cursor-pointer border-none"
             style={{ background: "#fde68a", border: "1px solid #f59e0b", color: "#78350f" }}
           >
@@ -182,20 +186,18 @@ export default function HomePage({
             {learner && !guestReview && (
               <>
                 <span className="text-xs text-white/40">Welcome, {learner.name}</span>
-                {onLogOut && (
-                  <button
-                    onClick={onLogOut}
-                    className="flex items-center gap-1.5 px-3 py-[5px] rounded-md cursor-pointer text-xs font-semibold transition-all duration-150"
-                    style={{
-                      background: "rgba(255,255,255,0.08)",
-                      color: "rgba(255,255,255,0.75)",
-                      border: "1.5px solid rgba(255,255,255,0.2)",
-                    }}
-                    title="Sign out and clear the current session"
-                  >
-                    Log out
-                  </button>
-                )}
+                <button
+                  onClick={handleLogOut}
+                  className="flex items-center gap-1.5 px-3 py-[5px] rounded-md cursor-pointer text-xs font-semibold transition-all duration-150"
+                  style={{
+                    background: "rgba(255,255,255,0.08)",
+                    color: "rgba(255,255,255,0.75)",
+                    border: "1.5px solid rgba(255,255,255,0.2)",
+                  }}
+                  title="Sign out and clear the current session"
+                >
+                  Log out
+                </button>
               </>
             )}
 
@@ -212,15 +214,13 @@ export default function HomePage({
                 >
                   Review Mode
                 </span>
-                {onSignIn && (
-                  <button
-                    onClick={onSignIn}
-                    className="flex items-center gap-1.5 px-3 py-[5px] rounded-md cursor-pointer text-xs font-semibold transition-all duration-150"
-                    style={{ background: "white", color: "#1a3a8f", border: "1.5px solid white" }}
-                  >
-                    Sign in to log progress &rarr;
-                  </button>
-                )}
+                <button
+                  onClick={handleSignIn}
+                  className="flex items-center gap-1.5 px-3 py-[5px] rounded-md cursor-pointer text-xs font-semibold transition-all duration-150"
+                  style={{ background: "white", color: "#1a3a8f", border: "1.5px solid white" }}
+                >
+                  Sign in to log progress &rarr;
+                </button>
               </>
             )}
           </div>
@@ -296,7 +296,7 @@ export default function HomePage({
 
                     {!soon && (
                       <button
-                        onClick={() => onViewJourney(j.id)}
+                        onClick={() => handleViewJourney(j.id)}
                         className="w-full py-2.5 rounded-md text-sm font-bold text-white border-none cursor-pointer"
                         style={{ background: j.color }}
                       >
@@ -380,7 +380,7 @@ export default function HomePage({
                   <div className="px-5 pb-5 flex flex-col gap-2">
                     {available ? (
                       <button
-                        onClick={() => onStartModule(m.id)}
+                        onClick={() => handleStartModule(m.id)}
                         className="w-full py-2.5 rounded-md text-sm font-bold text-white bg-brand-blue border-none cursor-pointer"
                       >
                         {editMode ? "Edit Module \u2192" : complete ? "Review Module \u2192" : "Begin Module \u2192"}
@@ -438,14 +438,6 @@ export default function HomePage({
                         Group Play
                       </span>
                     )}
-                    {isAssessment && (
-                      <span
-                        className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                        style={{ background: "rgba(255,255,255,0.15)", color: "white", border: "1px solid rgba(255,255,255,0.3)" }}
-                      >
-                        20 Questions
-                      </span>
-                    )}
                   </div>
                   <h3
                     className="text-base font-bold font-heading mb-1.5"
@@ -459,7 +451,7 @@ export default function HomePage({
                 </div>
                 <div className="px-5 pb-5">
                   <button
-                    onClick={() => onStartActivity(a.key)}
+                    onClick={() => handleStartActivity(a.key)}
                     className="w-full py-2.5 rounded-md text-sm font-bold border-none cursor-pointer"
                     style={{
                       background: isAssessment ? "white" : "#f0c040",

@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { B } from "../data/brand";
 import { Ctx } from "../state";
 import { P } from "./Shared";
@@ -7,7 +7,7 @@ import yajairaImg from "../assets/Yajaira_Torso.png";
 
 export default function CompletionCard() {
   const {s, moduleStartedAt, cards, moduleId, moduleTitle, reviewMode} = useContext(Ctx);
-  const { user: learner, recordCompletion } = useUser();
+  const { user: learner, markComplete, recordCompletion } = useUser();
   const [copied, setCopied] = useState(false);
   const [submitState, setSubmitState] = useState("idle"); // idle | submitting | success | error
   const [submittedAt, setSubmittedAt] = useState(null);
@@ -49,6 +49,21 @@ export default function CompletionCard() {
     matchErrors:   matchErrCount,
     scenarioErrors:scenErrCount,
   };
+
+  // ── Mark complete locally on mount ──────────────────────────────
+  // Drives the journey progress bar the moment the learner lands
+  // here, without firing the Power Automate webhook. The webhook
+  // only fires on explicit "Submit to Training Record" click.
+  //
+  // Skip in review mode (guest preview) — we don't log completions
+  // for unauthenticated visitors.
+  useEffect(() => {
+    if (reviewMode) return;
+    if (!learner?.email) return;
+    const id = moduleId || "module-2-foundational-concepts";
+    markComplete(id, payload);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [moduleId, learner?.email, reviewMode]);
 
   // ── CSV export ───────────────────────────────────────────────────
   const downloadCSV = () => {

@@ -1,177 +1,71 @@
-import { useState, useEffect } from "react";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { GlossaryProvider } from "./hooks/useEditableGlossary";
 import { useUser } from "./context/UserContext";
+import { useSession } from "./context/SessionContext";
 import RegistrationScreen from "./components/RegistrationScreen";
 import HomePage from "./components/HomePage";
 import JourneyView from "./components/JourneyView";
-import Module2 from "./components/Module2";
-import Module3 from "./components/Module3";
-import Module4 from "./components/Module4";
-import Module5 from "./components/Module5";
-import Module6 from "./components/Module6";
+import ModuleDispatcher from "./components/ModuleDispatcher";
 import JeopardyGame from "./components/JeopardyGame";
-import FinalAssessment from "./components/FinalAssessment";
+import NewHireAssessment from "./components/NewHireAssessment";
 
-// Navigation-only session blob. User identity lives in UserContext;
-// this key only holds the UI-state bits (currentView, previousView,
-// guestReview, moduleStartedAt) so a page refresh lands the learner
-// back where they were.
-const SESSION_KEY = "bm-lms-session";
-
+// ═══════════════════════════════════════════════════════
+//  App — route configuration only.
+//
+//  Session state (user, guestReview, editMode, moduleStartedAt)
+//  lives in UserContext + SessionContext. Navigation lives in
+//  the URL. Individual components use useNavigate() directly
+//  instead of receiving onHome/onStartModule-style callback
+//  props. Back/forward buttons "just work" because they use
+//  the browser history that react-router maintains.
+// ═══════════════════════════════════════════════════════
 export default function App() {
   return (
     <GlossaryProvider>
-      <AppInner />
+      <Routes>
+        <Route path="/" element={<RootRoute />} />
+        <Route path="/journeys/:journeyId" element={<JourneyView />} />
+        <Route path="/journeys/:journeyId/assessment" element={<NewHireAssessment />} />
+        <Route path="/modules/:moduleId" element={<ModuleDispatcher />} />
+        <Route path="/jeopardy" element={<JeopardyGame />} />
+        {/* Unknown paths → home */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </GlossaryProvider>
   );
 }
 
-function AppInner() {
-  const { user, setUser, clearSession } = useUser();
+/**
+ * Root route behavior:
+ *   • If a learner is signed in, OR they are browsing as a guest
+ *     reviewer, show the HomePage.
+ *   • Otherwise, show the RegistrationScreen.
+ *
+ * Handlers are defined here so the screens that need them don't
+ * each have to reach into multiple contexts.
+ */
+function RootRoute() {
+  const { user, setUser } = useUser();
+  const { guestReview, setGuestReview } = useSession();
+  const navigate = useNavigate();
 
-  // Restore nav state from localStorage (survives page refresh)
-  const stored = (() => {
-    try { return JSON.parse(localStorage.getItem(SESSION_KEY)); }
-    catch { return null; }
-  })();
-
-  const [currentView, setCurrentView] = useState(stored?.currentView || (user ? "home" : "registration"));
-  const [previousView, setPreviousView] = useState(stored?.previousView || null);
-  const [moduleStartedAt, setModuleStartedAt] = useState(stored?.moduleStartedAt || null);
-  const [editMode, setEditMode]       = useState(false); // never persisted — requires password gate
-  const [guestReview, setGuestReview] = useState(stored?.guestReview || false);
-
-  // Persist nav state on every relevant change
-  useEffect(() => {
-    try {
-      localStorage.setItem(SESSION_KEY, JSON.stringify({
-        currentView, previousView, guestReview, moduleStartedAt,
-      }));
-    } catch { /* storage full — silently fail */ }
-  }, [currentView, previousView, guestReview, moduleStartedAt]);
-
-  const handleRegistration = (l) => {
-    setGuestReview(false);
-    setUser(l);
-    setCurrentView("home");
-    setPreviousView(null);
-  };
-
-  const handleGuestReview = () => {
-    setGuestReview(true);
-    setCurrentView("home");
-    setPreviousView(null);
-  };
-
-  /** Clear the user + return to registration. Called from the HomePage header. */
-  const handleLogOut = () => {
-    clearSession();
-    setGuestReview(false);
-    setCurrentView("registration");
-    setPreviousView(null);
-  };
-
-  /**
-   * "Sign in to log progress" — exits guest-review mode on the home page.
-   * If the learner already has an account, we drop the review flag and stay
-   * put. Otherwise we send them to the registration screen.
-   */
-  const handleSignInForProgress = () => {
-    setGuestReview(false);
-    if (!user) {
-      setCurrentView("registration");
-      setPreviousView(null);
-    }
-  };
-
-  /** Navigate to a journey detail view. */
-  const viewJourney = (journeyId) => {
-    setPreviousView(currentView);
-    setCurrentView(`journey-${journeyId}`);
-  };
-
-  /** Start a module — track where the learner came from so we can navigate back. */
-  const startModule = (moduleKey) => {
-    setModuleStartedAt(Date.now());
-    setPreviousView(currentView);
-    setCurrentView(moduleKey);
-  };
-
-  /**
-   * "Back" handler used by modules and activities. Returns the learner
-   * to wherever they came from — a journey view or the home page.
-   */
-  const goBack = () => {
-    const dest = previousView || "home";
-    setCurrentView(dest);
-    setPreviousView(null);
-  };
-
-  // ── Jeopardy ────────────────────────────────────────
-  if (currentView === "jeopardy") {
-    return (
-      <JeopardyGame onBack={goBack} />
-    );
+  // Signed-in or reviewing-as-guest → HomePage
+  if (user || guestReview) {
+    return <HomePage />;
   }
 
-  // ── Final Assessment ────────────────────────────────
-  if (currentView === "final-assessment") {
-    return (
-      <FinalAssessment onBack={goBack} />
-    );
-  }
-
-  // ── Registration ────────────────────────────────────
-  if (currentView === "registration") {
-    return (
-      <RegistrationScreen
-        onStart={handleRegistration}
-        onGuestReview={handleGuestReview}
-        onPlayJeopardy={() => setCurrentView("jeopardy")}
-      />
-    );
-  }
-
-  // ── Journey detail views ────────────────────────────
-  if (currentView.startsWith("journey-")) {
-    const journeyId = currentView.replace("journey-", "");
-    return (
-      <JourneyView
-        journeyId={journeyId}
-        onBack={() => { setCurrentView("home"); setPreviousView(null); }}
-        onStartModule={startModule}
-      />
-    );
-  }
-
-  // ── Module views ────────────────────────────────────
-  const moduleProps = {
-    moduleStartedAt,
-    onHome: goBack,
-    onSignIn: () => { setGuestReview(false); setCurrentView("registration"); },
-    editMode,
-    onExitEditMode: () => setEditMode(false),
-    forceReview: guestReview,
-  };
-
-  if (currentView === "module-2") return <Module2 {...moduleProps} />;
-  if (currentView === "module-3") return <Module3 {...moduleProps} />;
-  if (currentView === "module-4") return <Module4 {...moduleProps} />;
-  if (currentView === "module-5") return <Module5 {...moduleProps} />;
-  if (currentView === "module-6") return <Module6 {...moduleProps} />;
-
-  // ── Home (default after registration) ───────────────
+  // Otherwise → Registration
   return (
-    <HomePage
-      onStartModule={startModule}
-      onStartActivity={(key) => { setPreviousView("home"); setCurrentView(key); }}
-      onViewJourney={viewJourney}
-      editMode={editMode}
-      onEnterEditMode={() => setEditMode(true)}
-      onExitEditMode={() => setEditMode(false)}
-      onLogOut={handleLogOut}
-      onSignIn={handleSignInForProgress}
-      guestReview={guestReview}
+    <RegistrationScreen
+      onStart={(learner) => {
+        setGuestReview(false);
+        setUser(learner);
+        // Stay on "/" — RootRoute will re-render as <HomePage />
+      }}
+      onGuestReview={() => {
+        setGuestReview(true);
+      }}
+      onPlayJeopardy={() => navigate("/jeopardy")}
     />
   );
 }

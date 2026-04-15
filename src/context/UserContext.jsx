@@ -8,6 +8,7 @@ import {
 } from "react";
 import {
   getCompletionStatus,
+  markModuleComplete,
   recordModuleCompletion,
 } from "../services/completionService";
 
@@ -35,6 +36,36 @@ const SESSION_KEY = "bm-lms-session";
 const UserContext = createContext(null);
 
 /** Load the persisted user from localStorage (with legacy fallback). */
+/**
+ * One-time migration: rename the legacy "final-assessment" completion
+ * key to "new-hire-assessment" and persist the rewritten map. Safe to
+ * call on every load — no-op if the legacy key isn't present.
+ */
+function migrateLegacyFinalAssessment(completions, userEmail) {
+  if (!completions || typeof completions !== "object") return completions;
+  if (!("final-assessment" in completions)) return completions;
+  if ("new-hire-assessment" in completions) {
+    // Both keys present — drop the legacy one, keep the new one.
+    const { "final-assessment": _legacy, ...rest } = completions;
+    persistCompletionsMap(userEmail, rest);
+    return rest;
+  }
+  const { "final-assessment": legacy, ...rest } = completions;
+  const migrated = { ...rest, "new-hire-assessment": legacy };
+  persistCompletionsMap(userEmail, migrated);
+  return migrated;
+}
+
+/** Write the completion map back to localStorage after a migration. */
+function persistCompletionsMap(userEmail, map) {
+  try {
+    const key = `bm-lms-completions-${userEmail || "anonymous"}`;
+    localStorage.setItem(key, JSON.stringify(map));
+  } catch {
+    /* storage full — the migration will just re-run next load */
+  }
+}
+
 function loadPersistedUser() {
   try {
     const raw = localStorage.getItem(USER_KEY);
@@ -71,7 +102,13 @@ export function UserProvider({ children }) {
       return;
     }
     getCompletionStatus(user.email).then((data) => {
-      if (!cancelled) setModuleCompletions(data || {});
+      if (cancelled) return;
+      // One-time migration: the capstone assessment used to be stored
+      // under moduleId "final-assessment". It is now keyed as
+      // "new-hire-assessment" (journey-scoped). Rename in place on load
+      // so existing learners keep their completion record.
+      const migrated = migrateLegacyFinalAssessment(data || {}, user.email);
+      setModuleCompletions(migrated);
     });
     return () => {
       cancelled = true;
@@ -93,9 +130,31 @@ export function UserProvider({ children }) {
   }, []);
 
   /**
-   * Record a module completion. Delegates to completionService for
-   * persistence + webhook, then refreshes the in-memory map so any
-   * subscribers see the update immediately.
+   * Mark a module complete LOCALLY — drives journey progress bars
+   * the moment a learner finishes a module, without firing the PA
+   * webhook. Called by CompletionCard on mount (and by the capstone
+   * assessment on submit).
+   *
+   * Idempotent: re-calling it refreshes the metrics payload but
+   * preserves recordedAt / submittedAt so we never "downgrade" a
+   * record that has already been submitted to the training record.
+   */
+  const markComplete = useCallback(
+    async (moduleId, completionData) => {
+      const userId = user?.email || "anonymous";
+      const result = await markModuleComplete(userId, moduleId, completionData);
+      const fresh = await getCompletionStatus(userId);
+      setModuleCompletions(fresh || {});
+      return result;
+    },
+    [user?.email]
+  );
+
+  /**
+   * Record a module completion AND submit it to the training record
+   * (PA webhook today, backend endpoint later). Delegates to
+   * completionService for persistence + webhook, then refreshes the
+   * in-memory map so any subscribers see the update immediately.
    */
   const recordCompletion = useCallback(
     async (moduleId, completionData) => {
@@ -135,10 +194,19 @@ export function UserProvider({ children }) {
       isAdmin,
       moduleCompletions,
       setUser,
+      markComplete,
       recordCompletion,
       clearSession,
     }),
-    [user, isAdmin, moduleCompletions, setUser, recordCompletion, clearSession]
+    [
+      user,
+      isAdmin,
+      moduleCompletions,
+      setUser,
+      markComplete,
+      recordCompletion,
+      clearSession,
+    ]
   );
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

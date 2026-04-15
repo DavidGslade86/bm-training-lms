@@ -110,7 +110,7 @@ export default function RegistrationScreen({ onStart, onGuestReview, onPlayJeopa
               disabled={submitting}
               className="w-full py-[13px] rounded-[7px] border-none text-white text-[15px] font-bold transition-colors duration-150"
               style={{background: submitting ? "#555" : B.blue, cursor: submitting ? "default" : "pointer"}} /* dynamic: submitting-state bg + cursor */>
-              {submitting ? "Starting…" : "Begin Module →"}
+              {submitting ? "Starting…" : "Log in →"}
             </button>
             {onGuestReview && (
               <button

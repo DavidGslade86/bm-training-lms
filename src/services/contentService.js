@@ -18,7 +18,7 @@ import { MODULE3 } from "../data/module3Data";
 import { MODULE4 } from "../data/module4Data";
 import { MODULE5 } from "../data/module5Data";
 import { MODULE6 } from "../data/module6Data";
-import { FINAL_ASSESSMENT } from "../data/finalAssessmentData";
+import { NEW_HIRE_ASSESSMENT } from "../data/newHireAssessmentData";
 import { GLOSSARY } from "../data/glossary";
 import { JOURNEYS } from "../data/journeys";
 import { API_ENABLED, apiGet } from "./api";
@@ -26,12 +26,12 @@ import { API_ENABLED, apiGet } from "./api";
 // ── Module lookup map ──────────────────────────────────
 // Maps the canonical module id to its imported data object.
 const MODULE_MAP = {
-  "module-2":         MODULE2,
-  "module-3":         MODULE3,
-  "module-4":         MODULE4,
-  "module-5":         MODULE5,
-  "module-6":         MODULE6,
-  "final-assessment": FINAL_ASSESSMENT,
+  "module-2":            MODULE2,
+  "module-3":            MODULE3,
+  "module-4":            MODULE4,
+  "module-5":            MODULE5,
+  "module-6":            MODULE6,
+  "new-hire-assessment": NEW_HIRE_ASSESSMENT,
 };
 
 // ── Module metadata ────────────────────────────────────
@@ -134,4 +134,23 @@ export async function getAllModules() {
 export async function getGlossary() {
   if (API_ENABLED) return apiGet("/api/glossary");
   return GLOSSARY;
+}
+
+/**
+ * Find the id of the first journey that contains the given module.
+ * Used by module headers to build a "Back to Learning Journey" link
+ * that returns the learner to the journey they came from. Falls back
+ * to null if no journey references the module (e.g. a learner landed
+ * on the module via the "Browse all modules" catalog).
+ *
+ * Today: scans the in-memory JOURNEYS array.
+ * Later: could be a GET /api/modules/:id/parent-journey endpoint, but
+ *        cheap enough client-side that it's not worth a round trip.
+ */
+export async function getParentJourneyId(moduleId) {
+  const journeys = await getJourneys();
+  const parent = journeys?.find((j) =>
+    j.modules?.some((m) => m.id === moduleId)
+  );
+  return parent?.id || null;
 }

@@ -1,7 +1,10 @@
+import { useNavigate } from "react-router-dom";
 import bmLogo from "../assets/Barasch_McGarry_Logo_2020_RGB.png";
 import { useUser } from "../context/UserContext";
 
-export default function JeopardyGame({ onBack }) {
+export default function JeopardyGame() {
+  const navigate = useNavigate();
+  const onBack = () => navigate("/");
   const { user: learner } = useUser();
   return (
     <div className="flex flex-col" style={{ height: "100vh", background: "#0a1a4a" }}>
