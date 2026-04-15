@@ -137,6 +137,21 @@ export async function getGlossary() {
 }
 
 /**
+ * Match a module id against a journey entry, tolerating the long/short
+ * id mismatch. Journey entries use the canonical short id (e.g.
+ * "module-2"), but CompletionCard and the in-module Ctx use the long
+ * slug (e.g. "module-2-foundational-concepts"). We accept either form.
+ *
+ * This is the same bridge `JourneyView.isModuleComplete` applies when
+ * looking up completion records.
+ */
+function moduleIdMatches(journeyEntryId, incomingId) {
+  if (!journeyEntryId || !incomingId) return false;
+  if (journeyEntryId === incomingId) return true;
+  return incomingId.startsWith(journeyEntryId + "-");
+}
+
+/**
  * Find the id of the first journey that contains the given module.
  * Used by module headers to build a "Back to Learning Journey" link
  * that returns the learner to the journey they came from. Falls back
@@ -150,7 +165,7 @@ export async function getGlossary() {
 export async function getParentJourneyId(moduleId) {
   const journeys = await getJourneys();
   const parent = journeys?.find((j) =>
-    j.modules?.some((m) => m.id === moduleId)
+    j.modules?.some((m) => moduleIdMatches(m.id, moduleId))
   );
   return parent?.id || null;
 }
@@ -177,11 +192,11 @@ export async function getParentJourneyId(moduleId) {
 export async function getNextStep(moduleId) {
   const journeys = await getJourneys();
   const journey = journeys?.find((j) =>
-    j.modules?.some((m) => m.id === moduleId)
+    j.modules?.some((m) => moduleIdMatches(m.id, moduleId))
   );
   if (!journey) return null;
 
-  const idx = journey.modules.findIndex((m) => m.id === moduleId);
+  const idx = journey.modules.findIndex((m) => moduleIdMatches(m.id, moduleId));
   const next = journey.modules[idx + 1];
 
   // Another module follows — deep-link straight to it.
