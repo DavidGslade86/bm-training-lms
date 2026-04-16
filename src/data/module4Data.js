@@ -614,24 +614,14 @@ export const MODULE4 = {
             "type": "sufficiency-quiz",
             "items": [
               {
-                "label": "EVL on company letterhead, specific address and date range, sent directly to the VCF by the employer",
-                "sufficient": true,
-                "feedback": "Sufficient. Authoritative source, specific location, specific dates, direct transmission — meets every element of the standard."
-              },
-              {
-                "label": "Certified school transcript sent directly by the school registrar, showing enrollment at a school in the exposure zone during the exposure period",
-                "sufficient": true,
-                "feedback": "Sufficient. A certified transcript from the registrar meets the direct-transmission-from-authoritative-source standard for school attendance."
-              },
-              {
-                "label": "Residence verification letter from a building management company, attesting to the claimant's physical presence at a specific address during the exposure period, sent directly by management",
-                "sufficient": true,
-                "feedback": "Sufficient. A residence verification letter sent directly by the managing entity with specific address and dates meets the standard for residents."
-              },
-              {
                 "label": "Pay stubs showing the employer's name and address in the exposure zone",
                 "sufficient": false,
                 "feedback": "Non-sufficient. Pay stubs show employment connection but do not directly attest to physical presence at a specific location. Submit alongside two eyewitness WPS."
+              },
+              {
+                "label": "EVL on company letterhead, specific address and date range, sent directly to the VCF by the employer",
+                "sufficient": true,
+                "feedback": "Sufficient. Authoritative source, specific location, specific dates, direct transmission — meets every element of the standard."
               },
               {
                 "label": "Lease agreement from the exposure period for an address in the exposure zone",
@@ -639,14 +629,24 @@ export const MODULE4 = {
                 "feedback": "Non-sufficient. A lease establishes residential connection but not physical presence — the claimant signed a lease but that doesn't confirm they were there. Submit alongside two eyewitness WPS."
               },
               {
-                "label": "Union roster showing the claimant's name and a general area assignment, with no specific worksite address",
-                "sufficient": false,
-                "feedback": "Non-sufficient. Without a specific address, a union roster can't establish exactly where the claimant was. A TPV from the union with specific location and dates would be sufficient — the roster alone is not."
+                "label": "Certified school transcript sent directly by the school registrar, showing enrollment at a school in the exposure zone during the exposure period",
+                "sufficient": true,
+                "feedback": "Sufficient. A certified transcript from the registrar meets the direct-transmission-from-authoritative-source standard for school attendance."
               },
               {
                 "label": "Work ID badge from a site in the exposure zone",
                 "sufficient": false,
                 "feedback": "Non-sufficient. A badge shows affiliation with a site but not the specific dates the claimant was physically present there. Submit alongside two eyewitness WPS."
+              },
+              {
+                "label": "Union roster showing the claimant's name and a general area assignment, with no specific worksite address",
+                "sufficient": false,
+                "feedback": "Non-sufficient. Without a specific address, a union roster can't establish exactly where the claimant was. A TPV from the union with specific location and dates would be sufficient — the roster alone is not."
+              },
+              {
+                "label": "Residence verification letter from a building management company, attesting to the claimant's physical presence at a specific address during the exposure period, sent directly by management",
+                "sufficient": true,
+                "feedback": "Sufficient. A residence verification letter sent directly by the managing entity with specific address and dates meets the standard for residents."
               },
               {
                 "label": "Tax return showing the claimant's residential address in the exposure zone during the exposure period",
