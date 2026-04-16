@@ -10,7 +10,12 @@ import {
   ChevronUp,
 } from "lucide-react";
 import bmLogo from "../assets/Barasch_McGarry_Logo_2020_RGB.png";
-import { getAllModules, getJourneys } from "../services/contentService";
+import {
+  clearModuleEdits as clearModuleEditsService,
+  getAllModules,
+  getJourneys,
+  getModuleEdits,
+} from "../services/contentService";
 import { useUser } from "../context/UserContext";
 import { useSession } from "../context/SessionContext";
 
@@ -70,26 +75,28 @@ export default function HomePage() {
     return () => { cancelled = true; };
   }, []);
 
-  // Scan localStorage for edits per available module
-  const refreshEdits = () => {
+  // Refresh the has-edits flag for each module. Goes through the
+  // content service so the lookup flips to GET /api/modules/:id/edits
+  // when the backend is configured, with no change to this component.
+  const refreshEdits = async () => {
+    const results = await Promise.all(
+      modules.map(async (m) => {
+        const parsed = await getModuleEdits(m.id);
+        const hasEdits = Object.keys(parsed || {}).some(
+          (k) => Object.keys(parsed[k] || {}).length > 0
+        );
+        return [m.id, hasEdits];
+      })
+    );
     const edits = {};
-    modules.forEach((m) => {
-      try {
-        const stored = localStorage.getItem(`bm-lms-edits-${m.id}`);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          edits[m.id] = Object.keys(parsed).some(
-            (k) => Object.keys(parsed[k] || {}).length > 0
-          );
-        }
-      } catch {
-        // ignore parse errors
-      }
-    });
+    for (const [id, has] of results) if (has) edits[id] = true;
     setModuleEdits(edits);
   };
 
-  useEffect(refreshEdits, [editMode, modules]);
+  useEffect(() => {
+    refreshEdits();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editMode, modules]);
 
   const tryAuth = () => {
     if (!ADMIN_PW || ADMIN_PW.trim() === "") {
@@ -106,8 +113,8 @@ export default function HomePage() {
     }
   };
 
-  const clearModuleEdits = (key) => {
-    localStorage.removeItem(`bm-lms-edits-${key}`);
+  const clearModuleEdits = async (key) => {
+    await clearModuleEditsService(key);
     refreshEdits();
   };
 

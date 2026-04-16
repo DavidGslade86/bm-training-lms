@@ -21,7 +21,7 @@ import { MODULE6 } from "../data/module6Data";
 import { NEW_HIRE_ASSESSMENT } from "../data/newHireAssessmentData";
 import { GLOSSARY } from "../data/glossary";
 import { JOURNEYS } from "../data/journeys";
-import { API_ENABLED, apiGet } from "./api";
+import { API_ENABLED, apiGet, apiPost } from "./api";
 
 // ── Module lookup map ──────────────────────────────────
 // Maps the canonical module id to its imported data object.
@@ -90,14 +90,39 @@ const MODULE_METADATA = [
 //  Public API — all functions return promises
 // ═══════════════════════════════════════════════════════
 
+// ── In-flight request cache ────────────────────────────
+// getJourneys() and getAllModules() get called 2-3 times on a single
+// CompletionCard render (HomePage → JourneyView → getNextStep →
+// getParentJourneyId, each pulling the full journey list). We stash
+// the in-flight promise so concurrent callers share one resolution
+// instead of hammering either the local import or the backend.
+//
+// The cache is intentionally simple: stores the Promise (not the
+// resolved value), so the API-branch fetch + local-data branch
+// behave identically. Busted by resetContentCache() for tests.
+let journeysPromise = null;
+let modulesPromise = null;
+
+export function resetContentCache() {
+  journeysPromise = null;
+  modulesPromise = null;
+}
+
 /**
  * Return all journey definitions.
  * Today: loads from src/data/journeys.js.
  * Later: GET /api/journeys
  */
 export async function getJourneys() {
-  if (API_ENABLED) return apiGet("/api/journeys");
-  return JOURNEYS;
+  if (!journeysPromise) {
+    journeysPromise = API_ENABLED
+      ? apiGet("/api/journeys").catch((err) => {
+          journeysPromise = null;
+          throw err;
+        })
+      : Promise.resolve(JOURNEYS);
+  }
+  return journeysPromise;
 }
 
 /**
@@ -122,8 +147,15 @@ export async function getModule(moduleId) {
  * Later: GET /api/modules
  */
 export async function getAllModules() {
-  if (API_ENABLED) return apiGet("/api/modules");
-  return MODULE_METADATA;
+  if (!modulesPromise) {
+    modulesPromise = API_ENABLED
+      ? apiGet("/api/modules").catch((err) => {
+          modulesPromise = null;
+          throw err;
+        })
+      : Promise.resolve(MODULE_METADATA);
+  }
+  return modulesPromise;
 }
 
 /**
@@ -189,6 +221,56 @@ export async function getParentJourneyId(moduleId) {
  * The `label` is shaped for the "next step" button on CompletionCard — e.g.
  * "Next: Module 3 — From Sign-Up to Submitted" or "Begin Capstone Assessment".
  */
+/**
+ * Read the admin edit overrides for a module. Returns an object
+ * shaped `{ [cardId]: { [field]: newValue } }` (empty object when
+ * no overrides are present). Admin-only content today, gated by
+ * VITE_ADMIN_PASSWORD in HomePage.
+ *
+ * Today: reads `bm-lms-edits-<moduleId>` from localStorage.
+ * Later: GET /api/modules/:id/edits
+ */
+export async function getModuleEdits(moduleId) {
+  if (API_ENABLED) {
+    try {
+      return await apiGet(`/api/modules/${encodeURIComponent(moduleId)}/edits`);
+    } catch {
+      return {};
+    }
+  }
+  try {
+    return JSON.parse(localStorage.getItem(`bm-lms-edits-${moduleId}`) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Clear all admin edit overrides for a module. The future backend
+ * call would be an admin-only DELETE; for now it just drops the
+ * localStorage key so `useEditableContent` falls back to canonical
+ * module data on the next load.
+ *
+ * Today: removes `bm-lms-edits-<moduleId>` from localStorage.
+ * Later: DELETE /api/modules/:id/edits
+ */
+export async function clearModuleEdits(moduleId) {
+  if (API_ENABLED) {
+    try {
+      await apiPost(`/api/modules/${encodeURIComponent(moduleId)}/edits/clear`, {});
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  }
+  try {
+    localStorage.removeItem(`bm-lms-edits-${moduleId}`);
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
 export async function getNextStep(moduleId) {
   const journeys = await getJourneys();
   const journey = journeys?.find((j) =>

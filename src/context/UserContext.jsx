@@ -66,6 +66,64 @@ function persistCompletionsMap(userEmail, map) {
   }
 }
 
+/**
+ * Merge two completion records for the same moduleId into one.
+ * Rules:
+ *   • A record with `submittedAt` wins over one without (never "downgrade").
+ *   • Otherwise prefer the more recent `recordedAt`.
+ *   • Payload fields are shallow-merged with the winner on top.
+ *
+ * Exported for testing — covered by userContext.test.js.
+ */
+export function mergeCompletionRecords(a, b) {
+  if (!a) return b;
+  if (!b) return a;
+  const aSubmitted = Boolean(a.submittedAt);
+  const bSubmitted = Boolean(b.submittedAt);
+  if (aSubmitted && !bSubmitted) return { ...b, ...a };
+  if (bSubmitted && !aSubmitted) return { ...a, ...b };
+  const aTs = Date.parse(a.recordedAt || 0) || 0;
+  const bTs = Date.parse(b.recordedAt || 0) || 0;
+  return bTs > aTs ? { ...a, ...b } : { ...b, ...a };
+}
+
+/**
+ * When a learner signs in after browsing in guest-review mode, merge
+ * any completions they recorded as "anonymous" into their own bucket
+ * and delete the anonymous bucket. Without this, guest progress gets
+ * stranded the moment they register.
+ *
+ * Safe to call on every sign-in — no-op when the anonymous bucket is
+ * empty or missing.
+ *
+ * Exported for testing — covered by userContext.test.js.
+ */
+export function migrateAnonymousCompletions(userEmail) {
+  if (!userEmail) return;
+  const anonKey = "bm-lms-completions-anonymous";
+  const userKey = `bm-lms-completions-${userEmail}`;
+  let anon, mine;
+  try {
+    anon = JSON.parse(localStorage.getItem(anonKey) || "null");
+  } catch { return; }
+  if (!anon || typeof anon !== "object" || Object.keys(anon).length === 0) return;
+  try {
+    mine = JSON.parse(localStorage.getItem(userKey) || "{}");
+  } catch {
+    mine = {};
+  }
+  const merged = { ...mine };
+  for (const [moduleId, record] of Object.entries(anon)) {
+    merged[moduleId] = mergeCompletionRecords(merged[moduleId], record);
+  }
+  try {
+    localStorage.setItem(userKey, JSON.stringify(merged));
+    localStorage.removeItem(anonKey);
+  } catch {
+    /* storage full — leave the anon bucket in place; re-run next sign-in */
+  }
+}
+
 function loadPersistedUser() {
   try {
     const raw = localStorage.getItem(USER_KEY);
@@ -117,6 +175,12 @@ export function UserProvider({ children }) {
 
   /** Persist user + update in-memory state. */
   const setUser = useCallback((userData) => {
+    // On sign-in (user going from null → authenticated), roll any
+    // completions captured under the "anonymous" bucket into the
+    // learner's own bucket so guest progress isn't stranded.
+    if (userData?.email) {
+      migrateAnonymousCompletions(userData.email);
+    }
     setUserState(userData);
     try {
       if (userData) {
@@ -171,12 +235,20 @@ export function UserProvider({ children }) {
     [user?.email]
   );
 
-  /** Clear user + in-memory completions (does not wipe localStorage history). */
+  /**
+   * Clear user + in-memory completions + UI-local session blob.
+   * Does NOT wipe the per-learner completion history — a learner who
+   * signs back in with the same email keeps their progress.
+   */
   const clearSession = useCallback(() => {
     setUserState(null);
     setModuleCompletions({});
     try {
       localStorage.removeItem(USER_KEY);
+      // Wipe the UI-local session blob too. Otherwise state like
+      // moduleStartedAt can bleed from one learner's session into
+      // the next learner who signs in on the same machine.
+      localStorage.removeItem(SESSION_KEY);
     } catch {
       /* ignore */
     }
