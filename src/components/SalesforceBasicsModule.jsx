@@ -336,7 +336,13 @@ export default function SalesforceBasicsModule() {
                 boxSizing: "border-box",
               }}>
                 <div style={{ maxWidth: 860, margin: "0 auto" }}>
+                  {/* key={ex.id} resets Flow's internal stage state when
+                      switching exercises — otherwise stage 5 (Try It) from
+                      Ex2 carries into Ex3, and since Ex3's prefilled flow
+                      only has 4 stages (indices 0-3), stage 5 falls out
+                      of range and the card renders blank. */}
                   <Flow
+                    key={ex.id}
                     ex={ex}
                     onBack={() => goTo(0)}
                     onComplete={() => completeSection(idx)}

@@ -96,7 +96,7 @@ function ReportsTab({onNew}){
 }
 
 /* ═══ CREATE REPORT MODAL ═══ */
-function CreateReport({ex,sel,onSel,onStart}){
+function CreateReport({ex,sel,onSel,onStart,hint}){
   const[cat,setCat]=useState("All");
   const[sf,setSf]=useState(false);
   const vis=cat==="All"?RTS:RTS.filter(r=>{const c=CATS.find(x=>x.n===cat);return c?.t?.includes(r.n);});
@@ -123,8 +123,8 @@ function CreateReport({ex,sel,onSel,onStart}){
             return <tr key={rt.n} onClick={()=>onSel(rt.n)} style={{
               borderBottom:`1px solid ${T.sbol}`,cursor:"pointer",
               background:isSel?T.ssr:"transparent",
-              outline:isTarget&&!sel?`2px solid ${T.sb}`:"none",
-              animation:isTarget&&!sel?"sfGlowBorder 2s infinite":"none",
+              outline:isTarget&&!sel&&hint?`2px solid ${T.sb}`:"none",
+              animation:isTarget&&!sel&&hint?"sfGlowBorder 2s infinite":"none",
             }}><td style={{padding:"8px",color:T.st,fontWeight:isTarget&&!sel?600:400}}>{rt.n}</td><td style={{padding:"8px",color:T.stm}}>{rt.cat}</td></tr>;
           })}</tbody>
         </table>
@@ -448,6 +448,10 @@ function Flow({ex,onBack,onComplete,onNext,nextLabel}){
   const STG=hasPre?STG_SHORT:STG_FULL;
   const[s,setS]=useState(0);
   const[sel,setSel]=useState(null);
+  // Hint visibility for the "Pick Report Type" stage. Off by default —
+  // the learner should reason from the object names before seeing the
+  // pulsing outline around the correct row.
+  const[rtHint,setRtHint]=useState(false);
   // Map display stage index to logical stage
   const stageMap=hasPre?{0:0,1:3,2:4,3:5}:{0:0,1:1,2:2,3:3,4:4,5:5};
   const logical=stageMap[s];
@@ -492,10 +496,24 @@ function Flow({ex,onBack,onComplete,onNext,nextLabel}){
         <Callout icon="👇">This is the <strong>Reports tab</strong>. Click the pulsing <strong>New Report</strong> button to begin.</Callout>
         <ReportsTab onNew={()=>setS(toDisplay(2))}/>
       </div>}
-      {logical===2&&<div>
-        <Callout icon="👇">Find and select the right report type. The correct one has a pulsing outline — but in real Salesforce you'd need to figure it out from the object names. Once selected, press <strong>Start Report</strong>.</Callout>
-        <CreateReport ex={ex} sel={sel} onSel={setSel} onStart={()=>setS(toDisplay(3))}/>
-      </div>}
+      {logical===2&&(()=>{
+        // Distinct objects across the filters the learner still has to
+        // add (prefilled filters are excluded — the learner isn't
+        // reasoning about those at this step). Grammar: "Account
+        // object" vs "Account and CMS Claim Submission objects".
+        const objs=[...new Set(ex.filters.map(f=>f.obj))];
+        const objList=objs.length===1?objs[0]:objs.length===2?`${objs[0]} and ${objs[1]}`:`${objs.slice(0,-1).join(", ")}, and ${objs[objs.length-1]}`;
+        const objLabel=objs.length===1?"object":"objects";
+        return <div>
+          <Callout icon="👇">Choose the correct report type. Remember, the fields that you are looking to filter by live on the <strong>{objList}</strong> {objLabel}.</Callout>
+          <div style={{display:"flex",justifyContent:"flex-end",marginBottom:10}}>
+            <button onClick={()=>setRtHint(h=>!h)} style={{background:rtHint?T.sb:"#fff",color:rtHint?"#fff":T.sb,border:`1.5px solid ${T.sb}`,padding:"6px 14px",borderRadius:6,fontFamily:T.s,fontSize:12,fontWeight:600,cursor:"pointer"}}>
+              {rtHint?"Hide hint":"💡 Show hint"}
+            </button>
+          </div>
+          <CreateReport ex={ex} sel={sel} onSel={setSel} onStart={()=>setS(toDisplay(3))} hint={rtHint}/>
+        </div>;
+      })()}
       {logical===3&&<div>
         <Callout icon="👇">{ex.grp
           ? <>Add your new filters, then switch to <strong>Outline</strong> to set up grouping. Pulsing elements show you what to click next.</>
