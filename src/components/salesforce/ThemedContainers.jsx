@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const STEPS = [
   {
@@ -667,10 +667,16 @@ const SCENES = {
   "picking-report": ScenePickingReport,
 };
 
-export default function ThemedContainers() {
+export default function ThemedContainers({ onComplete, onNext, nextLabel } = {}) {
   const [step, setStep] = useState(0);
   const current = STEPS[step];
   const Scene = SCENES[current.id];
+
+  // Fire onComplete the first time the learner reaches the final step.
+  // The LMS wrapper uses this to mark the "Data Model" sidebar section
+  // done and unlock the first reporting exercise.
+  const onLastStep = step === STEPS.length - 1;
+  useEffect(() => { if (onLastStep && onComplete) onComplete(); }, [onLastStep, onComplete]);
 
   return (
     <div style={{
@@ -743,18 +749,35 @@ export default function ThemedContainers() {
           }}>
           ← Back
         </button>
-        <button onClick={() => setStep(Math.min(STEPS.length - 1, step + 1))} disabled={step === STEPS.length - 1}
-          style={{
-            flex: 1, padding: "11px 18px",
-            background: step === STEPS.length - 1 ? "rgba(58,50,38,0.07)" : "#3a3226",
-            color: step === STEPS.length - 1 ? "rgba(58,50,38,0.25)" : "#faf5ea",
-            border: "none", borderRadius: 10, fontSize: 13.5,
-            fontFamily: "'Georgia',serif",
-            cursor: step === STEPS.length - 1 ? "default" : "pointer",
-            fontWeight: 600, transition: "all 0.2s ease",
-          }}>
-          Next →
-        </button>
+        {/* On the final step, if the LMS wrapper passed an onNext
+            handler, replace the disabled "Next →" with a live button
+            that advances to the next module section (e.g. Exercise 1).
+            Otherwise fall back to the original disabled-at-end UX. */}
+        {onLastStep && onNext ? (
+          <button onClick={onNext}
+            style={{
+              flex: 1, padding: "11px 18px",
+              background: "#0176d3", color: "white",
+              border: "none", borderRadius: 10, fontSize: 13.5,
+              fontFamily: "'Georgia',serif", cursor: "pointer",
+              fontWeight: 700, transition: "all 0.2s ease",
+            }}>
+            {nextLabel || "Continue →"}
+          </button>
+        ) : (
+          <button onClick={() => setStep(Math.min(STEPS.length - 1, step + 1))} disabled={step === STEPS.length - 1}
+            style={{
+              flex: 1, padding: "11px 18px",
+              background: step === STEPS.length - 1 ? "rgba(58,50,38,0.07)" : "#3a3226",
+              color: step === STEPS.length - 1 ? "rgba(58,50,38,0.25)" : "#faf5ea",
+              border: "none", borderRadius: 10, fontSize: 13.5,
+              fontFamily: "'Georgia',serif",
+              cursor: step === STEPS.length - 1 ? "default" : "pointer",
+              fontWeight: 600, transition: "all 0.2s ease",
+            }}>
+            Next →
+          </button>
+        )}
       </div>
       <p style={{ textAlign: "center", fontSize: 11.5, opacity: 0.35, marginTop: 10, fontFamily: "'Courier New',monospace" }}>
         {step + 1} of {STEPS.length}

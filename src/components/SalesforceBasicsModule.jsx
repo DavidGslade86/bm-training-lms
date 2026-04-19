@@ -1,84 +1,109 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { B } from "../data/brand";
 import bmLogo from "../assets/Barasch_McGarry_Logo_2020_RGB.png";
 import { getNextStep, getParentJourneyId } from "../services/contentService";
 import { useUser } from "../context/UserContext";
 import { useSession } from "../context/SessionContext";
-import { KEYS } from "../hooks/useLocalStorage";
+import { KEYS, serializeState, deserializeState } from "../hooks/useLocalStorage";
 import ThemedContainers from "./salesforce/ThemedContainers";
-import ReportingModule from "./salesforce/ReportingModule";
+import { EX, Flow, InjectCSS } from "./salesforce/ReportingModule";
 
 // ═══════════════════════════════════════════════════════
-//  SalesforceBasicsModule — parent module for the tech-stack
-//  journey that wraps two self-contained Salesforce training
-//  components as sequential "parts":
+//  SalesforceBasicsModule — tech-stack journey module that
+//  walks the learner through two Salesforce training
+//  components in a sidebar-driven progression matching the
+//  rest of the LMS:
 //
-//    Part 1 — Objects: Containers for Data (ThemedContainers)
-//    Part 2 — Building Reports            (ReportingModule)
+//    1. Data Model  — ThemedContainers walkthrough (Part 1)
+//    2. Exercise 1  — Single Object Report (Reporting Flow)
+//    3. Exercise 2  — Cross-Object Report (Reporting Flow)
+//    4. Exercise 3  — Refining & Grouping (Reporting Flow)
+//    5. Complete    — completion summary + submit
 //
-//  The child components are imported verbatim from
-//  src/components/salesforce/ and kept intact so they can be
-//  updated from the source spec without merge conflicts. This
-//  wrapper supplies:
+//  Each sidebar entry unlocks the next when the learner fires
+//  the child component's onComplete callback. Exercises also
+//  surface an inline "Next Exercise →" button at the Try It
+//  stage for faster progression; the sidebar stays clickable
+//  once a section is unlocked so learners can jump around.
 //
-//    • LMS chrome (top nav, back-to-journey, learner label)
-//    • Part switcher (Part 1 / Part 2 pills + progress dots)
-//    • Per-part completion tracking (self-report — the learner
-//      clicks "Mark Part Complete" when they've walked through
-//      the content)
-//    • Overall module completion via markComplete once both
-//      parts are done, plus optional Submit to Training Record
+//  The child SF components are kept intact in src/components/
+//  salesforce/ so they can be refreshed from the spec without
+//  merge conflicts. This wrapper only adds the LMS chrome +
+//  progression + completion plumbing (markComplete, PA submit,
+//  getNextStep for the journey-continue button).
 //
 //  Progress is persisted under bm-lms-progress-salesforce-basics-<email>
-//  alongside the other modules' reducer state. We don't use
-//  the reducer-based Ctx here because the SF components have
-//  their own internal state machines (step counters, exercise
-//  progress) and don't slot into the card-based progression.
+//  using a tiny reducer with Set-valued done/open fields so it
+//  rides the same STATE_VERSION guard as the other modules.
 // ═══════════════════════════════════════════════════════
 
 const MODULE_ID = "salesforce-basics";
 const MODULE_TITLE = "Salesforce Basics";
 
-const PARTS = [
+const SECTIONS = [
   {
-    id: 1,
-    slug: "data-model",
-    label: "Part 1",
+    id: "data-model",
+    nav: "Data Model",
+    kind: "themed",
     title: "Objects: Containers for Data",
-    subtitle: "How Salesforce organizes data into themed containers.",
+    subtitle: "Part 1 — how Salesforce organizes data",
   },
-  {
-    id: 2,
-    slug: "reporting",
-    label: "Part 2",
-    title: "Building Reports",
-    subtitle: "From business question to report — three guided exercises.",
-  },
+  { id: "ex-1",    nav: "Exercise 1", kind: "exercise", exerciseId: 1, title: "Single Object Report" },
+  { id: "ex-2",    nav: "Exercise 2", kind: "exercise", exerciseId: 2, title: "Cross-Object Report" },
+  { id: "ex-3",    nav: "Exercise 3", kind: "exercise", exerciseId: 3, title: "Refining & Grouping" },
+  { id: "complete", nav: "Complete",  kind: "completion", title: "Module Complete" },
 ];
 
-// ── Persistence helpers ────────────────────────────────
-// Progress shape: { part1Done, part2Done, recordedAt }
-function loadProgress(storageKey) {
-  try {
-    const raw = JSON.parse(localStorage.getItem(storageKey));
-    if (!raw || typeof raw !== "object") return { part1Done: false, part2Done: false };
-    return {
-      part1Done: !!raw.part1Done,
-      part2Done: !!raw.part2Done,
-      recordedAt: raw.recordedAt || null,
-    };
-  } catch {
-    return { part1Done: false, part2Done: false };
+// ── Reducer (mirrors the card-modules' state.js pattern) ──
+const initSF = {
+  done: new Set(),
+  open: new Set([0]),
+  cur: 0,
+  recordedAt: null,
+};
+
+function sfRed(s, a) {
+  switch (a.t) {
+    case "GO":
+      return { ...s, cur: a.i, open: new Set([...s.open, a.i]) };
+    case "COMPLETE_SECTION": {
+      if (s.done.has(a.i)) return s; // idempotent
+      const d = new Set([...s.done, a.i]);
+      const o = new Set([...s.open]);
+      if (a.i + 1 < SECTIONS.length) o.add(a.i + 1);
+      return { ...s, done: d, open: o };
+    }
+    case "RECORDED_AT":
+      return s.recordedAt ? s : { ...s, recordedAt: a.at };
+    default:
+      return s;
   }
 }
 
-function saveProgress(storageKey, progress) {
-  try {
-    localStorage.setItem(storageKey, JSON.stringify(progress));
-  } catch {
-    // storage full — silently fail, matches usePersistedReducer behavior
-  }
+// Bespoke persistence hook. We don't use usePersistedReducer here
+// because its STATE_VERSION guard lives in state.js and is shared
+// by the other modules — we don't want a schema bump there to wipe
+// this module's progress (and vice-versa). Shape is small enough
+// that rolling our own is simpler than generalizing the hook.
+function useSFReducer(storageKey) {
+  const [state, dispatch] = useReducer(sfRed, storageKey, (key) => {
+    try {
+      const raw = JSON.parse(localStorage.getItem(key));
+      if (!raw) return initSF;
+      return deserializeState(raw, initSF);
+    } catch {
+      return initSF;
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(serializeState(state)));
+    } catch {
+      // storage full — silently fail, matches the other persistence paths
+    }
+  }, [state, storageKey]);
+  return [state, dispatch];
 }
 
 export default function SalesforceBasicsModule() {
@@ -90,89 +115,49 @@ export default function SalesforceBasicsModule() {
   const toggleReviewMode = () => { if (!forceReview) setReviewMode(v => !v); };
 
   const storageKey = KEYS.module(MODULE_ID, learner?.email || "anonymous");
-  const [progress, setProgress] = useState(() => loadProgress(storageKey));
-  const [currentPart, setCurrentPart] = useState(progress.part1Done && !progress.part2Done ? 2 : 1);
+  const [s, d] = useSFReducer(storageKey);
+
   const [parentJourneyId, setParentJourneyId] = useState(null);
   const [nextStep, setNextStep] = useState(null);
   const [submitState, setSubmitState] = useState("idle"); // idle | submitting | success | error
+  const [submittedAt, setSubmittedAt] = useState(null);
 
-  // Persist progress on change
-  useEffect(() => { saveProgress(storageKey, progress); }, [storageKey, progress]);
-
-  // Resolve parent journey for the back button
+  // Resolve parent journey + next step for the back + continue buttons
   useEffect(() => {
     let cancelled = false;
-    getParentJourneyId(MODULE_ID).then((id) => {
-      if (!cancelled) setParentJourneyId(id);
-    });
+    getParentJourneyId(MODULE_ID).then((id) => { if (!cancelled) setParentJourneyId(id); });
+    getNextStep(MODULE_ID).then((step) => { if (!cancelled) setNextStep(step); });
     return () => { cancelled = true; };
   }, []);
 
-  // Resolve next step in the journey for the completion screen
-  useEffect(() => {
-    let cancelled = false;
-    getNextStep(MODULE_ID).then((step) => {
-      if (!cancelled) setNextStep(step);
-    });
-    return () => { cancelled = true; };
-  }, []);
+  // Smooth-scroll on section change to mirror the card modules' UX.
+  useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [s.cur]);
 
   const onHome = () => navigate("/");
   const onSignIn = () => { setGuestReview(false); navigate("/"); };
   const onBackToJourney = () => navigate(parentJourneyId ? `/journeys/${parentJourneyId}` : "/");
 
-  const bothDone = progress.part1Done && progress.part2Done;
+  const completeSection = (i) => { if (!reviewMode) d({ t: "COMPLETE_SECTION", i }); };
+  const goTo = (i) => { d({ t: "GO", i }); };
 
-  // ── Part-complete handler ──
-  // In review/guest mode we still let the learner walk around but
-  // don't persist progress — matches the rest of the LMS.
-  const markPartComplete = (partId) => {
-    if (reviewMode) return;
-    setProgress((p) => ({
-      ...p,
-      ...(partId === 1 ? { part1Done: true } : { part2Done: true }),
-    }));
-    // Auto-advance to the next part if they finished Part 1 and haven't done Part 2
-    if (partId === 1 && !progress.part2Done) {
-      setCurrentPart(2);
-    }
-  };
-
-  // ── Module-complete side effect ──
-  // Mirrors CompletionCard: as soon as both parts are done and the
-  // learner is signed in (not a guest reviewer), stamp the completion
-  // locally so the journey progress bar reflects it. The PA webhook
-  // still only fires on an explicit "Submit to Training Record" click.
+  // ── Module-level completion side effect ──
+  // When Exercise 3 is marked done (index 3), stamp the completion
+  // locally so the journey progress bar fills in. Submission to the
+  // training record still requires an explicit button click.
+  const ex3Done = s.done.has(3);
   useEffect(() => {
-    if (!bothDone) return;
+    if (!ex3Done) return;
     if (reviewMode) return;
     if (!learner?.email) return;
-    if (progress.recordedAt) return; // already stamped
+    if (s.recordedAt) return; // already stamped — idempotent
 
     const completedAt = new Date();
     const elapsedSec = moduleStartedAt ? Math.round((Date.now() - moduleStartedAt) / 1000) : 0;
-    const payload = {
-      userId: learner.email,
-      displayName: learner.name || "",
-      role: learner.role || "",
-      moduleId: MODULE_ID,
-      moduleTitle: MODULE_TITLE,
-      completedAt: completedAt.toISOString(),
-      timeOnTaskSec: elapsedSec,
-      // Module has no scored assessment — these keep the payload
-      // shape consistent with the other modules.
-      assessScore: 0,
-      assessTotal: 0,
-      assessFirstPct: 0,
-      assessDetails: "",
-      quizReviews: 0,
-      matchErrors: 0,
-      scenarioErrors: 0,
-    };
+    const payload = buildPayload(learner, completedAt, elapsedSec);
     markComplete(MODULE_ID, payload);
-    setProgress((p) => ({ ...p, recordedAt: completedAt.toISOString() }));
+    d({ t: "RECORDED_AT", at: completedAt.toISOString() });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bothDone, reviewMode, learner?.email]);
+  }, [ex3Done, reviewMode, learner?.email]);
 
   const canSubmit = Boolean(
     import.meta.env.VITE_POWERAUTOMATE_URL &&
@@ -184,41 +169,47 @@ export default function SalesforceBasicsModule() {
     setSubmitState("submitting");
     const completedAt = new Date();
     const elapsedSec = moduleStartedAt ? Math.round((Date.now() - moduleStartedAt) / 1000) : 0;
-    const payload = {
-      userId: learner?.email || "",
-      displayName: learner?.name || "",
-      role: learner?.role || "",
-      moduleId: MODULE_ID,
-      moduleTitle: MODULE_TITLE,
-      completedAt: completedAt.toISOString(),
-      timeOnTaskSec: elapsedSec,
-      assessScore: 0,
-      assessTotal: 0,
-      assessFirstPct: 0,
-      assessDetails: "",
-      quizReviews: 0,
-      matchErrors: 0,
-      scenarioErrors: 0,
-    };
+    const payload = buildPayload(learner, completedAt, elapsedSec);
     const result = await recordCompletion(MODULE_ID, payload);
-    setSubmitState(result.success ? "success" : "error");
+    if (result.success) {
+      setSubmitState("success");
+      setSubmittedAt(new Date().toLocaleString());
+    } else {
+      setSubmitState("error");
+    }
   };
 
   const hasBanner = reviewMode;
   const topOffset = hasBanner ? 84 : 52;
+  const section = SECTIONS[s.cur] || SECTIONS[0];
+  const totalSections = SECTIONS.length;
+  const pct = totalSections > 1 ? (s.cur / (totalSections - 1)) * 100 : 0;
 
-  const part = PARTS.find((p) => p.id === currentPart) || PARTS[0];
+  // Pre-compute the callback props for each section so the nested
+  // JSX below stays readable.
+  const dataModelComplete = () => completeSection(0);
+  const dataModelNext = () => {
+    completeSection(0); // mark Data Model done
+    goTo(1);            // navigate to Exercise 1 (which COMPLETE_SECTION also unlocks)
+  };
 
   return (
     <div className="min-h-screen bg-brand-cream">
-      {/* Top nav — matches Module2..Module6 chrome */}
+      <InjectCSS />
+
+      {/* Progress bar (top 1px) */}
+      <div className="fixed top-0 left-0 right-0 h-1 z-50 bg-brand-sand">
+        <div className="h-full transition-all duration-500 bg-brand-blue" style={{ width: `${pct}%` }} />
+      </div>
+
+      {/* Top nav */}
       <div className="fixed top-1 left-0 right-0 z-40 flex items-center justify-between px-5 py-2 bg-brand-hdr shadow-[0_2px_12px_rgba(0,0,0,0.2)]">
         <div className="flex items-center gap-4">
           <button onClick={onHome} className="bg-white rounded px-2 py-1 inline-flex items-center border-none cursor-pointer">
             <img src={bmLogo} alt="B&M" className="h-8" />
           </button>
           <div className="w-px h-5 bg-white/15" />
-          <span className="text-xs text-white/50">{MODULE_TITLE} — {part.label}: {part.title}</span>
+          <span className="text-xs text-white/50">{MODULE_TITLE}</span>
         </div>
         <div className="flex items-center gap-3">
           {!forceReview && (
@@ -242,6 +233,7 @@ export default function SalesforceBasicsModule() {
             </button>
           )}
           {learner && <span className="text-xs text-white/35">{learner.name}</span>}
+          <span className="text-xs text-white/40">Section {s.cur + 1} of {totalSections}</span>
           <button
             onClick={onBackToJourney}
             className="px-3 py-1.5 rounded text-xs font-semibold cursor-pointer border-none"
@@ -259,161 +251,273 @@ export default function SalesforceBasicsModule() {
           className="fixed left-0 right-0 z-40 flex items-center justify-center h-8 text-xs font-semibold"
           style={{ top: 52, background: "#dbeeff", color: "#1a6fa0", borderBottom: "1px solid #a8d4f5" }}
         >
-          Review mode — progress won't be recorded
+          Review mode — all sections unlocked, progress won't be recorded
         </div>
       )}
 
-      {/* Part switcher — pill nav + completion bar */}
-      <div
-        className="fixed left-0 right-0 z-30 flex items-center justify-between px-6 py-3 border-b"
-        style={{
-          top: topOffset,
-          background: "#faf5ea",
-          borderColor: "rgba(58,50,38,0.1)",
-        }}
-      >
-        <div className="flex items-center gap-2">
-          {PARTS.map((p) => {
-            const active = p.id === currentPart;
-            const done = p.id === 1 ? progress.part1Done : progress.part2Done;
+      <div className="flex" style={{ marginTop: topOffset }}>
+        {/* Sidebar */}
+        <div
+          className="fixed left-0 overflow-y-auto z-30 py-5 w-60 bg-brand-side"
+          style={{ top: topOffset, bottom: 0 }}
+        >
+          <div className="px-5 mb-3 text-xs font-bold tracking-widest text-white/25">SECTIONS</div>
+          {SECTIONS.map((sec, i) => {
+            const act = i === s.cur;
+            const comp = s.done.has(i);
+            const unlk = s.open.has(i) || reviewMode;
             return (
-              <button
-                key={p.id}
-                onClick={() => setCurrentPart(p.id)}
-                className="flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold border cursor-pointer transition-all"
+              <div
+                key={sec.id}
+                onClick={() => { if (unlk || comp) goTo(i); }}
+                className="flex items-start gap-3 px-5 py-2"
                 style={{
-                  background: active ? "#3a3226" : "white",
-                  color: active ? "#faf5ea" : "#3a3226",
-                  borderColor: active ? "#3a3226" : "rgba(58,50,38,0.2)",
+                  borderLeft: `3px solid ${act ? B.blue : "transparent"}`,
+                  background: act ? "rgba(255,255,255,0.06)" : "transparent",
+                  opacity: unlk || comp ? 1 : 0.3,
+                  cursor: unlk || comp ? "pointer" : "default",
                 }}
               >
-                <span
-                  className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold"
+                <div
+                  className="w-5 h-5 rounded-full flex items-center justify-center font-bold shrink-0 mt-0.5 text-[9px]"
                   style={{
-                    background: done ? "#4a8c6f" : active ? "rgba(250,245,234,0.2)" : "rgba(58,50,38,0.1)",
-                    color: done ? "white" : active ? "#faf5ea" : "#3a3226",
+                    border: `2px solid ${comp ? B.ok : act ? B.blue : "rgba(255,255,255,0.2)"}`,
+                    background: comp ? B.ok : "transparent",
+                    color: comp ? "white" : act ? B.blue : "rgba(255,255,255,0.35)",
                   }}
                 >
-                  {done ? "✓" : p.id}
-                </span>
-                {p.label}: {p.title}
-              </button>
+                  {comp ? "✓" : i + 1}
+                </div>
+                <div className="flex items-center gap-1 min-w-0 flex-1">
+                  <span
+                    className="text-xs truncate"
+                    style={{ color: act ? "white" : "rgba(255,255,255,0.55)" }}
+                  >
+                    {sec.nav}
+                  </span>
+                  {reviewMode && act && (
+                    <span
+                      className="text-[9px] font-bold px-1 rounded shrink-0 ml-1"
+                      style={{ background: "rgba(0,155,223,0.3)", color: B.blue }}
+                    >
+                      Review
+                    </span>
+                  )}
+                </div>
+              </div>
             );
           })}
         </div>
-        <div className="flex items-center gap-3">
-          {bothDone && (
-            <span className="text-xs font-bold px-3 py-1 rounded-full" style={{ background: "#e8f5ee", color: "#4a8c6f", border: "1px solid #a8d4b5" }}>
-              ✓ Module complete
-            </span>
+
+        {/* Main content — the SF components render with their own
+            gradient backgrounds and max-widths, so we just give them
+            breathing room to the right of the fixed sidebar. */}
+        <div className="flex-1 ml-60 min-h-[calc(100vh-52px)]">
+          {section.kind === "themed" && (
+            <ThemedContainers
+              onComplete={dataModelComplete}
+              onNext={dataModelNext}
+              nextLabel="Continue to Exercise 1 →"
+            />
           )}
-          {!bothDone && (
-            <span className="text-xs" style={{ color: "#7a6d5c" }}>
-              {(progress.part1Done ? 1 : 0) + (progress.part2Done ? 1 : 0)} of 2 parts complete
-            </span>
+
+          {section.kind === "exercise" && (() => {
+            const ex = EX.find((e) => e.id === section.exerciseId);
+            if (!ex) return null;
+            const idx = s.cur;
+            const isLastExercise = section.exerciseId === 3;
+            return (
+              <div style={{
+                minHeight: "calc(100vh - 52px)",
+                background: "linear-gradient(155deg,#faf5ea 0%,#f2ead6 35%,#e8dfc8 100%)",
+                fontFamily: "'Georgia','Times New Roman',serif",
+                color: "#3a3226",
+                padding: "20px 16px",
+                boxSizing: "border-box",
+              }}>
+                <div style={{ maxWidth: 860, margin: "0 auto" }}>
+                  <Flow
+                    ex={ex}
+                    onBack={() => goTo(0)}
+                    onComplete={() => completeSection(idx)}
+                    onNext={isLastExercise ? undefined : () => {
+                      completeSection(idx);
+                      goTo(idx + 1);
+                    }}
+                    nextLabel={
+                      section.exerciseId === 1 ? "Continue to Exercise 2 →" :
+                      section.exerciseId === 2 ? "Continue to Exercise 3 →" :
+                      undefined
+                    }
+                  />
+                  {/* For Exercise 3 (last one), surface a "Finish Module →"
+                      button once they've reached the Try It stage. */}
+                  {isLastExercise && s.done.has(idx) && (
+                    <div style={{ marginTop: 20, display: "flex", justifyContent: "center" }}>
+                      <button
+                        onClick={() => goTo(SECTIONS.length - 1)}
+                        style={{
+                          padding: "12px 24px",
+                          background: "#4a8c6f",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: 8,
+                          fontSize: 14,
+                          fontWeight: 700,
+                          fontFamily: "'Georgia',serif",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Finish Module →
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
+          {section.kind === "completion" && (
+            <CompletionPanel
+              reviewMode={reviewMode}
+              canSubmit={canSubmit}
+              submitState={submitState}
+              submittedAt={submittedAt}
+              onSubmit={submitToPA}
+              nextStep={nextStep}
+              navigate={navigate}
+              learner={learner}
+              moduleStartedAt={moduleStartedAt}
+              done={s.done}
+            />
           )}
         </div>
       </div>
+    </div>
+  );
+}
 
-      {/* Main content region — embeds the SF component below the
-          fixed chrome. The SF components render with minHeight:100vh
-          and their own gradient backgrounds; we pad the top to clear
-          the fixed nav + part switcher. */}
-      <div style={{ paddingTop: topOffset + 56 }}>
-        {currentPart === 1 && <ThemedContainers />}
-        {currentPart === 2 && <ReportingModule />}
-      </div>
+// ── Completion payload builder ──
+// Kept out of the component body so both the auto-stamp effect and the
+// Submit-to-PA button use the exact same shape.
+function buildPayload(learner, completedAt, elapsedSec) {
+  return {
+    userId: learner?.email || "",
+    displayName: learner?.name || "",
+    role: learner?.role || "",
+    moduleId: MODULE_ID,
+    moduleTitle: MODULE_TITLE,
+    completedAt: completedAt.toISOString(),
+    timeOnTaskSec: elapsedSec,
+    // Module has no scored assessment — zero fields keep the payload
+    // shape consistent with the card-based modules.
+    assessScore: 0,
+    assessTotal: 0,
+    assessFirstPct: 0,
+    assessDetails: "",
+    quizReviews: 0,
+    matchErrors: 0,
+    scenarioErrors: 0,
+  };
+}
 
-      {/* Completion footer — fixed to bottom so the learner can always
-          self-report part completion without scrolling back up. */}
-      <div
-        className="fixed bottom-0 left-0 right-0 z-30 flex items-center justify-between px-6 py-3 border-t"
-        style={{
-          background: "#faf5ea",
-          borderColor: "rgba(58,50,38,0.15)",
-          boxShadow: "0 -2px 12px rgba(58,50,38,0.08)",
-        }}
-      >
-        <div className="flex items-center gap-3 text-xs" style={{ color: "#7a6d5c" }}>
-          <span style={{ fontFamily: "'Georgia',serif", fontSize: 13 }}>
-            <strong>{part.label}:</strong> {part.title}
-          </span>
-          {((part.id === 1 && progress.part1Done) || (part.id === 2 && progress.part2Done)) && (
-            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#e8f5ee", color: "#4a8c6f", border: "1px solid #a8d4b5" }}>
-              ✓ Complete
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-3">
-          {/* Mark-complete button for the current part */}
-          {!reviewMode && (
-            <>
-              {part.id === 1 && !progress.part1Done && (
-                <button
-                  onClick={() => markPartComplete(1)}
-                  className="px-4 py-2 rounded-md text-xs font-bold border-none cursor-pointer"
-                  style={{ background: "#3a3226", color: "#faf5ea" }}
-                >
-                  Mark Part 1 Complete →
-                </button>
-              )}
-              {part.id === 2 && !progress.part2Done && (
-                <button
-                  onClick={() => markPartComplete(2)}
-                  className="px-4 py-2 rounded-md text-xs font-bold border-none cursor-pointer"
-                  style={{ background: "#3a3226", color: "#faf5ea" }}
-                >
-                  Mark Part 2 Complete →
-                </button>
-              )}
-            </>
-          )}
+// ── Completion panel ──
+// Small inline component so the main render function stays focused
+// on routing/sidebar logic. Mirrors the relevant bits of
+// CompletionCard without the quiz/scenario error metrics (which
+// don't apply to this module).
+function CompletionPanel({ reviewMode, canSubmit, submitState, submittedAt, onSubmit, nextStep, navigate, learner, moduleStartedAt, done }) {
+  const completedAt = new Date();
+  const elapsedSec = moduleStartedAt ? Math.round((Date.now() - moduleStartedAt) / 1000) : null;
+  const elapsedStr = elapsedSec
+    ? elapsedSec < 60 ? `${elapsedSec}s` : `${Math.floor(elapsedSec / 60)}m ${elapsedSec % 60}s`
+    : "—";
+  const completedCount = [0, 1, 2, 3].filter((i) => done.has(i)).length;
 
-          {/* Jump-to-next-part shortcut */}
-          {part.id === 1 && progress.part1Done && currentPart === 1 && (
-            <button
-              onClick={() => setCurrentPart(2)}
-              className="px-4 py-2 rounded-md text-xs font-bold border-none cursor-pointer"
-              style={{ background: B.blue, color: "white" }}
-            >
-              Continue to Part 2 →
-            </button>
-          )}
-
-          {/* Both done: submit + next-step */}
-          {bothDone && (
-            <>
-              {canSubmit && submitState === "success" && (
-                <span className="flex items-center gap-1 px-3 py-2 text-xs font-semibold text-brand-ok">
-                  ✓ Submitted to training record
-                </span>
-              )}
-              {canSubmit && submitState !== "success" && !reviewMode && (
-                <button
-                  onClick={submitToPA}
-                  disabled={submitState === "submitting"}
-                  className="px-4 py-2 rounded-md text-xs font-bold border-none cursor-pointer bg-brand-ok text-white disabled:opacity-60 disabled:cursor-wait"
-                >
-                  {submitState === "submitting" ? "Submitting…" : "📤 Submit to Training Record"}
-                </button>
-              )}
-              {nextStep && (
-                <button
-                  onClick={() => navigate(nextStep.path)}
-                  className="px-4 py-2 rounded-md text-xs font-bold border-none cursor-pointer"
-                  style={{ background: nextStep.kind === "assessment" ? "#4a8c6f" : B.blue, color: "white" }}
-                >
-                  {nextStep.label} →
-                </button>
-              )}
-            </>
-          )}
+  return (
+    <div className="py-8 px-10 max-w-[840px] mx-auto">
+      {/* Hero */}
+      <div className="rounded-lg p-10 text-center text-white mb-6 bg-brand-hdr">
+        <div className="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 bg-brand-ok">✓</div>
+        <div className="text-2xl font-bold mb-1 text-brand-blue font-heading">Module Complete</div>
+        <p className="text-sm mb-1 text-white/55">
+          {learner?.name && <span className="text-white/80 font-semibold">{learner.name} · </span>}
+          {MODULE_TITLE}
+        </p>
+        <p className="text-xs mb-6 text-white/35">
+          Completed {completedAt.toLocaleString()} · {elapsedStr} on module
+        </p>
+        <div className="inline-block rounded-lg px-10 py-5 bg-white/[0.07]">
+          <div className="text-5xl font-bold mb-1 text-brand-blue font-heading">{completedCount}/4</div>
+          <div className="text-xs text-white/40">Sections completed</div>
         </div>
       </div>
 
-      {/* Give the fixed footer breathing room so content doesn't
-          disappear behind it. 64px ≈ footer height. */}
-      <div style={{ height: 64 }} />
+      {/* Recap */}
+      <div className="rounded-lg p-6 mb-4 bg-brand-ww border border-brand-sand">
+        <div className="text-xs font-bold tracking-widest mb-4 text-brand-tl">WHAT YOU COVERED</div>
+        <ul className="flex flex-col gap-2 text-xs text-brand-tm">
+          <li>• How Salesforce objects, fields, and records fit together</li>
+          <li>• Master-detail vs. lookup relationships, and what that means for reporting</li>
+          <li>• Picking a report type: single-object vs. combined report types</li>
+          <li>• Adding filters, refining results, and grouping with Summary reports</li>
+        </ul>
+      </div>
+
+      {/* Submit to Training Record */}
+      {reviewMode ? (
+        <div className="rounded-lg p-6 mb-6 bg-brand-ww border border-brand-sand text-center">
+          <div className="text-sm font-semibold text-brand-tl">
+            Module review complete — exit review mode to record a real completion.
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-lg p-6 mb-6 bg-brand-ww border border-brand-sand">
+          <div className="text-xs font-bold tracking-widest mb-1 text-brand-tl">SAVE YOUR RESULTS</div>
+          <p className="text-xs mb-4 text-brand-tl">
+            Submit your completion so your training record stays current.
+          </p>
+          <div className="flex flex-wrap gap-3 items-center">
+            {canSubmit && submitState === "success" && (
+              <span className="flex items-center gap-[7px] px-4 py-[9px] text-xs font-semibold text-brand-ok">
+                ✓ Submitted to training record{submittedAt && ` · ${submittedAt}`}
+              </span>
+            )}
+            {canSubmit && submitState !== "success" && (
+              <button
+                onClick={onSubmit}
+                disabled={submitState === "submitting"}
+                className="flex items-center gap-[7px] px-4 py-[9px] rounded-md text-xs font-bold border-none cursor-pointer bg-brand-ok text-white disabled:opacity-60 disabled:cursor-wait"
+              >
+                {submitState === "submitting" ? "Submitting…" : "📤 Submit to Training Record"}
+              </button>
+            )}
+            {!canSubmit && (
+              <span className="text-xs text-brand-tl italic">
+                (Training-record submission isn't configured in this environment.)
+              </span>
+            )}
+          </div>
+          {submitState === "error" && (
+            <p className="text-xs mt-2 font-semibold text-brand-err">
+              Submission failed — please try again.
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Next-step navigation */}
+      {nextStep && (
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={() => navigate(nextStep.path)}
+            className="px-8 py-3 rounded-lg text-sm font-bold text-white border-none cursor-pointer transition-opacity hover:opacity-90"
+            style={{ background: nextStep.kind === "assessment" ? B.ok : B.blue }}
+          >
+            {nextStep.label} →
+          </button>
+        </div>
+      )}
     </div>
   );
 }

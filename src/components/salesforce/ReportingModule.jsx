@@ -443,7 +443,7 @@ function Results({ex}){
 /* ═══ EXERCISE FLOW ═══ */
 const STG_FULL=["The Question","Reports Tab","Pick Report Type","Build Report","Results","Try It"];
 const STG_SHORT=["The Question","Build Report","Results","Try It"];
-function Flow({ex,onBack}){
+function Flow({ex,onBack,onComplete,onNext,nextLabel}){
   const hasPre=!!ex.prefilled;
   const STG=hasPre?STG_SHORT:STG_FULL;
   const[s,setS]=useState(0);
@@ -451,6 +451,10 @@ function Flow({ex,onBack}){
   // Map display stage index to logical stage
   const stageMap=hasPre?{0:0,1:3,2:4,3:5}:{0:0,1:1,2:2,3:3,4:4,5:5};
   const logical=stageMap[s];
+  // Fire onComplete the first time the learner reaches the "Try It"
+  // stage (logical===5). The LMS wrapper treats this as the exercise
+  // being done and unlocks the next sidebar section.
+  useEffect(()=>{ if(logical===5&&onComplete) onComplete(ex.id); },[logical,ex.id,onComplete]);
   // Find display stage for a given logical stage
   const toDisplay=(logStage)=>{
     for(const[d,l] of Object.entries(stageMap)){if(l===logStage)return Number(d);}
@@ -511,6 +515,14 @@ function Flow({ex,onBack}){
         </div>
         <div style={{background:T.sbl,borderRadius:8,padding:16,border:"1px solid rgba(1,118,211,0.2)",fontFamily:T.s,fontSize:13,color:T.sbd,lineHeight:1.6}}><strong>Check your work:</strong> Compare your report to the saved version linked in the LMS. What matters is the right report type, the right filters, and the right records — not exact formatting.</div>
         <Callout icon="🔑"><strong>Remember:</strong> identify which objects your data lives on first, then pick a report type that covers those objects.</Callout>
+        {/* LMS-driven "advance to next exercise" button — shown when the
+            wrapper passes an onNext handler (exercises 1 and 2 inside the
+            Salesforce Basics module). Exercise 3 is the last one, so the
+            wrapper omits onNext there and the outer CompletionCard-style
+            footer takes over. */}
+        {onNext&&<div style={{marginTop:20,display:"flex",justifyContent:"center"}}>
+          <button onClick={onNext} style={{padding:"12px 24px",background:T.sb,color:"#fff",border:"none",borderRadius:8,fontSize:14,fontFamily:T.d,fontWeight:700,cursor:"pointer"}}>{nextLabel||"Next Exercise →"}</button>
+        </div>}
       </div>}
     </div>
     <div style={{display:"flex",justifyContent:"center",gap:12,maxWidth:380,margin:"16px auto 0"}}>
@@ -519,6 +531,12 @@ function Flow({ex,onBack}){
     </div>
   </div>;
 }
+
+// Named exports so an LMS wrapper can drive the Flow directly —
+// rendering a single exercise inline without the built-in
+// exercise-picker view. Kept alongside the default export so the
+// component still works standalone.
+export { EX, Flow, InjectCSS };
 
 /* ═══ MAIN ═══ */
 export default function ReportingModule(){
