@@ -3,6 +3,19 @@ import { createContext } from "react";
 // ═══════════════════════════════════════════════════════
 //  STATE — initial state, reducer, context
 // ═══════════════════════════════════════════════════════
+
+/**
+ * Bump this whenever the reducer state shape changes in a way
+ * that makes old persisted data structurally incompatible —
+ * e.g. renaming a field, changing a value from array to object,
+ * or reordering card data that state indexes into.
+ *
+ * usePersistedReducer discards any stored blob whose _v doesn't
+ * match and starts fresh from initState, so learners get a clean
+ * slate rather than a crash.
+ */
+export const STATE_VERSION = 2;
+
 export const initState = {
   cur: 0,
   done: new Set(),
