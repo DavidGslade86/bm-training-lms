@@ -58,10 +58,11 @@ export const JOURNEYS = [
       "AI prompting, Salesforce, UAT testing, and PMO fundamentals \u2014 available to all staff.",
     icon: "Cpu",
     type: "tech",
-    estimatedTime: "Coming soon",
+    estimatedTime: "~30 min",
     color: "#63656a",
-    modules: [],
-    comingSoon: true,
+    modules: [
+      { id: "salesforce-basics", required: true },
+    ],
   },
   {
     id: "microlearning",

@@ -84,6 +84,15 @@ const MODULE_METADATA = [
     time: "~35 min",
     status: "available",
   },
+  {
+    id: "salesforce-basics",
+    number: "Salesforce Basics",
+    title: "Salesforce Basics",
+    description:
+      "How the Salesforce data model is organized (objects, fields, records, relationships) and how to build reports from business questions.",
+    time: "~30 min",
+    status: "available",
+  },
 ];
 
 // ═══════════════════════════════════════════════════════

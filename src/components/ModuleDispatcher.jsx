@@ -6,6 +6,7 @@ import Module3 from "./Module3";
 import Module4 from "./Module4";
 import Module5 from "./Module5";
 import Module6 from "./Module6";
+import SalesforceBasicsModule from "./SalesforceBasicsModule";
 
 // ═══════════════════════════════════════════════════════
 //  ModuleDispatcher — /modules/:moduleId
@@ -26,6 +27,7 @@ const MODULE_COMPONENTS = {
   "module-4": Module4,
   "module-5": Module5,
   "module-6": Module6,
+  "salesforce-basics": SalesforceBasicsModule,
 };
 
 export default function ModuleDispatcher() {
