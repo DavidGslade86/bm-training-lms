@@ -26,7 +26,15 @@ const EX=[
   prefilled:[{field:"Status",op:"equals",val:"Claim Submission",obj:"Account"},{field:"Submitted Date",op:"less or equal",val:"1/1/2026",obj:"CMS Claim Submission"}],
   filters:[],
   sm:"All Accounts",smTarget:"My Accounts",grp:"Status",
-  groups:[{g:"Claim Submission",ct:2,rows:[{a:"Your Client A",b:"VCF0001234",c:"You",d:"CLAIM-4401",e:"11/15/2025"},{a:"Your Client B",b:"VCF0002891",c:"You",d:"CLAIM-4520",e:"10/22/2025"}]}],
+  groups:[{g:"Claim Submission",ct:7,rows:[
+    {a:"Acosta, Ramona",b:"VCF0001234",c:"You",d:"CLAIM-4401",e:"11/15/2025"},
+    {a:"Bianchi, Tomaso",b:"VCF0002891",c:"You",d:"CLAIM-4520",e:"10/22/2025"},
+    {a:"Delgado, Inés",b:"VCF0003102",c:"You",d:"CLAIM-4611",e:"12/03/2025"},
+    {a:"Fairchild, Henry",b:"VCF0003488",c:"You",d:"CLAIM-4702",e:"09/18/2025"},
+    {a:"McAlister, Patricia",b:"VCF0004025",c:"You",d:"CLAIM-4815",e:"11/30/2025"},
+    {a:"Okafor, Chidi",b:"VCF0004517",c:"You",d:"CLAIM-4903",e:"08/12/2025"},
+    {a:"Rodriguez, Fernando",b:"VCF0005008",c:"You",d:"CLAIM-5014",e:"12/19/2025"},
+  ]}],
   tryIt:"Start from your Exercise 2 report → click the Show Me line and change it from 'All Accounts' to 'My Accounts' → switch to the Outline tab → drag 'Status' into the Group Rows area → Save & Run."},
 ];
 
@@ -109,10 +117,13 @@ function CreateReport({ex,sel,onSel,onStart,hint}){
   const srt=RTS.find(r=>r.n===sel);
   const ok=sel===ex.rt;
   const canStart=ok&&fSeen;
-  // Which field the learner should zero in on when they open Fields
-  // — per exercise. Highlighted visually as a soft hint; not gated.
-  const keyField=ex.filters[0]?.field||ex.prefilled?.[0]?.field;
-  const keyObj=ex.filters[0]?.obj||ex.prefilled?.[0]?.obj;
+  // Which fields the learner should zero in on when they open Fields
+  // — per exercise. Every filter field is highlighted as a soft hint
+  // so multi-filter exercises (like Ex2's Status + Submitted Date)
+  // flag both, not just the first one. Not gated.
+  const keyFields=[...(ex.filters||[]),...(ex.prefilled||[])].map(f=>({field:f.field,obj:f.obj}));
+  const keyLabel=keyFields.map(k=>k.field).join(" and ");
+  const keyObjLabel=[...new Set(keyFields.map(k=>k.obj))].join(" / ");
   return <div style={{background:T.sw,borderRadius:8,border:`1px solid ${T.sbo}`,overflow:"hidden",boxShadow:"0 8px 40px rgba(0,0,0,0.15)"}}>
     <div style={{padding:"16px 20px",textAlign:"center",borderBottom:`1px solid ${T.sbo}`,fontFamily:T.s,fontSize:18,color:T.st,position:"relative"}}>Create Report<span style={{position:"absolute",right:20,top:16,fontSize:20,color:T.stm,cursor:"pointer"}}>×</span></div>
     <div style={{display:"flex",minHeight:320}}>
@@ -156,15 +167,26 @@ function CreateReport({ex,sel,onSel,onStart,hint}){
         {!sf?<div style={{fontFamily:T.s,fontSize:12}}><div style={{fontWeight:700,color:T.st,marginBottom:6}}>Objects Used in Report Type</div>{srt?.o.map(o=><div key={o} style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}><span style={{width:8,height:8,borderRadius:2,background:OBJ[o]?.c||"#888"}}/><span style={{color:T.sb}}>{o}</span></div>)}</div>
         :<div style={{fontFamily:T.s,fontSize:12}}>
           <div style={{border:`1px solid ${T.sbo}`,borderRadius:4,padding:"6px 10px",fontSize:12,color:T.stm,marginBottom:8}}>🔍 Quick Lookup</div>
-          {srt?.o.map(on=><div key={on} style={{marginBottom:8}}><div style={{fontSize:11,fontWeight:700,color:T.stm,marginBottom:4}}>{on} Fields</div>{(OBJ[on]?.f||[]).slice(0,5).map(f=>{
-            const isKey=ok&&f===keyField&&on===keyObj;
-            return <div key={f} style={{padding:"2px 4px",fontSize:12,color:isKey?T.sbd:T.st,background:isKey?"#fff6d1":"transparent",borderRadius:3,fontWeight:isKey?600:400,outline:isKey?`1px dashed ${T.accent}`:"none",margin:isKey?"2px 0":0}}><span style={{color:T.stm,marginRight:6}}>A</span>{f}{isKey&&<span style={{fontSize:10,color:T.tm,marginLeft:6,fontStyle:"italic"}}>← the field you need</span>}</div>;
-          })}<div style={{fontSize:11,color:T.stm,fontStyle:"italic"}}>+ more...</div></div>)}
+          {srt?.o.map(on=>{
+            // Show up to 5 fields by default, but always include any
+            // key field (highlighted) even if it'd otherwise fall off
+            // the top-5 slice — so the "← the field you need" hint is
+            // visible on screen, not truncated behind "+ more…".
+            const all=OBJ[on]?.f||[];
+            const keysOnObj=keyFields.filter(k=>k.obj===on).map(k=>k.field);
+            const top=all.slice(0,5);
+            const extra=keysOnObj.filter(k=>!top.includes(k)&&all.includes(k));
+            const shown=[...top,...extra];
+            return <div key={on} style={{marginBottom:8}}><div style={{fontSize:11,fontWeight:700,color:T.stm,marginBottom:4}}>{on} Fields</div>{shown.map(f=>{
+              const isKey=ok&&keysOnObj.includes(f);
+              return <div key={f} style={{padding:"2px 4px",fontSize:12,color:isKey?T.sbd:T.st,background:isKey?"#fff6d1":"transparent",borderRadius:3,fontWeight:isKey?600:400,outline:isKey?`1px dashed ${T.accent}`:"none",margin:isKey?"2px 0":0}}><span style={{color:T.stm,marginRight:6}}>A</span>{f}{isKey&&<span style={{fontSize:10,color:T.tm,marginLeft:6,fontStyle:"italic"}}>← the field you need</span>}</div>;
+            })}<div style={{fontSize:11,color:T.stm,fontStyle:"italic"}}>+ more...</div></div>;
+          })}
         </div>}
       </div>}
     </div>
     {sel&&!ok&&<div style={{padding:"0 20px 16px"}}><Callout icon="🤔">Think about which objects hold the data you need. {ex.filters.some(f=>f.obj!==ex.filters[0].obj)?"Your filters reference fields from different objects — look for a report type that includes both.":"All your data lives on one object — find its report type."}</Callout></div>}
-    {ok&&!fSeen&&<div style={{padding:"0 20px 16px"}}><Callout icon="☰"><strong>Right report type.</strong> Before starting, click the pulsing <strong>Fields</strong> tab to confirm that <strong>{keyField}</strong> really does live on <strong>{keyObj}</strong>. This is how you sanity-check any report type in the wild.</Callout></div>}
+    {ok&&!fSeen&&<div style={{padding:"0 20px 16px"}}><Callout icon="☰"><strong>Right report type.</strong> Before starting, click the pulsing <strong>Fields</strong> tab to confirm that <strong>{keyLabel}</strong> really {keyFields.length>1?"do":"does"} live on <strong>{keyObjLabel}</strong>. This is how you sanity-check any report type in the wild.</Callout></div>}
     {canStart&&<div style={{padding:"0 20px 16px"}}><Callout icon="✓"><strong>Fields confirmed.</strong> {ex.why} Now press <strong>Start Report</strong>.</Callout></div>}
   </div>;
 }
@@ -174,9 +196,12 @@ function Builder({ex,onRun}){
   const[tab,setTab]=useState("filters");
   const[fp,setFp]=useState(false);
   // Latch: becomes true the first time the learner opens the Fields
-  // ribbon. Every exercise requires one explicit "peek at the field
-  // catalogue" step before anything else in the builder unlocks.
-  const[fvSeen,setFvSeen]=useState(false);
+  // ribbon. Ex1 + Ex2 require this step (so the learner confirms the
+  // fields they'll filter on actually exist); Ex3 skips it — by that
+  // point they've opened the ribbon twice and are here to work on
+  // Show Me and grouping, not to add more field-based filters.
+  const skipFv=ex.filters.length===0;
+  const[fvSeen,setFvSeen]=useState(skipFv);
   useEffect(()=>{ if(fp&&!fvSeen) setFvSeen(true); },[fp,fvSeen]);
   const[added,setAdded]=useState([]);
   const[showPop,setShowPop]=useState(false);
@@ -233,8 +258,8 @@ function Builder({ex,onRun}){
 
     <div style={{display:"flex",position:"relative",minHeight:360}}>
       {/* Fields toggle */}
-      <Pulse active={!fvSeen} style={{borderRadius:0}}>
-        <div onClick={()=>setFp(!fp)} style={{width:24,background:!fvSeen?"#e8f4fd":"#f5f5f5",borderRight:`1px solid ${!fvSeen?T.sb:T.sbo}`,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",writingMode:"vertical-lr",fontFamily:T.s,fontSize:11,color:T.sb,fontWeight:700,letterSpacing:1,zIndex:2,animation:!fvSeen?"sfGlowBorder 2s infinite":"none",height:"100%",minHeight:360}}>Fields {fp?"◂":"▸"}</div>
+      <Pulse active={!fvSeen&&!skipFv} style={{borderRadius:0}}>
+        <div onClick={()=>setFp(!fp)} style={{width:24,background:!fvSeen&&!skipFv?"#e8f4fd":"#f5f5f5",borderRight:`1px solid ${!fvSeen&&!skipFv?T.sb:T.sbo}`,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",writingMode:"vertical-lr",fontFamily:T.s,fontSize:11,color:T.sb,fontWeight:700,letterSpacing:1,zIndex:2,animation:!fvSeen&&!skipFv?"sfGlowBorder 2s infinite":"none",height:"100%",minHeight:360}}>Fields {fp?"◂":"▸"}</div>
       </Pulse>
       {fp&&<div style={{position:"absolute",left:24,top:0,bottom:0,width:200,borderRight:`1px solid ${T.sbo}`,padding:12,overflowY:"auto",background:"#fafafa",zIndex:3,boxShadow:"4px 0 12px rgba(0,0,0,0.08)"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
@@ -477,7 +502,7 @@ function Builder({ex,onRun}){
         </div>
         <div style={{fontFamily:T.s,fontSize:12,color:T.stm,padding:"20px 10px",textAlign:"center"}}>
           {allDone ? "All set — click Save & Run to see results." :
-           !fvSeen ? "Open the Fields ribbon on the left to see what's available on this report type." :
+           !fvSeen&&!skipFv ? "Open the Fields ribbon on the left to see what's available on this report type." :
            !smOk ? `Change Show Me to ${ex.smTarget} to scope the report to your own accounts.` :
            !allFiltersDone ? `Add ${ex.filters.length-added.length} more filter${ex.filters.length-added.length>1?"s":""} to continue.` :
            "Now switch to the Outline tab to add grouping."}
@@ -485,7 +510,7 @@ function Builder({ex,onRun}){
       </div>
     </div>
     {/* Callouts */}
-    {!fvSeen&&<div style={{padding:"0 16px 12px"}}><Callout icon="☰"><strong>First, peek at the fields.</strong> Click the pulsing <strong>Fields</strong> ribbon on the left edge. Every field the report can show lives in there — confirming the ones you need are present is part of building any report.</Callout></div>}
+    {!fvSeen&&!skipFv&&<div style={{padding:"0 16px 12px"}}><Callout icon="☰"><strong>First, peek at the fields.</strong> Click the pulsing <strong>Fields</strong> ribbon on the left edge. Every field the report can show lives in there — confirming the ones you need are present is part of building any report.</Callout></div>}
     {fvSeen&&ex.smTarget&&!smOk&&!showSmPick&&<div style={{padding:"0 16px 12px"}}><Callout icon="🎯"><strong>Scope it to you.</strong> Click the <strong>Show Me</strong> line and switch from <em>{smPicked}</em> to <strong>{ex.smTarget}</strong>. That quietly filters the report to records where you're the Account Owner — no new filter needed.</Callout></div>}
     {fvSeen&&smOk&&ex.smTarget&&!allDone&&<div style={{padding:"0 16px 12px"}}><Callout icon="💡"><strong>Reporting more generally?</strong> After the CA I scope, most accounts are Type = Client — but pre-retainer accounts (kit not returned, retainer not signed) aren't Client-typed, so Type = Client will miss owned accounts in the CA I scope. If you want <strong>PI (VCF Victim)</strong> or <strong>Estate</strong> specifically, use <strong>Account Record Type</strong> on the Account object and pick the applicable group.</Callout></div>}
     {fvSeen&&smOk&&allFiltersDone&&!allDone&&<div style={{padding:"0 16px 12px"}}><Callout icon="📊">Filters are set! Now switch to the <strong>Outline</strong> tab and add <strong>grouping</strong> by clicking <strong>+ Add grouping</strong>.</Callout></div>}
@@ -498,15 +523,34 @@ function Builder({ex,onRun}){
 function Results({ex}){
   const grouped=!!ex.grp;
   if(grouped){
+    const totalRecords=ex.groups.reduce((n,g)=>n+g.ct,0);
     return <div style={{background:T.sw,borderRadius:8,border:`1px solid ${T.sbo}`,overflow:"hidden"}}>
-      <div style={{padding:"8px 16px",borderBottom:`1px solid ${T.sbo}`,background:"#fafafa",display:"flex",justifyContent:"space-between",fontFamily:T.s,fontSize:13}}><span style={{fontWeight:600}}>{ex.rt}</span><span style={{color:T.stm,fontSize:12}}>Summary Format</span></div>
-      {ex.groups.map((g,gi)=><div key={gi}>
-        <div style={{background:"#eef3f8",padding:"8px 14px",fontFamily:T.s,fontSize:13,fontWeight:700,color:T.sbd,borderBottom:`1px solid ${T.sbo}`,display:"flex",justifyContent:"space-between"}}><span>{ex.grp}: {g.g}</span><span style={{fontWeight:400,color:T.stm}}>{g.ct} records</span></div>
-        <table style={{width:"100%",borderCollapse:"collapse",fontFamily:T.s,fontSize:12}}>
-          {gi===0&&<thead><tr>{ex.cols.map(c=><th key={c} style={{textAlign:"left",padding:"6px 12px",fontSize:11,fontWeight:700,color:T.stm,borderBottom:`2px solid ${T.sbo}`,whiteSpace:"nowrap"}}>{c}</th>)}</tr></thead>}
-          <tbody>{g.rows.map((r,ri)=><tr key={ri} style={{background:ri%2===0?"#fff":"#fafcfe"}}>{ex.cols.map((c,ci)=><td key={c} style={{padding:"7px 12px",borderBottom:`1px solid ${T.sbol}`}}>{Object.values(r)[ci]}</td>)}</tr>)}</tbody>
-        </table>
-      </div>)}
+      <div style={{padding:"8px 16px",borderBottom:`1px solid ${T.sbo}`,background:"#fafafa",display:"flex",justifyContent:"space-between",fontFamily:T.s,fontSize:13}}><span style={{fontWeight:600}}>{ex.rt}</span><span style={{color:T.stm,fontSize:12}}>Summary Format · Total Records: {totalRecords}</span></div>
+      <table style={{width:"100%",borderCollapse:"collapse",fontFamily:T.s,fontSize:12}}>
+        <thead><tr style={{background:"#fafbfc"}}>{ex.cols.map(c=><th key={c} style={{textAlign:"left",padding:"8px 12px",fontSize:11,fontWeight:700,color:T.stm,borderBottom:`2px solid ${T.sbo}`,whiteSpace:"nowrap"}}>{c} ▾</th>)}</tr></thead>
+        <tbody>
+          {ex.groups.map((g,gi)=>{
+            const rows=[];
+            // Group header row — spans all columns, Salesforce-style
+            // chevron + "<Field>: <Value> (<count>)".
+            rows.push(<tr key={`gh${gi}`}><td colSpan={ex.cols.length} style={{background:"#eef3f8",padding:"8px 12px",fontSize:12,fontWeight:700,color:T.sbd,borderBottom:`1px solid ${T.sbo}`,borderTop:gi>0?`1px solid ${T.sbo}`:"none"}}>▾ {ex.grp}: {g.g} <span style={{color:T.stm,fontWeight:400,marginLeft:4}}>({g.ct})</span></td></tr>);
+            // Data rows, indented under the group.
+            g.rows.forEach((r,ri)=>rows.push(
+              <tr key={`r${gi}-${ri}`} style={{background:ri%2===0?"#fff":"#fafcfe"}}>
+                {ex.cols.map((c,ci)=><td key={c} style={{padding:"7px 12px",paddingLeft:ci===0?24:12,borderBottom:`1px solid ${T.sbol}`,color:ci===0?T.sb:T.st,fontWeight:ci===0?500:400}}>{Object.values(r)[ci]}</td>)}
+              </tr>
+            ));
+            // Subtotal row — Salesforce labels these "Subtotal" and
+            // right-aligns the count in the first column.
+            rows.push(<tr key={`st${gi}`}><td colSpan={ex.cols.length} style={{padding:"6px 12px",fontSize:11,fontStyle:"italic",color:T.stm,background:"#fafafa",borderBottom:`1px solid ${T.sbo}`,textAlign:"right"}}>Subtotal — {g.ct} record{g.ct===1?"":"s"}</td></tr>);
+            return rows;
+          })}
+          {/* Grand total — shown when there's more than one group, but
+              we render it always for consistency with how SF displays
+              grouped reports. */}
+          <tr><td colSpan={ex.cols.length} style={{padding:"9px 12px",fontSize:12,fontWeight:700,color:T.st,background:"#f3f4f6",borderTop:`2px solid ${T.sbo}`,textAlign:"right"}}>Grand Total — {totalRecords} record{totalRecords===1?"":"s"}</td></tr>
+        </tbody>
+      </table>
     </div>;
   }
   return <div style={{background:T.sw,borderRadius:8,border:`1px solid ${T.sbo}`,overflow:"hidden"}}>
@@ -599,7 +643,7 @@ function Flow({ex,onBack,onComplete,onNext,nextLabel}){
       })()}
       {logical===3&&<div>
         <Callout icon="👇">{ex.smTarget
-          ? <>First open the <strong>Fields</strong> ribbon to see what's available, then change <strong>Show Me</strong> to <strong>{ex.smTarget}</strong>, then switch to <strong>Outline</strong> and group by {ex.grp}. Pulsing elements show you what to click next.</>
+          ? <>Change <strong>Show Me</strong> to <strong>{ex.smTarget}</strong>, then switch to <strong>Outline</strong> and group by {ex.grp}. Pulsing elements show you what to click next.</>
           : ex.grp
           ? <>Open the <strong>Fields</strong> ribbon first, then add your filters, then switch to <strong>Outline</strong> to set up grouping. Pulsing elements show you what to click next.</>
           : <>Open the <strong>Fields</strong> ribbon first to confirm the fields you'll use. Then click the pulsing <strong>Add filter</strong> button and step through each selection. When all filters are set, <strong>Save & Run</strong> will light up.</>
