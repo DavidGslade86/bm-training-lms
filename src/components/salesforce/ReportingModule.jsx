@@ -22,12 +22,12 @@ const EX=[
   filters:[{field:"Status",op:"equals",val:"Claim Submission",obj:"Account"},{field:"Submitted Date",op:"less or equal",val:"1/1/2026",obj:"CMS Claim Submission"}],sm:"All Accounts",grp:null,
   rows:[{a:"John Doe",b:"VCF0001234",c:"Claim Submission",d:"CLAIM-4401",e:"11/15/2025"},{a:"Maria Santos",b:"VCF0002891",c:"Claim Submission",d:"CLAIM-4520",e:"10/22/2025"},{a:"James Lee",b:"VCF0003102",c:"Claim Submission",d:"CLAIM-4611",e:"12/03/2025"}],
   tryIt:"Open the Reports tab → New Report → search for 'CMS Claim' or browse Accounts & Contacts → select 'Accounts with CMS Claim Submissions' → Start Report → Change \"Show Me\" to \"All Accounts\" → Add Status filter = Claim Submission → Add Submitted Date filter ≤ 1/1/2026 → Save & Run."},
-  {id:3,title:"Refining by Record Type",q:"Find VCF Estate accounts with a Submitted Claim dated before January 1, grouped by Status.",why:"This builds on Exercise 2 by narrowing to a specific cohort. Account Record Type is how Salesforce distinguishes VCF Estate claims (filed on behalf of a deceased victim) from VCF Victim (living claimant) and VCF Courtesy accounts — it lives on the Account object, so no new object is needed.",rt:"Accounts with CMS Claim Submissions",cols:["Account Name","VCF #","Account Record Type","Claim No","Submitted Date"],
+  {id:3,title:"Refining with Show Me and Grouping",q:"Find your accounts with a Submitted Claim dated before January 1, grouped by Status.",why:"Exercise 2 returned every matching account in the firm — useful for firm-wide questions, but most of the time you just want your own accounts. Switching Show Me from All Accounts to My Accounts scopes the report to records where you are the Account Owner (no new filter needed). Grouping by Status then organizes the results.",rt:"Accounts with CMS Claim Submissions",cols:["Account Name","VCF #","Account Owner","Claim No","Submitted Date"],
   prefilled:[{field:"Status",op:"equals",val:"Claim Submission",obj:"Account"},{field:"Submitted Date",op:"less or equal",val:"1/1/2026",obj:"CMS Claim Submission"}],
-  filters:[{field:"Account Record Type",op:"equals",val:"VCF Estate",obj:"Account",picklist:["VCF Victim","VCF Courtesy","VCF Estate"]}],
-  sm:"All Accounts",grp:"Status",
-  groups:[{g:"Claim Submission",ct:5,rows:[{a:"Estate of John Doe",b:"VCF0001234",c:"VCF Estate",d:"CLAIM-4401",e:"11/15/2025"},{a:"Estate of Maria Santos",b:"VCF0002891",c:"VCF Estate",d:"CLAIM-4520",e:"10/22/2025"}]}],
-  tryIt:"Start from your Exercise 2 report → add an Account Record Type filter and set it to VCF Estate → switch to the Outline tab → drag 'Status' into the Group Rows area → Save & Run."},
+  filters:[],
+  sm:"All Accounts",smTarget:"My Accounts",grp:"Status",
+  groups:[{g:"Claim Submission",ct:2,rows:[{a:"Your Client A",b:"VCF0001234",c:"You",d:"CLAIM-4401",e:"11/15/2025"},{a:"Your Client B",b:"VCF0002891",c:"You",d:"CLAIM-4520",e:"10/22/2025"}]}],
+  tryIt:"Start from your Exercise 2 report → click the Show Me line and change it from 'All Accounts' to 'My Accounts' → switch to the Outline tab → drag 'Status' into the Group Rows area → Save & Run."},
 ];
 
 /* ═══ PULSE ANIMATION (CSS injected once) ═══ */
@@ -99,9 +99,20 @@ function ReportsTab({onNew}){
 function CreateReport({ex,sel,onSel,onStart,hint}){
   const[cat,setCat]=useState("All");
   const[sf,setSf]=useState(false);
+  // Latch: becomes true the first time the learner switches to the
+  // Fields tab. The Start Report button is gated on this so every
+  // exercise forces one explicit "confirm the fields you need exist
+  // on this report type's objects" step before proceeding.
+  const[fSeen,setFSeen]=useState(false);
+  useEffect(()=>{ if(sf&&!fSeen) setFSeen(true); },[sf,fSeen]);
   const vis=cat==="All"?RTS:RTS.filter(r=>{const c=CATS.find(x=>x.n===cat);return c?.t?.includes(r.n);});
   const srt=RTS.find(r=>r.n===sel);
   const ok=sel===ex.rt;
+  const canStart=ok&&fSeen;
+  // Which field the learner should zero in on when they open Fields
+  // — per exercise. Highlighted visually as a soft hint; not gated.
+  const keyField=ex.filters[0]?.field||ex.prefilled?.[0]?.field;
+  const keyObj=ex.filters[0]?.obj||ex.prefilled?.[0]?.obj;
   return <div style={{background:T.sw,borderRadius:8,border:`1px solid ${T.sbo}`,overflow:"hidden",boxShadow:"0 8px 40px rgba(0,0,0,0.15)"}}>
     <div style={{padding:"16px 20px",textAlign:"center",borderBottom:`1px solid ${T.sbo}`,fontFamily:T.s,fontSize:18,color:T.st,position:"relative"}}>Create Report<span style={{position:"absolute",right:20,top:16,fontSize:20,color:T.stm,cursor:"pointer"}}>×</span></div>
     <div style={{display:"flex",minHeight:320}}>
@@ -133,22 +144,28 @@ function CreateReport({ex,sel,onSel,onStart,hint}){
         <div style={{fontFamily:T.s,fontSize:14,fontWeight:700,color:T.st,marginBottom:12}}>Details</div>
         <div style={{fontFamily:T.s,fontSize:14,fontWeight:600,color:T.st,marginBottom:4}}>{sel}</div>
         <div style={{fontFamily:T.s,fontSize:11,color:T.stm,marginBottom:12}}>{srt?.cat} Report Type</div>
-        <Pulse active={ok} style={{borderRadius:4,display:"inline-block"}}>
-          <button onClick={onStart} disabled={!ok} style={{background:ok?T.sb:"#b0b0b0",color:"#fff",border:"none",padding:"8px 20px",borderRadius:4,fontFamily:T.s,fontSize:13,fontWeight:600,cursor:ok?"pointer":"default",marginBottom:14}}>Start Report</button>
+        <Pulse active={canStart} style={{borderRadius:4,display:"inline-block"}}>
+          <button onClick={canStart?onStart:undefined} disabled={!canStart} style={{background:canStart?T.sb:"#b0b0b0",color:"#fff",border:"none",padding:"8px 20px",borderRadius:4,fontFamily:T.s,fontSize:13,fontWeight:600,cursor:canStart?"pointer":"default",marginBottom:14}}>Start Report</button>
         </Pulse>
         <div style={{display:"flex",borderBottom:`2px solid ${T.sbo}`,marginBottom:10}}>
           <button onClick={()=>setSf(false)} style={{background:"none",border:"none",padding:"6px 12px",fontFamily:T.s,fontSize:12,fontWeight:600,cursor:"pointer",color:!sf?T.sb:T.stm,borderBottom:!sf?`2px solid ${T.sb}`:"2px solid transparent",marginBottom:-2}}>ⓘ Details</button>
-          <button onClick={()=>setSf(true)} style={{background:"none",border:"none",padding:"6px 12px",fontFamily:T.s,fontSize:12,fontWeight:600,cursor:"pointer",color:sf?T.sb:T.stm,borderBottom:sf?`2px solid ${T.sb}`:"2px solid transparent",marginBottom:-2}}>☰ Fields</button>
+          <Pulse active={ok&&!fSeen} style={{borderRadius:4,display:"inline-block"}}>
+            <button onClick={()=>setSf(true)} style={{background:ok&&!fSeen?"#f8fbff":"none",border:"none",padding:"6px 12px",fontFamily:T.s,fontSize:12,fontWeight:600,cursor:"pointer",color:sf?T.sb:ok&&!fSeen?T.sb:T.stm,borderBottom:sf?`2px solid ${T.sb}`:"2px solid transparent",marginBottom:-2}}>☰ Fields</button>
+          </Pulse>
         </div>
         {!sf?<div style={{fontFamily:T.s,fontSize:12}}><div style={{fontWeight:700,color:T.st,marginBottom:6}}>Objects Used in Report Type</div>{srt?.o.map(o=><div key={o} style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}><span style={{width:8,height:8,borderRadius:2,background:OBJ[o]?.c||"#888"}}/><span style={{color:T.sb}}>{o}</span></div>)}</div>
         :<div style={{fontFamily:T.s,fontSize:12}}>
           <div style={{border:`1px solid ${T.sbo}`,borderRadius:4,padding:"6px 10px",fontSize:12,color:T.stm,marginBottom:8}}>🔍 Quick Lookup</div>
-          {srt?.o.map(on=><div key={on} style={{marginBottom:8}}><div style={{fontSize:11,fontWeight:700,color:T.stm,marginBottom:4}}>{on} Fields</div>{(OBJ[on]?.f||[]).slice(0,5).map(f=><div key={f} style={{padding:"2px 0",fontSize:12,color:T.st}}><span style={{color:T.stm,marginRight:6}}>A</span>{f}</div>)}<div style={{fontSize:11,color:T.stm,fontStyle:"italic"}}>+ more...</div></div>)}
+          {srt?.o.map(on=><div key={on} style={{marginBottom:8}}><div style={{fontSize:11,fontWeight:700,color:T.stm,marginBottom:4}}>{on} Fields</div>{(OBJ[on]?.f||[]).slice(0,5).map(f=>{
+            const isKey=ok&&f===keyField&&on===keyObj;
+            return <div key={f} style={{padding:"2px 4px",fontSize:12,color:isKey?T.sbd:T.st,background:isKey?"#fff6d1":"transparent",borderRadius:3,fontWeight:isKey?600:400,outline:isKey?`1px dashed ${T.accent}`:"none",margin:isKey?"2px 0":0}}><span style={{color:T.stm,marginRight:6}}>A</span>{f}{isKey&&<span style={{fontSize:10,color:T.tm,marginLeft:6,fontStyle:"italic"}}>← the field you need</span>}</div>;
+          })}<div style={{fontSize:11,color:T.stm,fontStyle:"italic"}}>+ more...</div></div>)}
         </div>}
       </div>}
     </div>
     {sel&&!ok&&<div style={{padding:"0 20px 16px"}}><Callout icon="🤔">Think about which objects hold the data you need. {ex.filters.some(f=>f.obj!==ex.filters[0].obj)?"Your filters reference fields from different objects — look for a report type that includes both.":"All your data lives on one object — find its report type."}</Callout></div>}
-    {ok&&<div style={{padding:"0 20px 16px"}}><Callout icon="✓"><strong>Correct!</strong> {ex.why} Check the <strong>Fields</strong> tab to confirm, then press <strong>Start Report</strong>.</Callout></div>}
+    {ok&&!fSeen&&<div style={{padding:"0 20px 16px"}}><Callout icon="☰"><strong>Right report type.</strong> Before starting, click the pulsing <strong>Fields</strong> tab to confirm that <strong>{keyField}</strong> really does live on <strong>{keyObj}</strong>. This is how you sanity-check any report type in the wild.</Callout></div>}
+    {canStart&&<div style={{padding:"0 20px 16px"}}><Callout icon="✓"><strong>Fields confirmed.</strong> {ex.why} Now press <strong>Start Report</strong>.</Callout></div>}
   </div>;
 }
 
@@ -156,6 +173,11 @@ function CreateReport({ex,sel,onSel,onStart,hint}){
 function Builder({ex,onRun}){
   const[tab,setTab]=useState("filters");
   const[fp,setFp]=useState(false);
+  // Latch: becomes true the first time the learner opens the Fields
+  // ribbon. Every exercise requires one explicit "peek at the field
+  // catalogue" step before anything else in the builder unlocks.
+  const[fvSeen,setFvSeen]=useState(false);
+  useEffect(()=>{ if(fp&&!fvSeen) setFvSeen(true); },[fp,fvSeen]);
   const[added,setAdded]=useState([]);
   const[showPop,setShowPop]=useState(false);
   const[popStep,setPopStep]=useState(0);
@@ -163,10 +185,17 @@ function Builder({ex,onRun}){
   const[picklistSel,setPicklistSel]=useState(null);
   const[grpAdded,setGrpAdded]=useState(false);
   const[showGrpPick,setShowGrpPick]=useState(false);
+  // Show Me picker — only interactive when the exercise defines a
+  // target (Ex3: All Accounts → My Accounts). Otherwise it stays a
+  // static read-only line matching ex.sm.
+  const[smPicked,setSmPicked]=useState(ex.sm);
+  const[showSmPick,setShowSmPick]=useState(false);
+  const smOk=!ex.smTarget||smPicked===ex.smTarget;
+  const smOptions=["All Accounts","My Accounts","Recently Viewed Accounts"];
   const multi=ex.rt.includes("with");
   const prefilled=ex.prefilled||[];
   const allFiltersDone=added.length===ex.filters.length;
-  const allDone=allFiltersDone&&(!ex.grp||grpAdded);
+  const allDone=fvSeen&&allFiltersDone&&smOk&&(!ex.grp||grpAdded);
   const nextFilter=ex.filters[added.length];
   const grpOptions=["Status","Sub-Status","Type","Account Record Type","Account Owner"];
 
@@ -204,7 +233,9 @@ function Builder({ex,onRun}){
 
     <div style={{display:"flex",position:"relative",minHeight:360}}>
       {/* Fields toggle */}
-      <div onClick={()=>setFp(!fp)} style={{width:24,background:"#f5f5f5",borderRight:`1px solid ${T.sbo}`,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",writingMode:"vertical-lr",fontFamily:T.s,fontSize:11,color:T.sb,fontWeight:600,letterSpacing:1,zIndex:2}}>Fields {fp?"◂":"▸"}</div>
+      <Pulse active={!fvSeen} style={{borderRadius:0}}>
+        <div onClick={()=>setFp(!fp)} style={{width:24,background:!fvSeen?"#e8f4fd":"#f5f5f5",borderRight:`1px solid ${!fvSeen?T.sb:T.sbo}`,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",writingMode:"vertical-lr",fontFamily:T.s,fontSize:11,color:T.sb,fontWeight:700,letterSpacing:1,zIndex:2,animation:!fvSeen?"sfGlowBorder 2s infinite":"none",height:"100%",minHeight:360}}>Fields {fp?"◂":"▸"}</div>
+      </Pulse>
       {fp&&<div style={{position:"absolute",left:24,top:0,bottom:0,width:200,borderRight:`1px solid ${T.sbo}`,padding:12,overflowY:"auto",background:"#fafafa",zIndex:3,boxShadow:"4px 0 12px rgba(0,0,0,0.08)"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
           <span style={{fontFamily:T.s,fontSize:12,fontWeight:700,color:T.st}}>Fields</span>
@@ -221,7 +252,7 @@ function Builder({ex,onRun}){
       <div style={{width:230,borderRight:`1px solid ${T.sbo}`,flexShrink:0}}>
         <div style={{display:"flex",borderBottom:`1px solid ${T.sbo}`}}>
           {["outline","filters"].map(t=>{
-            const needsGrp=ex.grp&&allFiltersDone&&!grpAdded&&t==="outline";
+            const needsGrp=ex.grp&&allFiltersDone&&smOk&&!grpAdded&&t==="outline";
             return <button key={t} onClick={()=>setTab(t)} style={{
               flex:1,padding:"10px 8px",background:"none",border:"none",fontFamily:T.s,fontSize:12,fontWeight:600,cursor:"pointer",
               color:tab===t?T.st:T.stm,borderBottom:tab===t?`2px solid ${T.sb}`:"2px solid transparent",
@@ -238,17 +269,19 @@ function Builder({ex,onRun}){
         <div style={{padding:12}}>
           {tab==="filters"&&<>
             <div style={{fontFamily:T.s,fontSize:12,fontWeight:700,color:T.st,marginBottom:8}}>Filters</div>
-            {/* Add filter button */}
-            <Pulse active={!allFiltersDone&&!showPop} style={{borderRadius:4,marginBottom:10}}>
-              <div onClick={startAddFilter} style={{
-                border:`2px solid ${!allFiltersDone&&!showPop?T.sb:T.sbo}`,borderRadius:4,padding:"8px 10px",
-                fontFamily:T.s,fontSize:12,color:!allFiltersDone?T.sb:T.stm,
-                cursor:!allFiltersDone?"pointer":"default",fontWeight:!allFiltersDone?600:400,
-                background:!allFiltersDone?"#f8fbff":"#fff",
+            {/* Add filter button — only offered when there are filters
+                to add. Ex3 has ex.filters.length===0 so this block is
+                skipped entirely. */}
+            {ex.filters.length>0&&<Pulse active={fvSeen&&!allFiltersDone&&!showPop} style={{borderRadius:4,marginBottom:10}}>
+              <div onClick={fvSeen?startAddFilter:undefined} style={{
+                border:`2px solid ${fvSeen&&!allFiltersDone&&!showPop?T.sb:T.sbo}`,borderRadius:4,padding:"8px 10px",
+                fontFamily:T.s,fontSize:12,color:fvSeen&&!allFiltersDone?T.sb:T.stm,
+                cursor:fvSeen&&!allFiltersDone?"pointer":"default",fontWeight:fvSeen&&!allFiltersDone?600:400,
+                background:fvSeen&&!allFiltersDone?"#f8fbff":"#fff",opacity:fvSeen?1:0.55,
               }}>
                 {!allFiltersDone ? `+ Add filter (${ex.filters.length - added.length} remaining)` : "All filters added ✓"}
               </div>
-            </Pulse>
+            </Pulse>}
 
             {/* Filter popover */}
             {showPop && nextFilter && <div style={{
@@ -320,11 +353,51 @@ function Builder({ex,onRun}){
               )}
             </div>}
 
-            {/* Show Me */}
-            <div style={{border:`1px solid ${T.sbo}`,borderRadius:4,padding:"8px 10px",marginBottom:6,fontFamily:T.s}}>
-              <div style={{fontSize:10,color:T.stm}}>Show Me</div>
-              <div style={{fontSize:13,color:T.sb,fontWeight:500}}>{ex.sm}</div>
-            </div>
+            {/* Show Me — interactive when ex.smTarget is set (Ex3) so
+                the learner can switch scope from All to My Accounts.
+                Otherwise stays a read-only display of ex.sm. */}
+            {ex.smTarget?(
+              smOk?(
+                <div style={{border:`1px solid ${T.sg}`,borderRadius:4,padding:"8px 10px",marginBottom:6,fontFamily:T.s,background:"#f0f8f0"}}>
+                  <div style={{fontSize:10,color:T.stm}}>Show Me</div>
+                  <div style={{fontSize:13,color:T.sbd,fontWeight:600}}>{smPicked} ✓</div>
+                </div>
+              ):showSmPick?(
+                <div style={{border:`2px solid ${T.sb}`,borderRadius:6,overflow:"hidden",background:"#f8fbff",marginBottom:6}}>
+                  <div style={{padding:"6px 10px",fontFamily:T.s,fontSize:10,color:T.stm,borderBottom:`1px solid ${T.sbol}`,fontWeight:600}}>SHOW ME</div>
+                  {smOptions.map(opt=>(
+                    <div key={opt} onClick={opt===ex.smTarget?()=>{setSmPicked(opt);setShowSmPick(false);}:undefined} style={{
+                      padding:"8px 12px",fontFamily:T.s,fontSize:12,
+                      cursor:opt===ex.smTarget?"pointer":"default",
+                      borderBottom:`1px solid ${T.sbol}`,
+                      color:opt===ex.smTarget?T.sb:T.st,
+                      fontWeight:opt===ex.smTarget?600:400,
+                      background:opt===ex.smTarget?"#e8f4fd":"transparent",
+                      display:"flex",justifyContent:"space-between",alignItems:"center",
+                    }}>
+                      <span>{opt}</span>
+                      {opt===ex.smTarget&&<Pulse active style={{borderRadius:"50%",width:8,height:8,display:"inline-block"}}><span style={{display:"block",width:8,height:8,borderRadius:"50%",background:T.sb}}/></Pulse>}
+                    </div>
+                  ))}
+                </div>
+              ):(
+                <Pulse active={fvSeen} style={{borderRadius:4,marginBottom:6,display:"block"}}>
+                  <div onClick={fvSeen?()=>setShowSmPick(true):undefined} style={{
+                    border:`2px solid ${fvSeen?T.sb:T.sbo}`,borderRadius:4,padding:"8px 10px",
+                    fontFamily:T.s,cursor:fvSeen?"pointer":"default",
+                    background:fvSeen?"#f8fbff":"#fff",opacity:fvSeen?1:0.55,
+                  }}>
+                    <div style={{fontSize:10,color:T.stm}}>Show Me</div>
+                    <div style={{fontSize:13,color:fvSeen?T.sb:T.stm,fontWeight:600}}>{smPicked} ▾</div>
+                  </div>
+                </Pulse>
+              )
+            ):(
+              <div style={{border:`1px solid ${T.sbo}`,borderRadius:4,padding:"8px 10px",marginBottom:6,fontFamily:T.s}}>
+                <div style={{fontSize:10,color:T.stm}}>Show Me</div>
+                <div style={{fontSize:13,color:T.sb,fontWeight:500}}>{ex.sm}</div>
+              </div>
+            )}
             <div style={{border:`1px solid ${T.sbo}`,borderRadius:4,padding:"8px 10px",marginBottom:10,fontFamily:T.s}}>
               <div style={{fontSize:10,color:T.stm}}>Last Activity</div>
               <div style={{fontSize:13,color:T.sb,fontWeight:500}}>All Time</div>
@@ -380,12 +453,12 @@ function Builder({ex,onRun}){
                   ))}
                 </div>
               ) : (
-                <Pulse active={allFiltersDone} style={{borderRadius:4}}>
-                  <div onClick={()=>setShowGrpPick(true)} style={{
-                    border:`2px solid ${allFiltersDone?T.sb:T.sbo}`,borderRadius:4,padding:"8px 10px",
-                    fontFamily:T.s,fontSize:12,color:allFiltersDone?T.sb:T.stm,
-                    cursor:allFiltersDone?"pointer":"default",fontWeight:allFiltersDone?600:400,
-                    background:allFiltersDone?"#f8fbff":"#fff",
+                <Pulse active={allFiltersDone&&smOk} style={{borderRadius:4}}>
+                  <div onClick={allFiltersDone&&smOk?()=>setShowGrpPick(true):undefined} style={{
+                    border:`2px solid ${allFiltersDone&&smOk?T.sb:T.sbo}`,borderRadius:4,padding:"8px 10px",
+                    fontFamily:T.s,fontSize:12,color:allFiltersDone&&smOk?T.sb:T.stm,
+                    cursor:allFiltersDone&&smOk?"pointer":"default",fontWeight:allFiltersDone&&smOk?600:400,
+                    background:allFiltersDone&&smOk?"#f8fbff":"#fff",
                   }}>
                     + Add grouping
                   </div>
@@ -404,15 +477,20 @@ function Builder({ex,onRun}){
         </div>
         <div style={{fontFamily:T.s,fontSize:12,color:T.stm,padding:"20px 10px",textAlign:"center"}}>
           {allDone ? "All set — click Save & Run to see results." :
+           !fvSeen ? "Open the Fields ribbon on the left to see what's available on this report type." :
+           !smOk ? `Change Show Me to ${ex.smTarget} to scope the report to your own accounts.` :
            !allFiltersDone ? `Add ${ex.filters.length-added.length} more filter${ex.filters.length-added.length>1?"s":""} to continue.` :
-           "Filters done! Now switch to the Outline tab to add grouping."}
+           "Now switch to the Outline tab to add grouping."}
         </div>
       </div>
     </div>
     {/* Callouts */}
-    {allDone&&<div style={{padding:"0 16px 12px"}}><Callout icon="✓">All filters and grouping applied! Click <strong>Save & Run</strong> to see your results.</Callout></div>}
-    {allFiltersDone&&!allDone&&<div style={{padding:"0 16px 12px"}}><Callout icon="📊">Filters are set! Now switch to the <strong>Outline</strong> tab and add <strong>grouping</strong> by clicking <strong>+ Add grouping</strong>.</Callout></div>}
-    {!allFiltersDone&&!showPop&&<div style={{padding:"0 16px 12px"}}><Callout icon="👆">Click <strong>Add filter</strong> to add your search criteria. {prefilled.length>0&&added.length===0?"Your Exercise 2 filters are already applied — add the new ones.":""}{added.length>0?`${added.length} down, ${ex.filters.length-added.length} to go.`:""}</Callout></div>}
+    {!fvSeen&&<div style={{padding:"0 16px 12px"}}><Callout icon="☰"><strong>First, peek at the fields.</strong> Click the pulsing <strong>Fields</strong> ribbon on the left edge. Every field the report can show lives in there — confirming the ones you need are present is part of building any report.</Callout></div>}
+    {fvSeen&&ex.smTarget&&!smOk&&!showSmPick&&<div style={{padding:"0 16px 12px"}}><Callout icon="🎯"><strong>Scope it to you.</strong> Click the <strong>Show Me</strong> line and switch from <em>{smPicked}</em> to <strong>{ex.smTarget}</strong>. That quietly filters the report to records where you're the Account Owner — no new filter needed.</Callout></div>}
+    {fvSeen&&smOk&&ex.smTarget&&!allDone&&<div style={{padding:"0 16px 12px"}}><Callout icon="💡"><strong>Reporting more generally?</strong> After the CA I scope, most accounts are Type = Client — but pre-retainer accounts (kit not returned, retainer not signed) aren't Client-typed, so Type = Client will miss owned accounts in the CA I scope. If you want <strong>PI (VCF Victim)</strong> or <strong>Estate</strong> specifically, use <strong>Account Record Type</strong> on the Account object and pick the applicable group.</Callout></div>}
+    {fvSeen&&smOk&&allFiltersDone&&!allDone&&<div style={{padding:"0 16px 12px"}}><Callout icon="📊">Filters are set! Now switch to the <strong>Outline</strong> tab and add <strong>grouping</strong> by clicking <strong>+ Add grouping</strong>.</Callout></div>}
+    {fvSeen&&!ex.smTarget&&!allFiltersDone&&!showPop&&<div style={{padding:"0 16px 12px"}}><Callout icon="👆">Click <strong>Add filter</strong> to add your search criteria. {prefilled.length>0&&added.length===0?"Your Exercise 2 filters are already applied — add the new ones.":""}{added.length>0?`${added.length} down, ${ex.filters.length-added.length} to go.`:""}</Callout></div>}
+    {allDone&&<div style={{padding:"0 16px 12px"}}><Callout icon="✓">All set! Click <strong>Save & Run</strong> to see your results.</Callout></div>}
   </div>;
 }
 
@@ -493,7 +571,8 @@ function Flow({ex,onBack,onComplete,onNext,nextLabel}){
         </div>
         {ex.filters.some(f=>f.obj!==ex.filters[0].obj)&&<Callout icon="🔗">Notice the fields live on <strong>different objects</strong>. We'll need a combined report type.</Callout>}
         {ex.filters.every(f=>f.obj===ex.filters[0].obj)&&!ex.grp&&!ex.prefilled&&<Callout icon="📦">All the fields live on <strong>one object</strong>. A single-object report type will do.</Callout>}
-        {ex.prefilled&&<Callout icon="🔄">This builds on Exercise 2 — your previous filters are already applied. You'll add an <strong>Account Record Type</strong> filter to narrow the results to the VCF Estate cohort, then add <strong>grouping</strong> by {ex.grp}.</Callout>}
+        {ex.prefilled&&<Callout icon="🔄">This builds on Exercise 2 — your previous filters are already applied. Instead of adding another filter, you'll change <strong>Show Me</strong> to <strong>My Accounts</strong> (so the report only shows the records <em>you</em> own), then add <strong>grouping</strong> by {ex.grp}.</Callout>}
+        {ex.prefilled&&<Callout icon="💡"><strong>Account-ownership tip.</strong> If you own a set of accounts, you usually want to report on just your own — that's what Show Me = My Accounts does. It quietly filters by Account Owner = you, which is almost always what you meant.</Callout>}
         {ex.grp&&!ex.prefilled&&<Callout icon="📊">This builds on Exercise 2 — same data, but adding <strong>grouping</strong> by {ex.grp}.</Callout>}
       </div>}
       {logical===1&&<div>
@@ -519,9 +598,11 @@ function Flow({ex,onBack,onComplete,onNext,nextLabel}){
         </div>;
       })()}
       {logical===3&&<div>
-        <Callout icon="👇">{ex.grp
-          ? <>Add your new filters, then switch to <strong>Outline</strong> to set up grouping. Pulsing elements show you what to click next.</>
-          : <>Click the pulsing <strong>Add filter</strong> button, then step through each selection. When all filters are set, <strong>Save & Run</strong> will light up.</>
+        <Callout icon="👇">{ex.smTarget
+          ? <>First open the <strong>Fields</strong> ribbon to see what's available, then change <strong>Show Me</strong> to <strong>{ex.smTarget}</strong>, then switch to <strong>Outline</strong> and group by {ex.grp}. Pulsing elements show you what to click next.</>
+          : ex.grp
+          ? <>Open the <strong>Fields</strong> ribbon first, then add your filters, then switch to <strong>Outline</strong> to set up grouping. Pulsing elements show you what to click next.</>
+          : <>Open the <strong>Fields</strong> ribbon first to confirm the fields you'll use. Then click the pulsing <strong>Add filter</strong> button and step through each selection. When all filters are set, <strong>Save & Run</strong> will light up.</>
         }</Callout>
         <Builder ex={ex} onRun={()=>setS(toDisplay(4))}/>
       </div>}
@@ -529,6 +610,7 @@ function Flow({ex,onBack,onComplete,onNext,nextLabel}){
         <Callout icon="✓">Here are your results!</Callout>
         <Results ex={ex}/>
         {ex.grp&&<Callout icon="📊">Results organized by <strong>{ex.grp}</strong> with counts — that's the power of Summary reports.</Callout>}
+        {ex.prefilled?.some(f=>f.field?.toLowerCase().includes("date"))&&<Callout icon="📅"><strong>Watch your date intervals.</strong> Dates in Salesforce include weekends. If a "submitted within X days" window covers a Saturday and Sunday, response times can look worse than they actually are — you're measuring a shorter effective working window. Keep that in mind before drawing conclusions from a date-based report.</Callout>}
       </div>}
       {logical===5&&<div style={{background:T.card,borderRadius:14,border:`1px solid ${T.cb}`,padding:20}}>
         <div style={{fontFamily:T.d,fontSize:20,fontWeight:700,marginBottom:12}}>Your turn.</div>

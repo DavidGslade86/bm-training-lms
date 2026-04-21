@@ -7,7 +7,7 @@ import { useUser } from "../context/UserContext";
 import { useSession } from "../context/SessionContext";
 import { KEYS, serializeState, deserializeState } from "../hooks/useLocalStorage";
 import ThemedContainers from "./salesforce/ThemedContainers";
-import { EX, Flow, InjectCSS, OBJ } from "./salesforce/ReportingModule";
+import { EX, Flow, InjectCSS } from "./salesforce/ReportingModule";
 
 // ═══════════════════════════════════════════════════════
 //  SalesforceBasicsModule — tech-stack journey module that
@@ -15,25 +15,22 @@ import { EX, Flow, InjectCSS, OBJ } from "./salesforce/ReportingModule";
 //  components in a sidebar-driven progression matching the
 //  rest of the LMS:
 //
-//    1. Data Model        — ThemedContainers walkthrough (Part 1)
-//    2. Field Explorer    — how to preview available fields
-//                           inside the Create Report picker and
-//                           the Builder's Fields panel
-//    3. Exercise 1        — Single Object Report
-//    4. Exercise 2        — Cross-Object Report
-//    5. Exercise 3        — Refining by Record Type
-//    6. Reporting Tips    — Show Me nuance, when Type=Client
-//                           actually applies, when Record Type
-//                           filters matter, and when to clone an
-//                           existing report instead of starting
-//                           from scratch
-//    7. Complete          — completion summary + submit
+//    1. Data Model  — ThemedContainers walkthrough (Part 1)
+//    2. Exercise 1  — Single Object Report
+//    3. Exercise 2  — Cross-Object Report
+//    4. Exercise 3  — Refining with Show Me and Grouping
+//    5. Complete    — completion summary + submit
 //
 //  Each sidebar entry unlocks the next when the learner fires
 //  the child component's onComplete callback. Exercises also
 //  surface an inline "Next Exercise →" button at the Try It
 //  stage for faster progression; the sidebar stays clickable
 //  once a section is unlocked so learners can jump around.
+//
+//  Field-tool and reporting-tip content is woven INTO the
+//  Reporting Flow itself (see ReportingModule.jsx) rather than
+//  living in separate sidebar sections — that keeps learners
+//  in-context with the UI they're learning to use.
 //
 //  The child SF components are kept intact in src/components/
 //  salesforce/ so they can be refreshed from the spec without
@@ -57,12 +54,10 @@ const SECTIONS = [
     title: "Objects: Containers for Data",
     subtitle: "Part 1 — how Salesforce organizes data",
   },
-  { id: "field-tools",     nav: "Field Explorer",  kind: "field-tools", title: "Exploring Available Fields" },
-  { id: "ex-1",            nav: "Exercise 1",      kind: "exercise", exerciseId: 1, title: "Single Object Report" },
-  { id: "ex-2",            nav: "Exercise 2",      kind: "exercise", exerciseId: 2, title: "Cross-Object Report" },
-  { id: "ex-3",            nav: "Exercise 3",      kind: "exercise", exerciseId: 3, title: "Refining by Record Type" },
-  { id: "reporting-tips",  nav: "Reporting Tips",  kind: "tips",     title: "Reporting Tips & Nuance" },
-  { id: "complete",        nav: "Complete",        kind: "completion", title: "Module Complete" },
+  { id: "ex-1",    nav: "Exercise 1", kind: "exercise", exerciseId: 1, title: "Single Object Report" },
+  { id: "ex-2",    nav: "Exercise 2", kind: "exercise", exerciseId: 2, title: "Cross-Object Report" },
+  { id: "ex-3",    nav: "Exercise 3", kind: "exercise", exerciseId: 3, title: "Refining with Show Me and Grouping" },
+  { id: "complete", nav: "Complete",  kind: "completion", title: "Module Complete" },
 ];
 
 // Stable lookup for sections the rest of the file has to reason about.
@@ -377,33 +372,13 @@ export default function SalesforceBasicsModule() {
                     nextLabel={
                       section.exerciseId === 1 ? "Continue to Exercise 2 →" :
                       section.exerciseId === 2 ? "Continue to Exercise 3 →" :
-                      "Continue to Reporting Tips →"
+                      "Complete Module →"
                     }
                   />
                 </div>
               </div>
             );
           })()}
-
-          {section.kind === "field-tools" && (
-            <FieldToolsSection
-              onComplete={() => completeSection(s.cur)}
-              onNext={() => {
-                completeSection(s.cur);
-                goTo(s.cur + 1);
-              }}
-            />
-          )}
-
-          {section.kind === "tips" && (
-            <ReportingTipsSection
-              onComplete={() => completeSection(s.cur)}
-              onNext={() => {
-                completeSection(s.cur);
-                goTo(DONE_IDX);
-              }}
-            />
-          )}
 
           {section.kind === "completion" && (
             <CompletionPanel
@@ -512,10 +487,8 @@ function CompletionPanel({ reviewMode, canSubmit, submitState, submittedAt, onSu
           <li>• How Salesforce objects, fields, and records fit together</li>
           <li>• Previewing available fields in the Create Report picker and the Builder</li>
           <li>• Picking a report type: single-object vs. combined report types</li>
-          <li>• Adding filters, refining by Record Type, and grouping with Summary reports</li>
-          <li>• When to use Show Me = "My Accounts" vs. "All Accounts"</li>
-          <li>• When Type = Client and Account Record Type filters actually apply</li>
-          <li>• Cloning an existing report as a faster starting point</li>
+          <li>• Adding filters, scoping with Show Me, and grouping with Summary reports</li>
+          <li>• When to use Show Me = "My Accounts" and when account type / record type matter</li>
         </ul>
       </div>
 
@@ -573,385 +546,6 @@ function CompletionPanel({ reviewMode, canSubmit, submitState, submittedAt, onSu
           </button>
         </div>
       )}
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════
-//  Field Explorer section
-// ═══════════════════════════════════════════════════════
-// Two interactive panels that mirror where the learner would
-// encounter the Fields tool inside Salesforce:
-//
-//   1. The Fields tab of the Details panel inside the Create
-//      Report picker — used BEFORE a report type is selected
-//      to sanity-check that the fields you'll need actually
-//      exist on those objects.
-//   2. The expandable Fields panel inside the Report Builder —
-//      used DURING building to find a field you haven't added
-//      yet or to confirm field names before filtering.
-//
-// Each field row is hoverable; the tooltip at the top of the
-// section updates to explain which object the field lives on
-// and why a learner might reach for it. The mock visual style
-// mirrors the real Salesforce chrome so learners recognize it
-// when they see the actual UI.
-// ═══════════════════════════════════════════════════════
-
-// Field-level annotations. Only the handful of fields that
-// actually come up across the three exercises are noted in
-// plain English; any field without an entry falls back to the
-// generic "lives on [Object]" tooltip.
-const FIELD_NOTES = {
-  "Lead.Employer":                            "Text field — where a lead worked. Drives Exercise 1's FDNY filter.",
-  "Lead.Last Name":                           "Used in almost every Lead report as an output column.",
-  "Account.Account Name":                     "Primary display name for the account — shown in nearly every Account-based report.",
-  "Account.VCF #":                            "The VCF claim identifier — useful as an output column for claim-lifecycle reports.",
-  "Account.Status":                           "Picklist — where the account sits in the lifecycle. Used in Exercises 2 and 3 to find 'Claim Submission'.",
-  "Account.Type":                             "Picklist — 'Client' only applies once the account has signed a retainer. Not a universal filter.",
-  "Account.Account Record Type":              "Picklist — the VCF cohort: VCF Victim, VCF Estate, or VCF Courtesy. Used in Exercise 3 to scope to Estate accounts.",
-  "Account.Account Owner":                    "The Salesforce user who owns this account. This is what the Show Me = My Accounts shortcut filters by.",
-  "Account.Primary Contact":                  "Lookup to the main Contact for the account.",
-  "Account.Last Modified Date":               "Useful for 'changed since' queries.",
-  "CMS Claim Submission.Submitted Date":      "Date — when the claim was submitted to the VCF. Used in Exercises 2 and 3 for date filtering.",
-  "CMS Claim Submission.Claim No":            "The claim's internal identifier — usually included as an output column.",
-  "CMS Claim Submission.Claim Status":        "Picklist — current state of the claim submission.",
-};
-
-// Which objects to surface in each panel. The report-picker panel
-// mimics the Ex2 report type (Accounts with CMS Claim Submissions);
-// the builder panel is identical — if the learner wanted Ex1's Leads
-// they'd see a single-object field list instead, and this demo would
-// feel redundant. Two objects is the more instructive example.
-const PANEL_OBJS = ["Account", "CMS Claim Submission"];
-
-function FieldRow({ obj, field, onHover }) {
-  const [active, setActive] = useState(false);
-  const key = `${obj}.${field}`;
-  const note = FIELD_NOTES[key];
-  return (
-    <div
-      onMouseEnter={() => { setActive(true); onHover({ obj, field, note }); }}
-      onMouseLeave={() => { setActive(false); onHover(null); }}
-      style={{
-        display: "flex", alignItems: "center", gap: 8,
-        padding: "5px 10px",
-        fontFamily: "'Salesforce Sans','Segoe UI',sans-serif",
-        fontSize: 12.5,
-        color: "#181818",
-        background: active ? "#e8f4fd" : "transparent",
-        borderLeft: active ? "2px solid #0176d3" : "2px solid transparent",
-        cursor: "help",
-        borderRadius: 2,
-      }}
-    >
-      <span style={{ color: "#706e6b", fontSize: 11, fontFamily: "'SF Mono','Courier New',monospace" }}>A</span>
-      <span style={{ flex: 1 }}>{field}</span>
-      {note && <span style={{ fontSize: 10, color: "#0176d3", opacity: active ? 1 : 0.4 }}>●</span>}
-    </div>
-  );
-}
-
-function FieldToolsSection({ onComplete, onNext }) {
-  const [hover, setHover] = useState(null);
-  // Mark the section "explored" as soon as the learner hovers any
-  // field — that's proof they engaged with the tool. The sidebar
-  // "Next" button is always available though, so they can skip.
-  useEffect(() => { if (hover && onComplete) onComplete(); }, [hover, onComplete]);
-
-  const T = {
-    bg: "linear-gradient(155deg,#faf5ea 0%,#f2ead6 35%,#e8dfc8 100%)",
-    text: "#3a3226", tm: "#7a6e5a", card: "rgba(255,255,255,0.55)", cb: "rgba(58,50,38,0.1)",
-    sb: "#0176d3", sbo: "#d8dde6",
-    d: "'Georgia','Times New Roman',serif",
-    s: "'Salesforce Sans','Segoe UI',sans-serif",
-  };
-
-  return (
-    <div style={{
-      minHeight: "calc(100vh - 52px)", background: T.bg,
-      fontFamily: T.d, color: T.text, padding: "24px 16px", boxSizing: "border-box",
-    }}>
-      <div style={{ maxWidth: 860, margin: "0 auto" }}>
-        <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <div style={{
-            display: "inline-block", background: T.text, color: "#faf5ea",
-            padding: "4px 18px", borderRadius: 20, fontSize: 10.5, letterSpacing: 2.5,
-            textTransform: "uppercase", fontFamily: "'SF Mono','Courier New',monospace", marginBottom: 8,
-          }}>Before You Build</div>
-          <h1 style={{ fontSize: 26, fontWeight: 400, margin: "8px 0 0", letterSpacing: -0.5 }}>
-            Previewing Available Fields
-          </h1>
-          <p style={{ fontSize: 13, opacity: 0.6, margin: "6px 0 0", fontStyle: "italic" }}>
-            Two tools Salesforce gives you for checking what's available — hover any field to see what it's used for.
-          </p>
-        </div>
-
-        {/* Live tooltip — updates as the learner hovers fields below */}
-        <div style={{
-          background: hover ? "#fdf8e8" : "rgba(255,255,255,0.4)",
-          border: `1px solid ${hover ? "#c9a84c" : T.cb}`,
-          borderRadius: 10, padding: "14px 18px", minHeight: 72,
-          marginBottom: 20, fontFamily: T.d, fontSize: 14, lineHeight: 1.5,
-          transition: "background-color 150ms",
-        }}>
-          {hover ? (
-            <>
-              <div style={{ fontSize: 11, color: T.tm, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 6, fontFamily: T.s, fontWeight: 700 }}>
-                Hovering
-              </div>
-              <div style={{ fontSize: 15 }}>
-                <span style={{
-                  display: "inline-flex", alignItems: "center", gap: 5,
-                  background: OBJ[hover.obj]?.c || "#888", color: "#fff",
-                  padding: "2px 9px", borderRadius: 10, fontSize: 11,
-                  fontFamily: T.s, fontWeight: 600, marginRight: 8,
-                }}>{hover.obj}</span>
-                <strong>{hover.field}</strong>
-              </div>
-              <div style={{ fontSize: 13, color: T.tm, marginTop: 6 }}>
-                {hover.note || `Lives on the ${hover.obj} object. Included in any report type that uses ${hover.obj}.`}
-              </div>
-            </>
-          ) : (
-            <div style={{ color: T.tm, fontStyle: "italic", paddingTop: 4 }}>
-              Hover a field in either panel below. Fields marked with a blue dot have extra notes about when to use them.
-            </div>
-          )}
-        </div>
-
-        {/* Panel 1 — Create Report picker (Fields tab) */}
-        <div style={{ marginBottom: 28 }}>
-          <div style={{ fontFamily: T.s, fontSize: 11, fontWeight: 700, color: T.tm, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>
-            1. Inside the Create Report picker
-          </div>
-          <p style={{ fontFamily: T.d, fontSize: 14, color: T.text, lineHeight: 1.6, margin: "0 0 10px" }}>
-            When you're choosing a report type, click the <strong>Fields</strong> tab in the Details panel on the right to preview the fields each object brings to the table. This is how you catch mistakes <em>before</em> you start building — if the field you need isn't listed, you picked the wrong report type.
-          </p>
-          <div style={{ background: "#fff", borderRadius: 8, border: `1px solid ${T.sbo}`, overflow: "hidden", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
-            {/* Header strip mimicking the real picker */}
-            <div style={{ padding: "10px 14px", borderBottom: `1px solid ${T.sbo}`, fontFamily: T.s, fontSize: 13, color: "#181818", fontWeight: 600 }}>
-              Accounts with CMS Claim Submissions
-              <span style={{ fontSize: 11, color: "#706e6b", marginLeft: 10, fontWeight: 400 }}>· Details panel</span>
-            </div>
-            {/* Tabs */}
-            <div style={{ display: "flex", borderBottom: `2px solid ${T.sbo}`, padding: "0 14px" }}>
-              <div style={{ padding: "8px 14px", fontFamily: T.s, fontSize: 12, fontWeight: 600, color: "#706e6b", borderBottom: "2px solid transparent", marginBottom: -2 }}>ⓘ Details</div>
-              <div style={{ padding: "8px 14px", fontFamily: T.s, fontSize: 12, fontWeight: 600, color: T.sb, borderBottom: `2px solid ${T.sb}`, marginBottom: -2 }}>☰ Fields</div>
-            </div>
-            {/* Search placeholder + fields */}
-            <div style={{ padding: "10px 14px" }}>
-              <div style={{ border: `1px solid ${T.sbo}`, borderRadius: 4, padding: "5px 10px", fontFamily: T.s, fontSize: 12, color: "#706e6b", marginBottom: 12 }}>🔍 Quick Lookup</div>
-              {PANEL_OBJS.map((on) => (
-                <div key={on} style={{ marginBottom: 14 }}>
-                  <div style={{
-                    display: "flex", alignItems: "center", gap: 6,
-                    fontFamily: T.s, fontSize: 11, fontWeight: 700, color: "#706e6b",
-                    textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 6,
-                  }}>
-                    <span style={{ width: 8, height: 8, borderRadius: 2, background: OBJ[on]?.c || "#888" }} />
-                    {on} Fields
-                    <span style={{ color: "#b5b5b5", fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>
-                      ({OBJ[on]?.f.length})
-                    </span>
-                  </div>
-                  {(OBJ[on]?.f || []).map((f) => (
-                    <FieldRow key={f} obj={on} field={f} onHover={setHover} />
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Panel 2 — Builder's expanded Fields panel */}
-        <div style={{ marginBottom: 28 }}>
-          <div style={{ fontFamily: T.s, fontSize: 11, fontWeight: 700, color: T.tm, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>
-            2. Inside the Report Builder
-          </div>
-          <p style={{ fontFamily: T.d, fontSize: 14, color: T.text, lineHeight: 1.6, margin: "0 0 10px" }}>
-            Once you're in the Builder, the <strong>Fields</strong> ribbon on the far left slides out a searchable panel with everything available. Use it to double-check a field name before filtering, or to pull an extra column you didn't plan for.
-          </p>
-          <div style={{ background: "#fafafa", borderRadius: 8, border: `1px solid ${T.sbo}`, overflow: "hidden", display: "flex", minHeight: 280, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
-            {/* Ribbon tab (open) */}
-            <div style={{ width: 24, background: "#eef3f8", borderRight: `1px solid ${T.sbo}`, display: "flex", alignItems: "center", justifyContent: "center", writingMode: "vertical-lr", fontFamily: T.s, fontSize: 11, color: T.sb, fontWeight: 600, letterSpacing: 1 }}>
-              Fields ◂
-            </div>
-            {/* Fields panel body */}
-            <div style={{ flex: 1, padding: 14 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                <span style={{ fontFamily: T.s, fontSize: 13, fontWeight: 700, color: "#181818" }}>Fields</span>
-                <span style={{ fontFamily: T.s, fontSize: 12, color: "#706e6b" }}>×</span>
-              </div>
-              <div style={{ border: `1px solid ${T.sbo}`, borderRadius: 4, padding: "5px 10px", fontFamily: T.s, fontSize: 12, color: "#706e6b", marginBottom: 12, background: "#fff" }}>🔍 Search all fields...</div>
-              {PANEL_OBJS.map((on) => (
-                <div key={on} style={{ marginBottom: 14 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: T.s, fontSize: 11, fontWeight: 700, color: "#706e6b", marginBottom: 4 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: 2, background: OBJ[on]?.c || "#888" }} />
-                    {on} ({OBJ[on]?.f.length})
-                  </div>
-                  {(OBJ[on]?.f || []).map((f) => (
-                    <FieldRow key={f} obj={on} field={f} onHover={setHover} />
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div style={{
-          background: "#fdf8e8", border: "1px solid #c9a84c", borderRadius: 10,
-          padding: "14px 18px", fontFamily: T.d, fontSize: 14, color: T.text, lineHeight: 1.6,
-          marginBottom: 20,
-        }}>
-          <strong>Why this matters.</strong> Catching a missing field at this stage — before you've committed to a report type — saves you the detour of starting over. If the field you need isn't on the objects in the Details panel, pick a different report type.
-        </div>
-
-        <div style={{ display: "flex", justifyContent: "center" }}>
-          <button
-            onClick={onNext}
-            style={{
-              padding: "12px 24px", background: T.sb, color: "#fff", border: "none",
-              borderRadius: 8, fontSize: 14, fontFamily: T.d, fontWeight: 700, cursor: "pointer",
-            }}
-          >
-            Continue to Exercise 1 →
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════
-//  Reporting Tips section
-// ═══════════════════════════════════════════════════════
-// Post-exercise nuance. The exercises teach the mechanics; this
-// section teaches the things that trip experienced users up:
-//
-//   • Show Me — default to "My Accounts", escalate to "All
-//     Accounts" only for firm-wide questions.
-//   • Type = Client isn't universal — CA I pre-retainer accounts
-//     and Courtesy Team accounts often aren't Client-typed.
-//   • Account Record Type is a cohort dimension (VCF Victim /
-//     Estate / Courtesy), not an ownership filter.
-//   • Clone-and-modify — search existing reports first,
-//     especially ones built by supervisors or senior CAs.
-//
-// Kept deliberately terse — deeper reporting scenarios belong in
-// a follow-up "Advanced Reporting" module.
-// ═══════════════════════════════════════════════════════
-
-function TipCard({ icon, title, children, accent = "#0176d3" }) {
-  return (
-    <div style={{
-      background: "rgba(255,255,255,0.6)", border: "1px solid rgba(58,50,38,0.1)",
-      borderLeft: `4px solid ${accent}`, borderRadius: 10, padding: "16px 20px", marginBottom: 14,
-    }}>
-      <div style={{
-        display: "flex", alignItems: "center", gap: 10, marginBottom: 8,
-        fontFamily: "'Georgia',serif", fontSize: 16, fontWeight: 700, color: "#3a3226",
-      }}>
-        <span style={{ fontSize: 20 }}>{icon}</span>
-        {title}
-      </div>
-      <div style={{ fontFamily: "'Georgia',serif", fontSize: 14, color: "#3a3226", lineHeight: 1.65 }}>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function ReportingTipsSection({ onComplete, onNext }) {
-  // Mark the section done as soon as the learner scrolls/mounts —
-  // the content is advisory, not gated. Running onComplete once on
-  // mount keeps the sidebar checkmark consistent with how the other
-  // sections behave.
-  useEffect(() => { if (onComplete) onComplete(); }, [onComplete]);
-
-  const T = {
-    bg: "linear-gradient(155deg,#faf5ea 0%,#f2ead6 35%,#e8dfc8 100%)",
-    text: "#3a3226", tm: "#7a6e5a",
-    sb: "#0176d3", accent: "#c9a84c",
-    d: "'Georgia','Times New Roman',serif",
-  };
-
-  return (
-    <div style={{
-      minHeight: "calc(100vh - 52px)", background: T.bg,
-      fontFamily: T.d, color: T.text, padding: "24px 16px", boxSizing: "border-box",
-    }}>
-      <div style={{ maxWidth: 820, margin: "0 auto" }}>
-        <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <div style={{
-            display: "inline-block", background: T.text, color: "#faf5ea",
-            padding: "4px 18px", borderRadius: 20, fontSize: 10.5, letterSpacing: 2.5,
-            textTransform: "uppercase", fontFamily: "'SF Mono','Courier New',monospace", marginBottom: 8,
-          }}>Real-World Nuance</div>
-          <h1 style={{ fontSize: 26, fontWeight: 400, margin: "8px 0 0", letterSpacing: -0.5 }}>
-            Reporting Tips
-          </h1>
-          <p style={{ fontSize: 13, opacity: 0.6, margin: "6px 0 0", fontStyle: "italic" }}>
-            A few things the exercises didn't show you that will save you time and mistakes.
-          </p>
-        </div>
-
-        <TipCard icon="🔎" title="Start with Show Me — &quot;My Accounts&quot; is usually what you want" accent={T.sb}>
-          Every Account report opens with <strong>Show Me</strong> set to <em>All Accounts</em>. Most of the time the question you actually have is about <em>your</em> accounts — switch it to <strong>My Accounts</strong> and the Builder quietly filters by Account Owner = you, which is almost always what you meant.
-          <div style={{ marginTop: 8, fontSize: 13, color: T.tm }}>
-            Use <em>All Accounts</em> when you're answering a firm-wide question — staffing load across a team, overall claim volume, etc. — not when you're looking at your own pipeline.
-          </div>
-        </TipCard>
-
-        <TipCard icon="⚠️" title="&quot;Type = Client&quot; is not a universal filter" accent="#9a6b1a">
-          An account only becomes <strong>Type = Client</strong> once the firm has a signed retainer. That means it <em>excludes</em> a lot of real work:
-          <ul style={{ margin: "8px 0 0 18px", padding: 0, fontSize: 14, lineHeight: 1.7 }}>
-            <li><strong>CA I scope, pre-retainer:</strong> people being enrolled in the World Trade Center Health Program who haven't returned their Intake Kit aren't Client-typed yet.</li>
-            <li><strong>Courtesy Team accounts:</strong> often unretained potential clients without actionable claims today.</li>
-          </ul>
-          <div style={{ marginTop: 8, fontSize: 13, color: T.tm }}>
-            Reach for <strong>Type = Client</strong> only when you specifically want accounts that have retained the firm. Otherwise it silently drops records you probably wanted.
-          </div>
-        </TipCard>
-
-        <TipCard icon="📂" title="Account Record Type is about cohort, not ownership" accent="#3d7a56">
-          Record Type is how Salesforce distinguishes the VCF cohorts:
-          <ul style={{ margin: "8px 0 0 18px", padding: 0, fontSize: 14, lineHeight: 1.7 }}>
-            <li><strong>VCF Victim</strong> — a living claimant</li>
-            <li><strong>VCF Estate</strong> — a claim filed on behalf of a deceased victim</li>
-            <li><strong>VCF Courtesy</strong> — exploratory / unretained contacts</li>
-          </ul>
-          <div style={{ marginTop: 8, fontSize: 13, color: T.tm }}>
-            Filter by Record Type when the question is <em>which cohort?</em> (Exercise 3 scoped to VCF Estate). Don't filter by it when the question is just <em>whose accounts?</em> — that's Show Me.
-          </div>
-        </TipCard>
-
-        <TipCard icon="🔁" title="Search before you build — clone a good report" accent="#6b4fa0">
-          Chances are someone has already built a report that answers most of your question. Before you start from scratch, <strong>search the Reports tab</strong> and see what's there — especially reports authored by <strong>assistant managers</strong> (our supervisors) or <strong>senior CAs</strong>, who tend to have the reporting chops.
-          <div style={{ marginTop: 8, fontSize: 13, color: T.tm }}>
-            Open the closest match → <strong>Save As</strong> → tweak the filters. You'll get to the answer faster, and you inherit the right report type and column choices someone already thought through.
-          </div>
-        </TipCard>
-
-        <div style={{
-          background: "#fdf8e8", border: `1px solid ${T.accent}`, borderRadius: 10,
-          padding: "14px 18px", fontSize: 13, color: T.text, lineHeight: 1.6, marginTop: 18, marginBottom: 20,
-        }}>
-          <strong>Going further.</strong> Advanced reporting — cross-filters, row-level formulas, joined reports, and dashboard building — is coming in a follow-up module. This covers the day-to-day 80%.
-        </div>
-
-        <div style={{ display: "flex", justifyContent: "center" }}>
-          <button
-            onClick={onNext}
-            style={{
-              padding: "12px 24px", background: T.sb, color: "#fff", border: "none",
-              borderRadius: 8, fontSize: 14, fontFamily: T.d, fontWeight: 700, cursor: "pointer",
-            }}
-          >
-            Complete Module →
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
