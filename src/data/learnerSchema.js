@@ -75,4 +75,18 @@ export const PAYLOAD_SCHEMA = {
     desc: "Total incorrect scenario picks across all scenario steps",
     example: 2,
   },
+  moduleData: {
+    type: "object | null",
+    desc:
+      "Optional module-specific metadata that doesn't fit the flat shape " +
+      "above. Populated by modules whose activities aren't quiz/match/" +
+      "scenario-shaped (e.g. the Salesforce Basics exercise walkthroughs). " +
+      "When the backend lands this should land in a JSON column on the " +
+      "completion row so we can pivot by module without schema churn.",
+    example: {
+      sectionsCompleted: ["data-model", "ex-1", "ex-2", "ex-3"],
+      exercisesCompleted: 3,
+      totalSections: 5,
+    },
+  },
 };

@@ -153,7 +153,7 @@ export default function SalesforceBasicsModule() {
 
     const completedAt = new Date();
     const elapsedSec = moduleStartedAt ? Math.round((Date.now() - moduleStartedAt) / 1000) : 0;
-    const payload = buildPayload(learner, completedAt, elapsedSec);
+    const payload = buildPayload(learner, completedAt, elapsedSec, s.done);
     markComplete(MODULE_ID, payload);
     d({ t: "RECORDED_AT", at: completedAt.toISOString() });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -169,7 +169,7 @@ export default function SalesforceBasicsModule() {
     setSubmitState("submitting");
     const completedAt = new Date();
     const elapsedSec = moduleStartedAt ? Math.round((Date.now() - moduleStartedAt) / 1000) : 0;
-    const payload = buildPayload(learner, completedAt, elapsedSec);
+    const payload = buildPayload(learner, completedAt, elapsedSec, s.done);
     const result = await recordCompletion(MODULE_ID, payload);
     if (result.success) {
       setSubmitState("success");
@@ -340,44 +340,30 @@ export default function SalesforceBasicsModule() {
                       switching exercises — otherwise stage 5 (Try It) from
                       Ex2 carries into Ex3, and since Ex3's prefilled flow
                       only has 4 stages (indices 0-3), stage 5 falls out
-                      of range and the card renders blank. */}
+                      of range and the card renders blank.
+
+                      We intentionally DO NOT pass onBack: the sidebar is
+                      the navigation surface inside the LMS wrapper, so
+                      the in-Flow "← Exercises" button (which used to
+                      point at the now-removed picker view) is suppressed.
+
+                      onNext is passed for every exercise — the last one
+                      drives the learner straight into the completion
+                      card instead of the next exercise. */}
                   <Flow
                     key={ex.id}
                     ex={ex}
-                    onBack={() => goTo(0)}
                     onComplete={() => completeSection(idx)}
-                    onNext={isLastExercise ? undefined : () => {
+                    onNext={() => {
                       completeSection(idx);
-                      goTo(idx + 1);
+                      goTo(isLastExercise ? SECTIONS.length - 1 : idx + 1);
                     }}
                     nextLabel={
                       section.exerciseId === 1 ? "Continue to Exercise 2 →" :
                       section.exerciseId === 2 ? "Continue to Exercise 3 →" :
-                      undefined
+                      "Complete Module →"
                     }
                   />
-                  {/* For Exercise 3 (last one), surface a "Finish Module →"
-                      button once they've reached the Try It stage. */}
-                  {isLastExercise && s.done.has(idx) && (
-                    <div style={{ marginTop: 20, display: "flex", justifyContent: "center" }}>
-                      <button
-                        onClick={() => goTo(SECTIONS.length - 1)}
-                        style={{
-                          padding: "12px 24px",
-                          background: "#4a8c6f",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: 8,
-                          fontSize: 14,
-                          fontWeight: 700,
-                          fontFamily: "'Georgia',serif",
-                          cursor: "pointer",
-                        }}
-                      >
-                        Finish Module →
-                      </button>
-                    </div>
-                  )}
                 </div>
               </div>
             );
@@ -406,7 +392,19 @@ export default function SalesforceBasicsModule() {
 // ── Completion payload builder ──
 // Kept out of the component body so both the auto-stamp effect and the
 // Submit-to-PA button use the exact same shape.
-function buildPayload(learner, completedAt, elapsedSec) {
+//
+// Shape matches PAYLOAD_SCHEMA in src/data/learnerSchema.js. The flat
+// assessment/error fields are zeroed (this module has no scored quiz)
+// and module-specific progression info rides in `moduleData`, which
+// the future backend can land in a JSON column on the completion row.
+function buildPayload(learner, completedAt, elapsedSec, done) {
+  const sectionsCompleted = SECTIONS
+    .filter((_, i) => done && done.has(i))
+    .map((sec) => sec.id);
+  const exercisesCompleted = SECTIONS
+    .filter((sec, i) => sec.kind === "exercise" && done && done.has(i))
+    .length;
+
   return {
     userId: learner?.email || "",
     displayName: learner?.name || "",
@@ -424,6 +422,12 @@ function buildPayload(learner, completedAt, elapsedSec) {
     quizReviews: 0,
     matchErrors: 0,
     scenarioErrors: 0,
+    // Module-specific progression metadata — see PAYLOAD_SCHEMA.moduleData.
+    moduleData: {
+      sectionsCompleted,
+      exercisesCompleted,
+      totalSections: SECTIONS.length,
+    },
   };
 }
 

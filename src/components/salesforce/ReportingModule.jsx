@@ -466,7 +466,11 @@ function Flow({ex,onBack,onComplete,onNext,nextLabel}){
   };
   return <div>
     <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
-      <button onClick={onBack} style={{background:"none",border:"none",cursor:"pointer",fontFamily:T.d,fontSize:14,color:T.tm}}>← Exercises</button>
+      {/* "← Exercises" is only shown in the standalone demo (where the
+          parent still passes onBack to return to the exercise picker).
+          Inside the LMS wrapper the sidebar is the navigation surface,
+          so we omit onBack and this button disappears. */}
+      {onBack&&<button onClick={onBack} style={{background:"none",border:"none",cursor:"pointer",fontFamily:T.d,fontSize:14,color:T.tm}}>← Exercises</button>}
       <Badge>{`Exercise ${ex.id}`}</Badge>
       <span style={{fontFamily:T.d,fontSize:16,fontWeight:700}}>{ex.title}</span>
     </div>
