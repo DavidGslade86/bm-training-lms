@@ -22,12 +22,12 @@ const EX=[
   filters:[{field:"Status",op:"equals",val:"Claim Submission",obj:"Account"},{field:"Submitted Date",op:"less or equal",val:"1/1/2026",obj:"CMS Claim Submission"}],sm:"All Accounts",grp:null,
   rows:[{a:"John Doe",b:"VCF0001234",c:"Claim Submission",d:"CLAIM-4401",e:"11/15/2025"},{a:"Maria Santos",b:"VCF0002891",c:"Claim Submission",d:"CLAIM-4520",e:"10/22/2025"},{a:"James Lee",b:"VCF0003102",c:"Claim Submission",d:"CLAIM-4611",e:"12/03/2025"}],
   tryIt:"Open the Reports tab → New Report → search for 'CMS Claim' or browse Accounts & Contacts → select 'Accounts with CMS Claim Submissions' → Start Report → Change \"Show Me\" to \"All Accounts\" → Add Status filter = Claim Submission → Add Submitted Date filter ≤ 1/1/2026 → Save & Run."},
-  {id:3,title:"Refining & Grouping",q:"Find all living clients with Status 'Claim Submission' and a submitted date before January 1, grouped by Status.",why:"This builds on Exercise 2 by adding filters that exclude non-client records and narrowing to living clients, plus grouping to organize the results.",rt:"Accounts with CMS Claim Submissions",cols:["Account Name","VCF #","Type","Account Record Type","Claim No","Submitted Date"],
+  {id:3,title:"Refining by Record Type",q:"Find VCF Estate accounts with a Submitted Claim dated before January 1, grouped by Status.",why:"This builds on Exercise 2 by narrowing to a specific cohort. Account Record Type is how Salesforce distinguishes VCF Estate claims (filed on behalf of a deceased victim) from VCF Victim (living claimant) and VCF Courtesy accounts — it lives on the Account object, so no new object is needed.",rt:"Accounts with CMS Claim Submissions",cols:["Account Name","VCF #","Account Record Type","Claim No","Submitted Date"],
   prefilled:[{field:"Status",op:"equals",val:"Claim Submission",obj:"Account"},{field:"Submitted Date",op:"less or equal",val:"1/1/2026",obj:"CMS Claim Submission"}],
-  filters:[{field:"Type",op:"equals",val:"Client",obj:"Account"},{field:"Account Record Type",op:"equals",val:"VCF Victim",obj:"Account",picklist:["VCF Victim","VCF Courtesy","VCF Estate"]}],
+  filters:[{field:"Account Record Type",op:"equals",val:"VCF Estate",obj:"Account",picklist:["VCF Victim","VCF Courtesy","VCF Estate"]}],
   sm:"All Accounts",grp:"Status",
-  groups:[{g:"Claim Submission",ct:5,rows:[{a:"John Doe",b:"VCF0001234",c:"Client",d:"VCF Victim",e:"CLAIM-4401",f:"11/15/2025"},{a:"Maria Santos",b:"VCF0002891",c:"Client",d:"VCF Victim",e:"CLAIM-4520",f:"10/22/2025"}]}],
-  tryIt:"Start from your Exercise 2 report → add Type filter = Client → add Account Record Type filter = VCF Victim → switch to the Outline tab → drag 'Status' into the Group Rows area → Save & Run."},
+  groups:[{g:"Claim Submission",ct:5,rows:[{a:"Estate of John Doe",b:"VCF0001234",c:"VCF Estate",d:"CLAIM-4401",e:"11/15/2025"},{a:"Estate of Maria Santos",b:"VCF0002891",c:"VCF Estate",d:"CLAIM-4520",e:"10/22/2025"}]}],
+  tryIt:"Start from your Exercise 2 report → add an Account Record Type filter and set it to VCF Estate → switch to the Outline tab → drag 'Status' into the Group Rows area → Save & Run."},
 ];
 
 /* ═══ PULSE ANIMATION (CSS injected once) ═══ */
@@ -493,7 +493,7 @@ function Flow({ex,onBack,onComplete,onNext,nextLabel}){
         </div>
         {ex.filters.some(f=>f.obj!==ex.filters[0].obj)&&<Callout icon="🔗">Notice the fields live on <strong>different objects</strong>. We'll need a combined report type.</Callout>}
         {ex.filters.every(f=>f.obj===ex.filters[0].obj)&&!ex.grp&&!ex.prefilled&&<Callout icon="📦">All the fields live on <strong>one object</strong>. A single-object report type will do.</Callout>}
-        {ex.prefilled&&<Callout icon="🔄">This builds on Exercise 2 — your previous filters are already applied. You'll add <strong>Type</strong> and <strong>Account Record Type</strong> filters to narrow the results to living clients, then add <strong>grouping</strong> by {ex.grp}.</Callout>}
+        {ex.prefilled&&<Callout icon="🔄">This builds on Exercise 2 — your previous filters are already applied. You'll add an <strong>Account Record Type</strong> filter to narrow the results to the VCF Estate cohort, then add <strong>grouping</strong> by {ex.grp}.</Callout>}
         {ex.grp&&!ex.prefilled&&<Callout icon="📊">This builds on Exercise 2 — same data, but adding <strong>grouping</strong> by {ex.grp}.</Callout>}
       </div>}
       {logical===1&&<div>
@@ -558,7 +558,12 @@ function Flow({ex,onBack,onComplete,onNext,nextLabel}){
 // rendering a single exercise inline without the built-in
 // exercise-picker view. Kept alongside the default export so the
 // component still works standalone.
-export { EX, Flow, InjectCSS };
+//
+// OBJ is the object/field catalogue used by the Create Report picker
+// and Builder's Fields panel — exported so the LMS wrapper can stand
+// up a standalone "Field Explorer" section that reuses the same
+// object colors and field lists without drifting from the spec.
+export { EX, Flow, InjectCSS, OBJ };
 
 /* ═══ MAIN ═══ */
 export default function ReportingModule(){
