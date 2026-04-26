@@ -1,12 +1,16 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { useParams, Navigate } from "react-router-dom";
 import { useSession } from "../context/SessionContext";
-import Module2 from "./Module2";
-import Module3 from "./Module3";
-import Module4 from "./Module4";
-import Module5 from "./Module5";
-import Module6 from "./Module6";
-import SalesforceBasicsModule from "./SalesforceBasicsModule";
+
+// Lazy-loaded so Vite/Rollup emits each module as a separate on-demand
+// chunk. A learner who only completes Module 2 never downloads the
+// Module 4–6 or Salesforce bundles.
+const Module2              = lazy(() => import("./Module2"));
+const Module3              = lazy(() => import("./Module3"));
+const Module4              = lazy(() => import("./Module4"));
+const Module5              = lazy(() => import("./Module5"));
+const Module6              = lazy(() => import("./Module6"));
+const SalesforceBasicsModule = lazy(() => import("./SalesforceBasicsModule"));
 
 // ═══════════════════════════════════════════════════════
 //  ModuleDispatcher — /modules/:moduleId
@@ -46,5 +50,13 @@ export default function ModuleDispatcher() {
 
   const Component = MODULE_COMPONENTS[moduleId];
   if (!Component) return <Navigate to="/" replace />;
-  return <Component />;
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen bg-brand-cream">
+        <span className="text-sm text-brand-tl">Loading…</span>
+      </div>
+    }>
+      <Component />
+    </Suspense>
+  );
 }

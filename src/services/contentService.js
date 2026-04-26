@@ -13,25 +13,28 @@
 //  directly after this refactor — go through this module.
 // ═══════════════════════════════════════════════════════
 
-import { MODULE2 } from "../data/module2Data";
-import { MODULE3 } from "../data/module3Data";
-import { MODULE4 } from "../data/module4Data";
-import { MODULE5 } from "../data/module5Data";
-import { MODULE6 } from "../data/module6Data";
-import { NEW_HIRE_ASSESSMENT } from "../data/newHireAssessmentData";
 import { GLOSSARY } from "../data/glossary";
 import { JOURNEYS } from "../data/journeys";
+import { SALESFORCE_BASICS } from "../data/salesforceBasicsData";
 import { API_ENABLED, apiGet, apiPost } from "./api";
 
 // ── Module lookup map ──────────────────────────────────
-// Maps the canonical module id to its imported data object.
+// Each standard module entry is a factory function that returns a
+// dynamic import so Vite/Rollup can code-split the module data into
+// separate on-demand chunks. A learner who never opens Module 4 never
+// downloads module4Data.js. The bespoke sentinel is a plain object
+// (no card data to split).
 const MODULE_MAP = {
-  "module-2":            MODULE2,
-  "module-3":            MODULE3,
-  "module-4":            MODULE4,
-  "module-5":            MODULE5,
-  "module-6":            MODULE6,
-  "new-hire-assessment": NEW_HIRE_ASSESSMENT,
+  "module-2":            () => import("../data/module2Data").then(m => m.MODULE2),
+  "module-3":            () => import("../data/module3Data").then(m => m.MODULE3),
+  "module-4":            () => import("../data/module4Data").then(m => m.MODULE4),
+  "module-5":            () => import("../data/module5Data").then(m => m.MODULE5),
+  "module-6":            () => import("../data/module6Data").then(m => m.MODULE6),
+  "new-hire-assessment": () => import("../data/newHireAssessmentData").then(m => m.NEW_HIRE_ASSESSMENT),
+  // Bespoke modules — no card data, but registered here so getModule()
+  // resolves without throwing. Callers can check data.bespoke === true
+  // to know not to expect a cards array.
+  "salesforce-basics":   { bespoke: true, cards: [] },
 };
 
 // ── Module metadata ────────────────────────────────────
@@ -85,13 +88,12 @@ const MODULE_METADATA = [
     status: "available",
   },
   {
-    id: "salesforce-basics",
-    number: "Salesforce Basics",
-    title: "Salesforce Basics",
-    description:
-      "How the Salesforce data model is organized (objects, fields, records, relationships) and how to build reports from business questions.",
-    time: "~30 min",
-    status: "available",
+    id:          SALESFORCE_BASICS.id,
+    number:      SALESFORCE_BASICS.number,
+    title:       SALESFORCE_BASICS.title,
+    description: SALESFORCE_BASICS.description,
+    time:        SALESFORCE_BASICS.time,
+    status:      "available",
   },
 ];
 
@@ -142,11 +144,13 @@ export async function getJourneys() {
 export async function getModule(moduleId) {
   if (API_ENABLED) return apiGet(`/api/modules/${moduleId}`);
 
-  const data = MODULE_MAP[moduleId];
-  if (!data) {
+  const entry = MODULE_MAP[moduleId];
+  if (entry === undefined) {
     throw new Error(`Unknown module id: ${moduleId}`);
   }
-  return data;
+  // Standard modules are factory functions (dynamic imports).
+  // The bespoke sentinel is a plain object — return it directly.
+  return typeof entry === "function" ? entry() : entry;
 }
 
 /**

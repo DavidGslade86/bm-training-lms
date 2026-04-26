@@ -55,6 +55,19 @@ describe('getModule', () => {
   it('throws on unknown moduleId', async () => {
     await expect(getModule('module-999')).rejects.toThrow(/unknown module/i)
   })
+
+  it('resolves (does not throw) for a registered bespoke module', async () => {
+    // Bespoke modules are in MODULE_MAP with a sentinel so getModule()
+    // never throws — the caller gets a signal rather than an error.
+    await expect(getModule('salesforce-basics')).resolves.toBeDefined()
+  })
+
+  it('returns the bespoke sentinel shape for salesforce-basics', async () => {
+    const m = await getModule('salesforce-basics')
+    expect(m.bespoke).toBe(true)
+    expect(Array.isArray(m.cards)).toBe(true)
+    expect(m.cards).toHaveLength(0)
+  })
 })
 
 describe('getParentJourneyId', () => {

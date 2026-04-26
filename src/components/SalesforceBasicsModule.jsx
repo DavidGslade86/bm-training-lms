@@ -8,6 +8,7 @@ import { useSession } from "../context/SessionContext";
 import { KEYS, serializeState, deserializeState } from "../hooks/useLocalStorage";
 import ThemedContainers from "./salesforce/ThemedContainers";
 import { EX, Flow, InjectCSS } from "./salesforce/ReportingModule";
+import { SALESFORCE_BASICS } from "../data/salesforceBasicsData";
 
 // ═══════════════════════════════════════════════════════
 //  SalesforceBasicsModule — tech-stack journey module that
@@ -43,22 +44,9 @@ import { EX, Flow, InjectCSS } from "./salesforce/ReportingModule";
 //  rides the same STATE_VERSION guard as the other modules.
 // ═══════════════════════════════════════════════════════
 
-const MODULE_ID = "salesforce-basics";
-const MODULE_TITLE = "Salesforce Basics";
-
-const SECTIONS = [
-  {
-    id: "data-model",
-    nav: "Data Model",
-    kind: "themed",
-    title: "Objects: Containers for Data",
-    subtitle: "Part 1 — how Salesforce organizes data",
-  },
-  { id: "ex-1",    nav: "Exercise 1", kind: "exercise", exerciseId: 1, title: "Single Object Report" },
-  { id: "ex-2",    nav: "Exercise 2", kind: "exercise", exerciseId: 2, title: "Cross-Object Report" },
-  { id: "ex-3",    nav: "Exercise 3", kind: "exercise", exerciseId: 3, title: "Refining with Show Me and Grouping" },
-  { id: "complete", nav: "Complete",  kind: "completion", title: "Module Complete" },
-];
+const MODULE_ID    = SALESFORCE_BASICS.id;
+const MODULE_TITLE = SALESFORCE_BASICS.title;
+const SECTIONS     = SALESFORCE_BASICS.sections;
 
 // Stable lookup for sections the rest of the file has to reason about.
 // Avoids re-counting by id every time the learner advances.
@@ -484,11 +472,9 @@ function CompletionPanel({ reviewMode, canSubmit, submitState, submittedAt, onSu
       <div className="rounded-lg p-6 mb-4 bg-brand-ww border border-brand-sand">
         <div className="text-xs font-bold tracking-widest mb-4 text-brand-tl">WHAT YOU COVERED</div>
         <ul className="flex flex-col gap-2 text-xs text-brand-tm">
-          <li>• How Salesforce objects, fields, and records fit together</li>
-          <li>• Previewing available fields in the Create Report picker and the Builder</li>
-          <li>• Picking a report type: single-object vs. combined report types</li>
-          <li>• Adding filters, scoping with Show Me, and grouping with Summary reports</li>
-          <li>• When to use Show Me = "My Accounts" and when account type / record type matter</li>
+          {SALESFORCE_BASICS.coverageBullets.map((b, i) => (
+            <li key={i}>• {b}</li>
+          ))}
         </ul>
       </div>
 
