@@ -28,6 +28,24 @@ export const JOURNEYS = [
     assessment: "new-hire-assessment",
   },
   {
+    id: "client-advocate-track-hp-enrollment",
+    title: "Client Advocate Track — Health Program Enrollment",
+    description:
+      "Role-specific training for the CA I role — WTCHP enrollment cadence, IAKARF prioritization, kit processing, HP POP collection, and client communication from kit-out through enrollment confirmation.",
+    icon: "UserCheck",
+    type: "role",
+    estimatedTime: "~25 min",
+    color: "#3d7a56",
+    // TODO: gate behind New Hire Pathway completion and Salesforce Basics module
+    // (no prerequisite mechanism exists in journeys.js yet — add when the gate
+    // UI is built)
+    modules: [
+      { id: "module-ca1-1", required: true },
+      // Future modules: CA1-2 through CA1-5 will be added here as authored
+      // Journey-level capstone assessment planned but not yet authored
+    ],
+  },
+  {
     id: "ca-i-track",
     title: "Client Advocate I Track",
     description:

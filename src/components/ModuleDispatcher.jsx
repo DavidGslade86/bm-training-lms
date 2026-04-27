@@ -11,6 +11,7 @@ const Module4              = lazy(() => import("./Module4"));
 const Module5              = lazy(() => import("./Module5"));
 const Module6              = lazy(() => import("./Module6"));
 const SalesforceBasicsModule = lazy(() => import("./SalesforceBasicsModule"));
+const ModuleCA1_1            = lazy(() => import("./ModuleCA1_1"));
 
 // ═══════════════════════════════════════════════════════
 //  ModuleDispatcher — /modules/:moduleId
@@ -32,6 +33,7 @@ const MODULE_COMPONENTS = {
   "module-5": Module5,
   "module-6": Module6,
   "salesforce-basics": SalesforceBasicsModule,
+  "module-ca1-1":      ModuleCA1_1,
 };
 
 export default function ModuleDispatcher() {

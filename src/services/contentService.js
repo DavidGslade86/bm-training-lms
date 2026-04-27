@@ -31,6 +31,7 @@ const MODULE_MAP = {
   "module-5":            () => import("../data/module5Data").then(m => m.MODULE5),
   "module-6":            () => import("../data/module6Data").then(m => m.MODULE6),
   "new-hire-assessment": () => import("../data/newHireAssessmentData").then(m => m.NEW_HIRE_ASSESSMENT),
+  "module-ca1-1":        () => import("../data/moduleCA1_1Data").then(m => m.MODULE_CA1_1),
   // Bespoke modules — no card data, but registered here so getModule()
   // resolves without throwing. Callers can check data.bespoke === true
   // to know not to expect a cards array.
@@ -93,6 +94,14 @@ const MODULE_METADATA = [
     title:       SALESFORCE_BASICS.title,
     description: SALESFORCE_BASICS.description,
     time:        SALESFORCE_BASICS.time,
+    status:      "available",
+  },
+  {
+    id:          "module-ca1-1",
+    number:      "CA1-1",
+    title:       "The Role of a CA I",
+    description: "Orientation to the Claim Administrator I role: the five client touchpoints you own, IAKARF prioritization, the firm's 24-hour response standard, follow-up cadence by stage, task naming conventions, and the GCL → FNL escalation ladder.",
+    time:        "~25 min",
     status:      "available",
   },
 ];

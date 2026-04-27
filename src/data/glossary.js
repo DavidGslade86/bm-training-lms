@@ -99,6 +99,7 @@ export const GLOSSARY = [
   {cat:"B&M GENERAL VOCABULARY",abbr:"PII",term:"Personal Identifying Information",def:"Information that could be used to identify a specific client, such as Name, Social Security, Birthday, Address, close relatives, or any other identifying Employment, Benefits, or housing information. Must be protected and never placed in a publicly accessible repository or environment. Most often breached when employees use previous work from other claims as templates and do not change PII.",ex:""},
   {cat:"B&M GENERAL VOCABULARY",abbr:"PI",term:"Personal Injury",def:"In the Barasch & McGarry VCF practice, PI is used to refer to claims where B&M is filing on behalf of a living Claimant",ex:""},
   {cat:"FA VOCABULARY",abbr:"PR",term:"Personal Representative",def:"An entity designated by the court to act on the deceased victim's behalf in matters related to distributing a decedent's estate to applicable distributees. A personal representative must be named to file or continue a VCF claim on behalf of a deceased Claimant",ex:""},
+  {cat:"B&M GENERAL VOCABULARY",abbr:"",term:"Pizza Tracker",def:"The visual status tracker on a Salesforce WTCHP Enrollment Case. Shows the client's progress through enrollment stages (New, Awaiting Action, Awaiting Third Party, Awaiting Client Action, Closed) and their corresponding sub-statuses. Updated by clicking a status and selecting \"Mark as Complete\" → choose sub-status → \"Done.\"",ex:""},
   {cat:"B&M GENERAL VOCABULARY",abbr:"POC",term:"Point of Contact",def:"The Lead/Account Owner assigned to Client",ex:""},
   {cat:"B&M GENERAL VOCABULARY",abbr:"POA",term:"Power of Attorney",def:"Retainer agreement gives B&M Power of Attorney to work on VCF claim, but it is not a GENERAL Power of Attorney.  NOTE: FA claims can only be filed by a PERSONAL REPRESENTATIVE appointed by a surrogate court. Power or Attorney does NOT give B&M the right to file a VCF claim on a decedent's behalf.",ex:""},
   {cat:"FORM AND DOCUMENT ACRONYMS",abbr:"PHQ",term:"Pre-Hearing Questionaire",def:"1. A document that is completed by the CA or Attorney as a part of a the Appeals Package submitted to the CMS.  It lists the decision being appealed, possible participants, and any special accommodations needed (translator, assistance for the hearing impaired, etc.) 2. A similar document to the above, completed by the Legal Strategic Support Team, and submitted after the hearing is scheduled, with a final designation of the attorney conducting the appeal and the final list of participants.",ex:""},
@@ -143,7 +144,10 @@ export const GLOSSARY = [
 // ─── Lookup map (first-wins for duplicate keys) ───────
 // IS and IT excluded from main regex (too short / common English words)
 // They are matched separately via a case-sensitive strict pass in GlossaryInline.
-export const STRICT_ABBRS = new Set(["is", "it"]);
+// "ms" added to prevent false-positive glossary hits on "Ms." (salutation)
+// while still linking "MS" (Medical Specialist) case-sensitively via the
+// strict pass.
+export const STRICT_ABBRS = new Set(["is", "it", "ms"]);
 
 // Aliases: surface form → canonical GMAP key
 // Used both by the static index and by buildGlossaryIndex for runtime edits.
