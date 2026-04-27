@@ -264,7 +264,7 @@ export default function HomePage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
-                        <h3 className="text-base font-bold font-heading text-brand-gray-dk truncate">{j.title}</h3>
+                        <h3 className="text-sm font-bold font-heading text-brand-gray-dk line-clamp-2 leading-snug">{j.title}</h3>
                       </div>
                       <span
                         className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block ${
