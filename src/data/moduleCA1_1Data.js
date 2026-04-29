@@ -396,55 +396,52 @@ export const MODULE_CA1_1 = {
         "blocks": [
           {
             "type": "paragraph",
-            "text": "Every task you set in Salesforce has three audiences: **you** (when you come back to it next week), **your Assistant Manager** (during their review of your work), and **the next CA** (if an account is reassigned, or when a CA II inherits the file at certification). Proper Task naming tells what's happening at a glance."
+            "text": "Every task you set in Salesforce has three audiences: **you** (when you come back to it next week), **your Assistant Manager** (during their review of your work), and **the next CA** (if an account is reassigned, or when a CA II inherits the file at certification). Proper task naming tells what's happening at a glance."
+          },
+          {
+            "type": "paragraph",
+            "text": "The eleven task name conventions below are grouped by client-journey phase: outstanding kit, HP POP and application, and post-application or cross-phase."
           },
           {
             "type": "subheading",
-            "text": "CA I Task Naming Rules"
+            "text": "Outstanding Kit Phase"
           },
           {
-            "type": "paragraph",
-            "text": "**\"Follow Up #[] — Tier #[]\"** — Set on PI outstanding kit accounts that need to mail back kit documents. The number tracks the attempt count; the tier tells your Assistant Manager (and you) which cadence applies. Example: *Follow Up #3 — Tier 1*."
+            "type": "comparison-table",
+            "headers": ["Task Name", "When to Set", "Notes"],
+            "rows": [
+              ["**Follow Up #[] — Tier #[]**", "On PI outstanding-kit accounts that need to mail back kit documents.", "The number tracks the attempt count; the tier tells your Assistant Manager (and you) which cadence applies. Example: *Follow Up #3 — Tier 1*."],
+              ["**Kit Rcvd / Process Kit**", "When a kit comes in but you can't process it immediately.", "Must be closed within 24 hours (next business day at the latest). Counts toward your team's productivity metrics."],
+              ["**Resend [Doc Type]**", "After kit processing reveals a document that came back with errors or requires corrections.", "Always contact the client before marking complete — they need to know a new document is on the way. Example: *Resend Exhibit A*."]
+            ]
           },
           {
-            "type": "paragraph",
-            "text": "**\"Kit Rcvd / Process Kit\"** — Set when a kit comes in but you can't process it immediately. **Must be closed within 24 hours** (next business day at the latest). This marks a task that can add to your team's productivity metrics."
+            "type": "subheading",
+            "text": "HP POP & Application Phase"
           },
           {
-            "type": "paragraph",
-            "text": "**\"Resend [Doc Type]\"** — Set after kit processing reveals a document that came back with errors or requires corrections. Example: *Resend Exhibit A*. **Always contact the client before marking this task complete**. You're sending a new document, they need to know to expect it."
+            "type": "comparison-table",
+            "headers": ["Task Name", "When to Set", "Notes"],
+            "rows": [
+              ["**Generate HP POP #[]**", "After kit processing, once you've confirmed the client needs WTCHP enrollment (not already enrolled or certified).", "The number tracks attempts to contact the client in order to draft and send the statements."],
+              ["**Resolve Suspension/Denial**", "After kit processing, when the client's WTCHP application was suspended or denied.", "Often requires calling the WTC Health Program Helpline or the clinic directly to determine the reason (commonly insufficient medical records or WTCHP POP Statements)."],
+              ["**WTCHP Enrollment Request — READY**", "When all three signed POP documents are back and the application can be submitted.", "Like Kit Rcvd, must be closed within 24 hours."]
+            ]
           },
           {
-            "type": "paragraph",
-            "text": "**\"Generate HP POP #[]\"** — Set after kit processing, when you've confirmed the client needs WTCHP enrollment (i.e., they're not already enrolled or already certified). The number tracks attempts to contact the client in order to draft and send the statements."
+            "type": "subheading",
+            "text": "Post-Application & Cross-Phase"
           },
           {
-            "type": "paragraph",
-            "text": "**\"Resolve Suspension/Denial\"** — Set after kit processing, when the client's WTCHP application was suspended or denied. Often this requires calling the WTC Health Program Helpline or the Clinic directly to determine the reason for application suspension or denial (often insufficient medical records or WTCHP POP Statements)."
-          },
-          {
-            "type": "paragraph",
-            "text": "**\"WTCHP Enrollment Request — READY\"** — Set when all three signed POP documents are back and the application can be submitted. Like Kit Rcvd, this **must be closed within 24 hours**."
-          },
-          {
-            "type": "paragraph",
-            "text": "**\"Follow Up — WTCHP\"** — Post-application, set 4–6 weeks after the application sent date. Tracks waiting time for WTCHP to process an application."
-          },
-          {
-            "type": "paragraph",
-            "text": "**\"Pre-Appointment Call\"** — Set after enrollment confirmation, when the client has a clinic and an IHE scheduled. This is the **MS handoff** — you're flagging the file for a Medical Specialist to take over.  This Task is assigned to Fred, who also likes to be Chattered in the thread with relevant details like the presence of Medical Records and the IHE date."
-          },
-          {
-            "type": "paragraph",
-            "text": "**\"Client Follow-Up #[] — [Reason]\"** — Catch-all for client-account follow-ups that aren't WTCHP-enrollment-specific. The reason in brackets is what makes this name useful. Example: *Client Follow-Up #2 — Awaiting medical records release*."
-          },
-          {
-            "type": "paragraph",
-            "text": "**\"GCL\"** and **\"FNL\"** — Tasks you set **for your Assistant Manager** (not yourself) after 4 unresponsive attempts (GCL — General Contact Letter) or 8 unresponsive attempts (FNL — Final Notification Letter). These trigger Physical Mail outreach and start the disengagement process."
-          },
-          {
-            "type": "paragraph",
-            "text": "**\"Inactive — Unresponsive\"** and **\"Inactive — Low Engagement\"** — Status labels you may encounter on stalled HP POP accounts. Unresponsive applies when HP POP was never generated. Low Engagement applies when HP POP was mailed but not returned. Specific triggers and the disengagement workflow are covered in a later module."
+            "type": "comparison-table",
+            "headers": ["Task Name", "When to Set", "Notes"],
+            "rows": [
+              ["**Follow Up — WTCHP**", "Post-application, 4–6 weeks after the application sent date.", "Tracks waiting time for WTCHP to process the application."],
+              ["**Pre-Appointment Call**", "After enrollment confirmation, when the client has a clinic and an IHE scheduled.", "The MS handoff. Assigned to Fred, who also likes to be Chattered in the thread with relevant details like the presence of medical records and the IHE date."],
+              ["**Client Follow-Up #[] — [Reason]**", "Catch-all for client-account follow-ups that aren't WTCHP-enrollment-specific.", "The reason in brackets is what makes this name useful. Example: *Client Follow-Up #2 — Awaiting medical records release*."],
+              ["**GCL** and **FNL**", "Cross-phase. Set for your Assistant Manager after 4 unresponsive attempts (GCL — General Contact Letter) or 8 (FNL — Final Notification Letter).", "These trigger physical-mail outreach from the Assistant Manager and start the disengagement process."],
+              ["**Inactive — Unresponsive** / **Inactive — Low Engagement**", "Status labels you may encounter on stalled HP POP accounts.", "Unresponsive: HP POP was never generated. Low Engagement: HP POP was mailed but not returned. Specific triggers and the disengagement workflow are covered in a later module."]
+            ]
           },
           {
             "type": "callout",
