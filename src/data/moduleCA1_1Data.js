@@ -63,29 +63,69 @@ export const MODULE_CA1_1 = {
           },
           {
             "type": "image",
-            "src": "[NEEDS ASSET: SVG diagram — horizontal flow of the five touchpoints as labeled boxes with cadence beneath each. Connected by arrows. Maya's avatar at the top left labeled 'CA I owns this stretch'. Brand palette: blues, sands, dark grey. The stretch ends with a handoff arrow to MS at the right.]",
-            "alt": "Diagram of the five client touchpoints during CA I ownership",
+            "src": "/src/assets/svg/ca1-1-touchpoints.svg",
+            "alt": "Five touchpoints of CA I client ownership: Intro and Kit Outstanding, Vetting and HP POP Generation, HP POP Return, Application Submitted, and Enrollment Confirmed with MS handoff. Cadence escalates from weekly to daily through HP POP Return then tapers back to weekly post-application.",
             "caption": "Maya is the client's primary point of contact from kit-out through enrollment confirmation."
           },
           {
-            "type": "paragraph",
-            "text": "**1. Intro and Kit Outstanding** — The client knows you by name, knows what's coming, and the kit gets back to us. Weekly contact until the kit is in the door."
-          },
-          {
-            "type": "paragraph",
-            "text": "**2. Exposure Vetting and HP POP Generation** — You've gathered the client's exposure story in enough detail to draft the WTCHP Victim Attestation. Witnesses are identified. Two Third Party Attestations are sent out for signature. Weekly cadence on the SOP, daily in practice once the drafts are in motion."
-          },
-          {
-            "type": "paragraph",
-            "text": "**3. HP POP Return** — All three signed POP documents are back. This is the highest-tempo phase of the role; the statements are the last block before the WTCHP application can be submitted."
-          },
-          {
-            "type": "paragraph",
-            "text": "**4. Application Submitted, Awaiting Acceptance** — The fax is out, the client has heard from you within 24 hours of submission, and they know what the next 4–8 weeks look like. Follow-up at 4, 8, and 10 weeks."
-          },
-          {
-            "type": "paragraph",
-            "text": "**5. Enrollment Confirmed, Handing Off to MS** — The client is enrolled, knows their clinic, and understands what the Initial Health Evaluation is. You've walked them through completing the Medical Health Questionnaire and Exposure Form, reminded them to tell us their IHE date, and set a Pre-Appointment task for the Medical Specialist."
+            "type": "tier-cards",
+            "tiers": [
+              {
+                "name": "Intro & Kit Follow-up",
+                "label": "Touchpoint 1",
+                "color": "#009bdf",
+                "bg": "#e6f5fc",
+                "border": "#b3dcf2",
+                "items": [
+                  "Cadence: weekly (per SOP, follow-up is set on illness tier; weekly is Maya's working cadence)",
+                  "The client knows you by name, knows what's coming, and the kit gets back to the firm."
+                ]
+              },
+              {
+                "name": "HP POP Generation",
+                "label": "Touchpoint 2",
+                "color": "#0883b8",
+                "bg": "#dff0f8",
+                "border": "#9ed1e8",
+                "items": [
+                  "Cadence: weekly",
+                  "Exposure story gathered, WVA drafted, witnesses identified, two TPAs sent for signature."
+                ]
+              },
+              {
+                "name": "HP POP Follow-up",
+                "label": "Touchpoint 3",
+                "color": "#c87515",
+                "bg": "#fbeed9",
+                "border": "#f0d4a4",
+                "items": [
+                  "Cadence: daily in practice",
+                  "All three signed POP documents back. Statements are the last block before submission."
+                ]
+              },
+              {
+                "name": "Submit WTCHP Application",
+                "label": "Touchpoint 4",
+                "color": "#5a7a4a",
+                "bg": "#e8efe2",
+                "border": "#c5d3b9",
+                "items": [
+                  "Turnaround: 24 hours from all documents arriving",
+                  "Fax is out, client heard from you within 24 hours, knows the 4–8 week timeline."
+                ]
+              },
+              {
+                "name": "Enrollment Confirmation",
+                "label": "Touchpoint 5",
+                "color": "#63656a",
+                "bg": "#ebebec",
+                "border": "#cccdd0",
+                "items": [
+                  "Cadence: 4 weeks, then weekly until confirmed",
+                  "Once confirmed: clinic assigned, MHQ/Exposure Form walked through, Pre-Appointment task set for MS."
+                ]
+              }
+            ]
           },
           {
             "type": "subheading",
@@ -156,63 +196,27 @@ export const MODULE_CA1_1 = {
           },
           {
             "type": "image",
-            "src": "[NEEDS ASSET: SVG visualization — vertical stack of six labeled bands, top to bottom: Inbound Correspondence (red, top of stack), Applications & Completed Kits (orange), Kit Follow-ups (yellow), Administrative Assignments (green), Resends (teal), Follow-ups non-KPI (blue, bottom). Each band labeled with the letter (I, A, K, A, R, F) on the left and a one-line description on the right. Visual implies 'work top-down'.]",
-            "alt": "IAKARF priority stack diagram",
+            "src": "/src/assets/svg/ca1-1-iakarf.svg",
+            "alt": "IAKARF priority stack: six color-coded bands from Inbound Correspondence at top through Follow-ups (non-KPI) at the bottom, each labeled with its initial letter and a one-line gloss.",
             "caption": "Top of the stack first. Work down."
           },
           {
-            "type": "subheading",
-            "text": "I — Inbound Correspondence"
-          },
-          {
-            "type": "paragraph",
-            "text": "Missed calls, Review Transmission tasks (routed by the Communications Team when a client contacts our general line), inbound emails, inbound texts. **All inbound communication should get a response within 24 hours**. "
+            "type": "comparison-table",
+            "headers": ["", "Category", "What it covers"],
+            "rows": [
+              ["I", "Inbound Correspondence", "Missed calls, Review Transmission tasks, inbound emails, inbound texts. Response within 24 hours."],
+              ["A", "Applications & Completed Kits", "WTCHP Application ready to submit, or kit just received in the mail. 24-hour turnaround. Production deliverables."],
+              ["K", "Kit Follow-ups", "Outstanding kits the client hasn't returned. High Priority first, then Follow-Up 1–4 (Tier 1+2), then 5–8 (Tier 1), then 5–8 (Tier 2), then past 8."],
+              ["A", "Administrative Assignments", "Drafting HP POP statements, Needs Enrollment processing, Suspension/Denial resolution."],
+              ["R", "Resends", "Kit documents that came back wrong, full kit resends, WTCHP Attestations that need correction, etc."],
+              ["F", "Follow-ups (non-KPI)", "WTCHP Statements follow-ups, WTCHP Enrollment Status follow-ups, miscellaneous client follow-ups."]
+            ]
           },
           {
             "type": "callout",
             "style": "info",
             "icon": "📅",
             "text": "**Calendly is your friend.** B&M uses Calendly, integrated with Salesforce, to streamline call scheduling. Going through the \"Send Calendly Link\" Salesforce flow generates a single-use Calendly link. In the flow you can choose your role and the meeting type (General Follow-Up, Document Review, Draft WTCHP Proof of Presence Call, etc.). Based on your selections, an invitation template populates, which you can edit and you send via SMS, email, or both.  **NOTE: Calendly links can only be sent to Related Contacts on the account**.  For living Clients, that should be the account's primary contact. "
-          },
-          {
-            "type": "subheading",
-            "text": "A — Applications and Completed Kits"
-          },
-          {
-            "type": "paragraph",
-            "text": "Two flavors: a **WTCHP Application that's ready to submit** (POP is in, Designated Rep, WTCHP Signature Page, and HIPAA are signed, the application can be completed today), or a **Kit that just came back in the mail** and needs to be processed. Both have a 24-hour turnaround target. These are **production deliverables** and determine if the team is meeting its productivity goals."
-          },
-          {
-            "type": "subheading",
-            "text": "K — Kit Follow-ups"
-          },
-          {
-            "type": "paragraph",
-            "text": "Outstanding kits — clients who haven't returned their intake kit yet. Sub-prioritize: any kit follow-up marked High Priority first, then Follow-Up 1–4 (Tier 1 and Tier 2), Follow-Up 5–8 (Tier 1), Follow-Up 5–8 (Tier 2), followed by anything past Follow-Up 8."
-          },
-          {
-            "type": "subheading",
-            "text": "A — Administrative Assignments"
-          },
-          {
-            "type": "paragraph",
-            "text": "The non-follow-up internal work: **drafting HP POP statements**, **Needs Enrollment** processing, **Suspension/Denial resolution**."
-          },
-          {
-            "type": "subheading",
-            "text": "R — Resends"
-          },
-          {
-            "type": "paragraph",
-            "text": "Documents that need to go back out: kit documents that came in wrong, full kit resends, WTCHP Attestations that need to be corrected, ect."
-          },
-          {
-            "type": "subheading",
-            "text": "F — Follow-ups (non-KPI)"
-          },
-          {
-            "type": "paragraph",
-            "text": "Everything else. WTCHP Statements follow-ups, WTCHP Enrollment Status follow-ups, miscellaneous client account follow-ups. These matter, but, with the exception of WTCHP Statement follow-ups, may not lead directly to the completion of one of the team's production deliverables."
           },
           {
             "type": "callout",
@@ -326,36 +330,26 @@ export const MODULE_CA1_1 = {
             "text": "One thing that can surprise new CA I's is how the **tempo of the role changes** depending on where the client is in the journey. The intro and kit-outstanding phase is patient and weekly. By the time you're chasing signed Health Program Statements, you might be calling and texting daily."
           },
           {
-            "type": "image",
-            "src": "[NEEDS ASSET: SVG horizontal timeline visualization. Five labeled stages left to right: 'Kit Outstanding', 'HP POP Generation', 'Awaiting Statements', 'Application Submitted', 'Awaiting Enrollment'. Each stage shows its cadence as a visual frequency (e.g., dots representing follow-up attempts — sparse dots for weekly Tier 1, denser for daily). Color gradient from cool/calm (left) to hot/urgent (middle) back to cool (right) to convey the ramp shape.]",
-            "alt": "Cadence ramp timeline showing follow-up frequency through the client journey",
-            "caption": "Cadence is shaped like a wave: builds toward HP POP return, peaks there, settles back down post-submission."
-          },
-          {
-            "type": "subheading",
-            "text": "The cadence by stage"
-          },
-          {
-            "type": "paragraph",
-            "text": "**Kit Outstanding (Tier 1):** 1.5–2 weeks between follow-ups. Tier 1 clients have more serious conditions so we move a little more quickly."
-          },
-          {
-            "type": "paragraph",
-            "text": "**Kit Outstanding (Tier 2):** 2.5–3 weeks between follow-ups. Same protocol, longer breathing room."
-          },
-          {
-            "type": "paragraph",
-            "text": "**Generate HP POP (drafting through return):** 1 week minimum cadence per the SOP, often daily in practice once drafts are with the client and witnesses. These statements are the last block before the application can go out. Maya texts twice and calls once on busy weeks. As with the outstanding-kit cadence, the SOP escalation triggers at 4 unsuccessful attempts (LexisNexis search initiated by the Assistant Manager) and 8 unsuccessful attempts (FNL plus \"No Case — Unresponsive\")."
-          },
-          {
-            "type": "paragraph",
-            "text": "**Post-Application WTCHP Confirmation:** 4 weeks before the first follow-up; the WTCHP needs that long to process. Then **weekly** until enrollment is confirmed, suspended, or denied. After 4 unsuccessful attempts, the Assistant Manager initiates a LexisNexis search; after 8 unsuccessful attempts, the account is escalated for FNL and flagged for disengagement."
+            "type": "comparison-table",
+            "headers": ["Stage", "Cadence", "Notes"],
+            "rows": [
+              ["Kit Outstanding (Tier 1)", "1.5–2 weeks between follow-ups", "Tier 1 clients have more serious conditions, so we move a little more quickly."],
+              ["Kit Outstanding (Tier 2)", "2.5–3 weeks between follow-ups", "Same protocol, longer breathing room."],
+              ["Generate HP POP", "1 week per SOP, often daily in practice", "Once drafts are with the client and witnesses, statements are the last block before the application can go out. Maya texts twice and calls once on busy weeks."],
+              ["Post-Application WTCHP Confirmation", "4 weeks before the first follow-up, then weekly", "The WTCHP needs that long to process. Weekly contact continues until enrollment is confirmed, suspended, or denied."]
+            ]
           },
           {
             "type": "callout",
             "style": "info",
             "icon": "🌊",
             "text": "**Why the differences in follow-up Cadence?** The kit-out phase is patient because the client controls the timeline (they have to physically fill out and return paperwork). HP POP Follow-up is slightly more urgent because there are fewer barriers to enrollment (unsigned statements go out, signed statements come back, application is submitted). The post-application follow-up slows down again because the **WTCHP** controls the timeline (we're waiting on a federal program)."
+          },
+          {
+            "type": "callout",
+            "style": "warn",
+            "icon": "⚠",
+            "text": "**Across all stages, the SOP escalation triggers are the same:** at 4 unsuccessful contact attempts, the Assistant Manager initiates a LexisNexis search; at 8 unsuccessful attempts, the account is escalated for FNL and flagged for disengagement. The Outstanding-Kit protocol also adds a GCL letter from the Assistant Manager at the 4-attempt mark."
           }
         ]
       }
@@ -402,7 +396,7 @@ export const MODULE_CA1_1 = {
         "blocks": [
           {
             "type": "paragraph",
-            "text": "Every task you set in Salesforce has three audiences: **you** (when you come back to it next week), **your Assitant Manager** (during their review of your work), and **the next CA** (if an account is reassigned, or when a CA II inherits the file at certification). Proper Task naming tells what's happening at a glance."
+            "text": "Every task you set in Salesforce has three audiences: **you** (when you come back to it next week), **your Assistant Manager** (during their review of your work), and **the next CA** (if an account is reassigned, or when a CA II inherits the file at certification). Proper Task naming tells what's happening at a glance."
           },
           {
             "type": "subheading",
@@ -504,32 +498,25 @@ export const MODULE_CA1_1 = {
             "text": "Most clients respond, some do not. The cadence has explicit triggers at 4 unresponsive attempts, 8 unresponsive attempts, and again at the disengagement decision."
           },
           {
-            "type": "subheading",
-            "text": "The escalation ladder"
-          },
-          {
             "type": "image",
-            "src": "[NEEDS ASSET: SVG flow diagram — vertical ladder showing Follow-Up 1-4 → GCL trigger → Follow-Up 5-8 → FNL trigger → Disengagement decision. Side branch off the FNL stage showing LexisNexis Search as Assistant Manager-initiated. Each box labeled with the attempt count and the action that triggers.]",
-            "alt": "Escalation ladder showing GCL and FNL triggers at 4 and 8 unresponsive attempts",
+            "src": "/src/assets/svg/ca1-1-escalation.svg",
+            "alt": "Escalation ladder for the outstanding-kit protocol: Follow-Up Cycle 1 (#1-#4) leads to a GCL trigger after 4 unsuccessful attempts; Follow-Up Cycle 2 (#5-#8) leads to an FNL trigger after 8; no response after FNL leads to No Case Unresponsive. Side-branches show the CA setting a GCL task on their Assistant Manager and the Assistant Manager initiating a LexisNexis search.",
             "caption": "Most clients move forward before reaching FNL. The ones who don't, your Assistant Manager takes over."
           },
           {
-            "type": "paragraph",
-            "text": "**After 4 unresponsive follow-up attempts:** You set a **GCL** task on your Assistant Manager. GCL = General Contact Letter. The Assistant Manager sends a letter that escalates the firm's outreach, same content as your follow-ups but on letterhead and signed by the Assistant Manager. This often shakes loose a response from clients who've been letting voicemails pile up."
-          },
-          {
-            "type": "paragraph",
-            "text": "**After 8 unresponsive follow-up attempts:** You set an **FNL** task on your Assistant Manager. FNL = Final Notification Letter. This is the formal warning that the firm will move toward disengagement if there's no response. Around the same time, the Assistant Manager may initiate a **LexisNexis search** to confirm the client's contact information hasn't changed (or, sometimes, that the client hasn't passed away)."
-          },
-          {
-            "type": "paragraph",
-            "text": "**After FNL with no response:** The account is either marked **\"No Case — Unresponsive\"** (for outstanding-kit accounts) or moved to disengagement per the Client Disengagement SOP."
+            "type": "comparison-table",
+            "headers": ["Trigger", "What it is", "Who acts"],
+            "rows": [
+              ["4 unresponsive attempts", "**GCL** — General Contact Letter. Same content as your follow-ups, but on letterhead and signed by the Assistant Manager.", "You set the GCL task. The Assistant Manager sends the letter."],
+              ["8 unresponsive attempts", "**FNL** — Final Notification Letter. The formal warning that the firm will move toward disengagement if there's no response.", "You set the FNL task. The Assistant Manager sends the letter and may initiate a LexisNexis search to confirm contact info hasn't changed."],
+              ["No response after FNL", "Outstanding-kit accounts are marked **\"No Case — Unresponsive\"**. Other contexts move to disengagement per the Client Disengagement SOP.", "Account marked. File preserved in case the client re-engages."]
+            ]
           },
           {
             "type": "callout",
             "style": "info",
             "icon": "🔍",
-            "text": "**Detective work happens between the GCL and FNL.** Check Salesforce for alternative phone numbers and emails. Reach out to the emergency contact in Related Contacts. Reach out to identified witnesses, who sometimes know how to reach the client. Google for an obituary. The LexisNexis search is the Assistant Manager's tool, but the same instinct applies to you: when the cadence isn't working, ask whether the contact info is still right."
+            "text": "**Detective work happens between the GCL and FNL.** Check Salesforce for alternative phone numbers and emails. Reach out to the emergency contact in Related Contacts. Reach out to identified witnesses, who sometimes know how to reach the client. Google for an obituary. The LexisNexis search is the Assistant Manager's tool (and can also surface client death, not just contact-info changes), but the same instinct applies to you: when the cadence isn't working, ask whether the contact info is still right."
           },
           {
             "type": "callout",
