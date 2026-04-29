@@ -4,10 +4,21 @@ import { Ctx } from "../state";
 import { P, Nav, ET } from "./Shared";
 import { GT } from "./Glossary";
 import yajairaImg from "../assets/Yajaira_Torso.png";
+import victorImg   from "../assets/VICTOR_TORSO.png";
+
+// ─── Character image registry ─────────────────────────────────────────────────
+// Add new entries here as new story-card characters are introduced.
+// Keys must match the `character` field in the story card data exactly.
+// Falls back to Yajaira for any unrecognised character name.
+const CHARACTER_IMAGES = {
+  Yajaira: yajairaImg,
+  Victor:  victorImg,
+};
 
 export default function StoryCard({ data, cardId }) {
   const { editMode } = useContext(Ctx);
   const [imgErr, setImgErr] = useState(false);
+  const charImg = CHARACTER_IMAGES[data.character] ?? yajairaImg;
 
   return (
     <div>
@@ -15,7 +26,7 @@ export default function StoryCard({ data, cardId }) {
         <div className="flex items-center gap-4 mb-6">
           {!imgErr
             ? <div className="w-14 h-14 rounded-full overflow-hidden shrink-0">
-                <img src={yajairaImg} alt={data.character} className="w-full h-full object-cover" onError={()=>setImgErr(true)}/>
+                <img src={charImg} alt={data.character} className="w-full h-full object-cover" onError={()=>setImgErr(true)}/>
               </div>
             : <P l={data.portrait} c={data.portraitColor}/>
           }
