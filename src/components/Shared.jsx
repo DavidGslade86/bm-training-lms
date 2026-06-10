@@ -498,12 +498,12 @@ export function Blocks({ blocks, cardId }) {
       return <SufficiencyQuiz key={i} block={b} cardId={cardId} blockIndex={i} />;
 
     if (b.type === "journey-map")
-      // Breakout: fills viewport width minus the module sidebar (ml-60 = 15rem).
-      // margin-left cancels the parent's px-10 (40px) padding so the map starts
-      // at the left edge of the content column. If the sidebar width changes,
-      // update both values (15rem and the -40px margin-left) here.
+      // Breakout: left edge stays flush with the surrounding text (no margin-left
+      // adjustment). Width fills from that text position to the right viewport
+      // edge: 100vw minus sidebar (ml-60 = 15rem) minus left content padding
+      // (px-10 = 40px). If either value changes, update the calc() here.
       return (
-        <div key={i} style={{ marginLeft: "-40px", width: "calc(100vw - 15rem)" }}>
+        <div key={i} style={{ width: "calc(100vw - 15rem - 40px)" }}>
           <ClientJourneyMap />
         </div>
       );

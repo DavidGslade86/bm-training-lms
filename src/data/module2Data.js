@@ -672,7 +672,7 @@ export const MODULE2 = {
         "blocks": [
           {
             "type": "paragraph",
-            "text": "Every PI client follows the same journey through two programs and three phases of work. Understanding the full arc — from the first call through VCF award — is what separates reactive case handlers from proactive client advocates. Explore each stage below."
+            "text": "The following represents a typical path through the Personal Injury (PI) client journey at Barasch & McGarry. Click on a step to learn more."
           },
           {
             "type": "journey-map"
