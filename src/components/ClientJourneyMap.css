@@ -26,8 +26,7 @@
 }
 
 .cjm__head {
-  max-width: 1240px;
-  margin: 0 auto 22px;
+  margin: 0 0 22px;
 }
 .cjm__title {
   margin: 0;
@@ -77,8 +76,7 @@
   max-width: 100%;
 }
 .cjm__rail {
-  max-width: 1240px;
-  margin: 0 auto 20px;
+  margin: 0 0 20px;
   overflow-x: auto;
   overflow-y: hidden;
   scroll-behavior: smooth;
@@ -349,8 +347,7 @@
 
 /* progress ticker under rail */
 .cjm__foot {
-  max-width: 1240px;
-  margin: 4px auto 0;
+  margin: 4px 0 0;
   display: flex;
   align-items: center;
   gap: 14px;
