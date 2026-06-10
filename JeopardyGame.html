@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B&M Training — Jeopardy Review</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, sans-serif; background: #0a1a4a; min-height: 100vh; padding: 1.5rem; }
+h1 { color: #f0c040; text-align: center; font-size: 1.5rem; margin-bottom: 1.25rem; letter-spacing: 1px; text-transform: uppercase; }
+.board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 1rem; max-width: 900px; margin-left: auto; margin-right: auto; }
+.cat-header { background: #1a3a8f; color: #fff; text-align: center; padding: 10px 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 6px; min-height: 60px; display: flex; align-items: center; justify-content: center; line-height: 1.3; }
+.cell { background: #1a3a8f; color: #f0c040; text-align: center; padding: 14px 6px; font-size: 20px; font-weight: 600; border-radius: 6px; cursor: pointer; min-height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: background 0.15s, transform 0.1s; user-select: none; }
+.cell:hover { background: #2a4aaf; transform: scale(1.02); }
+.cell.used { background: #0a1a4a; color: #0a1a4a; cursor: default; pointer-events: none; border: 1px solid #1a2a6a; }
+.scores { display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; max-width: 900px; margin-left: auto; margin-right: auto; align-items: center; }
+.score-card { background: #1a3a8f; border: 2px solid #2a4aaf; border-radius: 8px; padding: 8px 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: border-color 0.12s; }
+.score-card.active { border-color: #f0c040; }
+.score-name { font-size: 13px; font-weight: 600; color: #fff; }
+.score-val { font-size: 18px; font-weight: 700; color: #f0c040; min-width: 52px; text-align: right; }
+.add-player { background: transparent; border: 2px dashed #2a4aaf; border-radius: 8px; padding: 8px 14px; cursor: pointer; font-size: 13px; color: #7090c0; }
+.add-player:hover { border-color: #f0c040; color: #f0c040; }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 1rem; }
+.modal { background: #1a3a8f; color: #fff; border-radius: 12px; padding: 2rem; max-width: 600px; width: 100%; border: 2px solid #f0c040; }
+.modal-value { color: #f0c040; font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+.modal-cat { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; margin-bottom: 1.25rem; }
+.modal-dd { display: inline-block; font-size: 11px; background: #f0c040; color: #1a1a1a; padding: 3px 10px; border-radius: 4px; font-weight: 700; margin-bottom: 1rem; }
+.modal-q { font-size: 17px; line-height: 1.6; margin-bottom: 1.5rem; }
+.modal-a { background: rgba(255,255,255,0.1); border-radius: 8px; padding: 1rem 1.25rem; font-size: 15px; line-height: 1.6; margin-bottom: 1.5rem; display: none; border-left: 3px solid #f0c040; }
+.modal-a.shown { display: block; }
+.modal-a .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #f0c040; margin-bottom: 6px; font-weight: 700; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { padding: 9px 18px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: opacity 0.15s; }
+.btn:hover { opacity: 0.88; }
+.btn-reveal { background: #f0c040; color: #1a1a1a; }
+.btn-correct { background: #2d8a4a; color: #fff; }
+.btn-wrong { background: #b03030; color: #fff; }
+.btn-close { background: rgba(255,255,255,0.15); color: #fff; margin-left: auto; }
+.final-section { background: #1a3a8f; color: #fff; border-radius: 10px; padding: 1.5rem; margin-top: 0.5rem; max-width: 900px; margin-left: auto; margin-right: auto; border: 2px solid #f0c040; }
+.final-title { color: #f0c040; font-size: 16px; font-weight: 700; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 1px; }
+.final-q { font-size: 15px; line-height: 1.6; margin-bottom: 1rem; }
+.final-a { background: rgba(255,255,255,0.1); border-radius: 6px; padding: 0.75rem 1rem; font-size: 14px; line-height: 1.6; display: none; margin-top: 0.75rem; }
+.final-a.shown { display: block; }
+.wager-inputs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 0.75rem; }
+.wager-label { font-size: 11px; color: #f0c040; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.wager-wrap { display: flex; flex-direction: column; }
+.wager-input { border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: #fff; border-radius: 6px; padding: 6px 10px; font-size: 13px; width: 150px; }
+.wager-input::placeholder { color: rgba(255,255,255,0.4); }
+</style>
+</head>
+<body>
+<h1>B&M Training — Jeopardy Review</h1>
+<div class="scores" id="scores"></div>
+<div class="board" id="board"></div>
+<div class="final-section">
+  <div class="final-title">Final Jeopardy — The Big Picture</div>
+  <div class="final-q">This is the maximum Non-Economic Loss award for a living claimant with no Economic Loss — and the threshold above which a prior lawsuit settlement or VCF1 award would result in zero additional compensation from the VCF.</div>
+  <div class="wager-inputs" id="wager-inputs"></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:0.75rem;">
+    <button class="btn btn-reveal" onclick="document.getElementById('final-ans').classList.add('shown')">Reveal answer</button>
+  </div>
+  <div class="final-a" id="final-ans">
+    <strong style="color:#f0c040">What is $340,000?</strong><br><br>
+    The maximum NEL award is $340,000. If a claimant previously received a settlement or VCF1 award equal to or greater than this amount and has no Economic Loss, the collateral offset results in a $0 award. This is why prior lawsuit history requires attorney review before investing resources in building the claim.
+  </div>
+</div>
+<div class="overlay" id="overlay" style="display:none;">
+  <div class="modal">
+    <div class="modal-value" id="m-val"></div>
+    <div class="modal-cat" id="m-cat"></div>
+    <div id="m-dd" class="modal-dd" style="display:none;">Daily Double</div>
+    <div class="modal-q" id="m-q"></div>
+    <div class="modal-a" id="m-a">
+      <div class="label">Answer</div>
+      <div id="m-a-text"></div>
+    </div>
+    <div class="btn-row" id="btn-row"></div>
+  </div>
+</div>
+<script>
+const CATS = ["Two Programs","Proof of Presence","Intake Kit","Timing Rules","Firm Process"];
+const VALUES = [200,400,600,800,1000];
+const QS = [
+  [
+    { q:"This federal agency administers the Victim Compensation Fund.", a:"What is the Department of Justice (DOJ)?" },
+    { q:"True or false — a claimant who says they are enrolled in the WTCHP has also filed their VCF claim.", a:"False. Enrollment in the WTCHP does not submit a VCF claim. The two programs are administered by different agencies and each requires a completely separate process. This is one of the most common points of confusion for new clients." },
+    { q:"This pathway allows a claimant's condition to bypass WTCHP certification and be confirmed directly by the VCF.", a:"What is the Private Physician Process (PPP)? Available for extremis cases, foreign residents, those who don't qualify for the WTCHP, or those for whom certification would cause significant hardship." },
+    { q:"Pentagon workers are eligible to file a VCF claim but are not eligible for this related 9/11 program.", a:"What is the World Trade Center Health Program (WTCHP)? Because Pentagon workers cannot get WTCHP certification, they must use the PPP — and an EVL or TPV stating hours and location satisfies the PPP hours requirement.", daily:true },
+    { q:"A claimant previously received a $350,000 settlement from a timely-resolved 9/11 lawsuit. They have no Economic Loss. A successful VCF claim will likely yield an award of this dollar amount.", a:"What is $0? The collateral offset reduces the VCF award because the prior settlement exceeds the $340,000 NEL maximum. Attorney review is required before investing resources in this claim." }
+  ],
+  [
+    { q:"One of these two documents — if properly completed and sent directly to the VCF by the employer — is considered sufficient Proof of Presence on its own for a claimant who worked in the 9/11 disaster area during the exposure period.", a:"What is an Employment Verification Letter or a Third Party Verification Form? Either one, if it contains specific dates and work location and is sent directly to the VCF by the employer, is sufficient without any witness statements." },
+    { q:"At minimum, this many of the two required eye-witnesses must be non-family members.", a:"What is one? One non-family plus one family member has historically been sufficient. You cannot submit only family witnesses — but you should not avoid family witnesses when they are what you have." },
+    { q:"Effective February 1, 2023, the VCF no longer accepts these documents in place of the official Witness Presence Statement form.", a:"What are affidavits? All new or corrected witness statements must use the current VCF Witness Presence Statement form." },
+    { q:"This pre-2011 NYPD document is treated by the VCF as the equivalent of one non-family eye-witness Witness Presence Statement.", a:"What is a Notice of Participation (NOP)? A pre-2011 NOP plus one additional non-family eye-witness WPS is sufficient. A post-2011 NOP is supplemental only." },
+    { q:"Before the VCF will accept two eyewitness Witness Presence Statements as sufficient Proof of Presence, we must demonstrate we attempted to collect this — a general term covering Employment Verification Letters, certified transcripts, and contemporaneous employment, residence, or school documents.", a:"What is primary evidence? The VCF expects us to pursue primary evidence first — and to document the attempt even when we can't get it — before relying on witness statements alone." }
+  ],
+  [
+    { q:"This VCF authorization form verifies the claimant's name, date of birth, Social Security number, and VCF claim number — and is the VCF's source of truth for that identity in their system.", a:"What is the CIRF — Claim Information Resolution Form?" },
+    { q:"Every VCF and WTCHP authorization form in the intake kit requires this type of signature — no exceptions.", a:"What is a hand-written original signature? Electronic signatures, typed names, and DocuSign certificates are not accepted by the VCF or WTCHP." },
+    { q:"On the VCF Signature Page, the second-to-last initials line must only be completed in this specific scenario.", a:"What is filing a claim on behalf of a deceased victim? This line designates a Personal Representative and must be left completely blank for living claimants — it is the one line on the Signature Page a living claimant does NOT initial." },
+    { q:"If a client asks whether they need to initial the line on Exhibit A that mentions mental health records — and they tell you they have no mental health conditions — you should tell them this.", a:"Initial it anyway. The mental health initials field is required for all claimants regardless of diagnosis. It authorizes release of any mental health information that may exist in their records, and a blank field is one of the most common reasons Exhibit A is rejected during preliminary review." },
+    { q:"Documents uploaded to the VCF's Claim Management System have this permanent characteristic that makes checking for errors before upload essential.", a:"What is they cannot be removed or deleted once uploaded? The CMS retains every document permanently. A document with incorrect PII uploaded to the wrong account is treated as a data breach — check everything before it goes in." }
+  ],
+  [
+    { q:"This is the minimum latency period required between first 9/11 exposure and diagnosis for most solid cancers.", a:"What is 4 years?" },
+    { q:"GERD occurring alone — with no other WTC-related condition — has this Maximum Time Interval.", a:"What is 1 year? If GERD co-occurs with another aerodigestive condition, the MTI extends to 5 years." },
+    { q:"COPD — both new onset and WTC-exacerbated — and all Interstitial Lung Diseases share this Maximum Time Interval.", a:"What is no Maximum Time Interval? These conditions can be certified regardless of how much time has passed since last exposure." },
+    { q:"A claimant is certified by the WTCHP on March 1, 2024. This is the deadline by which they must register with the VCF.", a:"What is March 1, 2026? Claimants must register within two years of their WTCHP certification date.", daily:true },
+    { q:"This is the exact VCF exposure period for the NYC exposure zone — the window during which presence must be documented.", a:"What is September 11, 2001 through May 30, 2002? VCF presence begins at 10:00 AM on 9/11 — approximately when the first tower fell." }
+  ],
+  [
+    { q:"B&M uses these defined follow-up timelines across almost every stage of the claim process — not just enrollment — to ensure claims are moving forward and no client falls through the cracks.", a:"What are SLAs — Service Level Agreements?" },
+    { q:"A document in a client's Salesforce e-file marked with these three letters should be kept on file but never submitted — because it is insufficient, inaccurate, or superseded.", a:"What is DNU — Do Not Use? Never delete a document from the file. If it shouldn't be submitted, mark it DNU." },
+    { q:"This supporting document status in Salesforce indicates that an acceptable document has been received, reviewed, and is sufficient for its role in the claim process.", a:"What is Closed? A document is Closed when an acceptable version is on file, reviewed by an account owner or supervisor, and the status has been updated with the received and closed dates." },
+    { q:"This is the strategic reason not to submit supplemental Proof of Presence documents when you already have sufficient primary evidence.", a:"What is avoiding unnecessary Missing Information letters? Submitting weak or supplemental POP alongside sufficient evidence gives the VCF more to scrutinize — and anything they question becomes an MI letter that slows the claim." },
+    { q:"B&M's firm-wide WTCHP Designated Representative — the person who communicates with NIOSH on behalf of clients when normal channels are exhausted.", a:"Who is Ryah Mesch? Her involvement requires a sufficient Victim Attestation on file, witness contact information in Salesforce, and a prior conference call attempt with the WTCHP with the client on the line." }
+  ]
+];
+
+let players = [{name:"Player 1", score:0}];
+let activePlayer = 0;
+let currentCell = null;
+let revealed = false;
+
+function renderScores() {
+  document.getElementById('scores').innerHTML = players.map((p,i) =>
+    `<div class="score-card${i===activePlayer?' active':''}" onclick="setActive(${i})">
+      <span class="score-name">${p.name}</span>
+      <span class="score-val">$${p.score.toLocaleString()}</span>
+    </div>`
+  ).join('') + `<button class="add-player" onclick="addPlayer()">+ Add player</button>`;
+  updateWagers();
+}
+
+function setActive(i) { activePlayer=i; renderScores(); }
+
+function addPlayer() {
+  if (players.length>=6) return;
+  const n=prompt('Player name:');
+  if(n){ players.push({name:n.trim()||`Player ${players.length+1}`,score:0}); activePlayer=players.length-1; renderScores(); }
+}
+
+function updateWagers() {
+  document.getElementById('wager-inputs').innerHTML = players.map((p,i) =>
+    `<div class="wager-wrap"><div class="wager-label">${p.name}</div><input class="wager-input" id="wager-${i}" type="number" placeholder="Wager" min="0"/></div>`
+  ).join('');
+}
+
+function renderBoard() {
+  let html = CATS.map(c=>`<div class="cat-header">${c}</div>`).join('');
+  for(let r=0;r<5;r++) for(let c=0;c<5;c++)
+    html += `<div class="cell" id="cell-${c}-${r}" onclick="openQ(${c},${r})">$${VALUES[r]}</div>`;
+  document.getElementById('board').innerHTML = html;
+}
+
+function openQ(col,row) {
+  const q=QS[col][row]; currentCell={col,row}; revealed=false;
+  document.getElementById('m-val').textContent=`$${VALUES[row]}`;
+  document.getElementById('m-cat').textContent=CATS[col];
+  document.getElementById('m-q').textContent=q.q;
+  document.getElementById('m-a-text').textContent=q.a;
+  document.getElementById('m-dd').style.display=q.daily?'inline-block':'none';
+  document.getElementById('m-a').classList.remove('shown');
+  document.getElementById('btn-row').innerHTML=`
+    <button class="btn btn-reveal" onclick="revealAnswer()">Reveal answer</button>
+    <button class="btn btn-close" onclick="closeModal(false)">Close</button>`;
+  document.getElementById('overlay').style.display='flex';
+}
+
+function revealAnswer() {
+  if(revealed) return; revealed=true;
+  document.getElementById('m-a').classList.add('shown');
+  const val=VALUES[currentCell.row];
+  document.getElementById('btn-row').innerHTML=
+    players.map((p,i)=>`<button class="btn btn-correct" onclick="award(${i},${val})">&#10003; ${p.name}</button>`).join('')+
+    `<button class="btn btn-wrong" onclick="closeModal(true)">&#10007; Wrong</button>
+     <button class="btn btn-close" onclick="closeModal(true)">Skip</button>`;
+}
+
+function award(i,val) { players[i].score+=val; closeModal(true); }
+
+function closeModal(markUsed) {
+  if(markUsed&&currentCell) {
+    const el=document.getElementById(`cell-${currentCell.col}-${currentCell.row}`);
+    if(el) el.classList.add('used');
+  }
+  document.getElementById('overlay').style.display='none';
+  renderScores();
+}
+
+renderScores();
+renderBoard();
+</script>
+</body>
+</html>
