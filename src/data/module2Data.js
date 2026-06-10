@@ -663,6 +663,24 @@ export const MODULE2 = {
       }
     },
     {
+      "id": "client-journey-map",
+      "nav": "The Client Journey",
+      "type": "content",
+      "data": {
+        "title": "The PI Client Journey",
+        "subtitle": "From first contact to award — 18 stages across 6 phases",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Every PI client follows the same journey through two programs and three phases of work. Understanding the full arc — from the first call through VCF award — is what separates reactive case handlers from proactive client advocates. Explore each stage below."
+          },
+          {
+            "type": "journey-map"
+          }
+        ]
+      }
+    },
+    {
       "id": "assessment",
       "nav": "Final Assessment",
       "type": "assessment",

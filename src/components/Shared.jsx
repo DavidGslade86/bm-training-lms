@@ -4,6 +4,7 @@ import { Ctx } from "../state";
 import { GT } from "./Glossary";
 import mapImg from "../assets/911-map-alt.jpg";
 import yajairaImg from "../assets/Yajaira_Torso.png";
+import ClientJourneyMap from "./ClientJourneyMap";
 
 // ─── Md: simple **bold** renderer (no glossary) ──────
 export function Md({ t }) {
@@ -495,6 +496,9 @@ export function Blocks({ blocks, cardId }) {
 
     if (b.type === "sufficiency-quiz")
       return <SufficiencyQuiz key={i} block={b} cardId={cardId} blockIndex={i} />;
+
+    if (b.type === "journey-map")
+      return <ClientJourneyMap key={i} />;
 
     return null;
   });
