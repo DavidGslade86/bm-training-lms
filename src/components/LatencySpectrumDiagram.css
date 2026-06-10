@@ -1,0 +1,474 @@
+/* LatencySpectrumDiagram.css
+ * Adapted from design tool Component 2 — Latency / MTI spectrum.
+ * Scoped to .c2. Global html/body/reset rules removed; min-height removed.
+ */
+
+.c2 {
+  --cream: #fdfcfa;
+  --cream-2: #f7f4ee;
+  --border: #e8e2d6;
+  --border-soft: #efeae0;
+  --ink: #26251f;
+  --ink-soft: #5f5c53;
+  --ink-faint: #948f83;
+  --cancer: #009bdf;
+  --cancer-deep: #0a6fa0;
+  --cancer-tint: #e3f3fb;
+  --noncancer: #63656a;
+  --noncancer-deep: #4a4c50;
+  --noncancer-tint: #ececed;
+  --amber: #c87515;
+  --amber-tint: #f8edda;
+  --sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  font-family: var(--sans);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  background: var(--cream);
+}
+.c2 *, .c2 *::before, .c2 *::after { box-sizing: border-box; }
+
+.c2-wrap { padding: 32px 36px 30px; }
+
+/* header */
+.c2-head { margin-bottom: 18px; }
+.c2-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: var(--ink-faint);
+}
+.c2-head h2 {
+  margin: 6px 0 0;
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.c2-head p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  max-width: 660px;
+  text-wrap: pretty;
+}
+
+/* legend */
+.c2-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0 6px;
+}
+.c2-rule {
+  flex: 1 1 280px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: #fff;
+  padding: 11px 14px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+.c2-rule::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+}
+.c2-rule[data-k="cancer"]::before { background: var(--cancer); }
+.c2-rule[data-k="non"]::before { background: var(--noncancer); }
+.c2-rule .glyph {
+  width: 46px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+/* floor glyph */
+.c2-rule[data-k="cancer"] .glyph::before {
+  content: "";
+  width: 30px; height: 2px;
+  background: var(--cancer);
+}
+.c2-rule[data-k="cancer"] .glyph::after {
+  content: "";
+  position: absolute;
+  right: 6px;
+  width: 0; height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 8px solid var(--cancer);
+}
+.c2-rule[data-k="cancer"] .stop {
+  position: absolute;
+  left: 8px;
+  width: 2px; height: 16px;
+  background: var(--cancer);
+  border-radius: 2px;
+}
+/* ceiling glyph */
+.c2-rule[data-k="non"] .glyph .box {
+  width: 30px; height: 13px;
+  border: 2px solid var(--noncancer);
+  border-radius: 3px;
+  background: var(--noncancer-tint);
+}
+.c2-rule[data-k="non"] .glyph .cap {
+  position: absolute;
+  right: 6px;
+  width: 3px; height: 22px;
+  background: var(--noncancer);
+  border-radius: 2px;
+}
+.c2-rule .rtext .rk {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.c2-rule[data-k="cancer"] .rk { color: var(--cancer-deep); }
+.c2-rule[data-k="non"] .rk { color: var(--noncancer-deep); }
+.c2-rule .rtext .rd {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  margin-top: 2px;
+  text-wrap: pretty;
+}
+
+/* chart */
+.c2-chart {
+  margin-top: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+  overflow: hidden;
+  position: relative;
+  --lane-left: 232px;
+  --lane-right: 22px;
+}
+
+/* section band header */
+.c2-band {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 18px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.c2-band .swatch {
+  width: 11px; height: 11px; border-radius: 3px; flex: none;
+}
+.c2-band--cancer { background: var(--cancer-tint); color: var(--cancer-deep); }
+.c2-band--non { background: var(--noncancer-tint); color: var(--noncancer-deep); }
+.c2-band .sub {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+}
+
+/* plotted row */
+.c2-row {
+  display: grid;
+  grid-template-columns: var(--lane-left) 1fr;
+  align-items: center;
+  min-height: 46px;
+  border-top: 1px solid var(--border-soft);
+  transition: background 0.16s;
+}
+.c2-row:hover { background: var(--cream-2); }
+.c2-rowlabel {
+  padding: 7px 14px 7px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.c2-rowlabel .nm {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.28;
+  color: var(--ink);
+  text-wrap: pretty;
+}
+.c2-rowlabel .val {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.c2-row[data-k="cancer"] .val { color: var(--cancer-deep); }
+.c2-row[data-k="non"] .val { color: var(--noncancer-deep); }
+
+.c2-track {
+  position: relative;
+  height: 100%;
+  margin: 0 var(--lane-right) 0 0;
+}
+.c2-trackpad {
+  position: absolute;
+  inset: 0;
+}
+
+/* cancer bar */
+.c2-bar {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 11px;
+  display: flex;
+  align-items: center;
+}
+.c2-bar--cancer {
+  border-radius: 0 6px 6px 0;
+  background: repeating-linear-gradient(90deg, var(--cancer) 0 7px, color-mix(in srgb, var(--cancer) 78%, #fff) 7px 14px);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
+  opacity: 0.32;
+  transition: opacity 0.18s, filter 0.18s;
+}
+.c2-bar--cancer::after {
+  content: "";
+  position: absolute;
+  right: -8px; top: 50%;
+  transform: translateY(-50%);
+  width: 0; height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-left: 9px solid var(--cancer);
+  opacity: 0.5;
+  transition: opacity 0.18s;
+}
+.c2-marker {
+  position: absolute;
+  top: 50%;
+  width: 14px; height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--cancer);
+  z-index: 3;
+  transition: transform 0.16s, box-shadow 0.16s;
+}
+.c2-row[data-state="on"] .c2-bar--cancer { opacity: 1; }
+.c2-row[data-state="on"] .c2-bar--cancer::after { opacity: 1; }
+.c2-row[data-state="on"] .c2-marker {
+  box-shadow: 0 0 0 4px var(--cancer-tint);
+  transform: scale(1.08);
+}
+
+/* non-cancer bar */
+.c2-bar--non {
+  left: 0;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--noncancer) 22%, #fff);
+  border: 1.5px solid var(--noncancer);
+  height: 16px;
+  opacity: 0.9;
+  transition: background 0.18s, opacity 0.18s, border-color 0.18s;
+}
+.c2-cap {
+  position: absolute;
+  top: 50%;
+  width: 3px; height: 24px;
+  margin-top: -12px;
+  background: var(--noncancer);
+  border-radius: 2px;
+  z-index: 3;
+}
+.c2-bar--non.is-open { border-style: dashed; }
+.c2-bar--non .inf {
+  position: absolute;
+  right: 8px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--noncancer-deep);
+  line-height: 1;
+}
+.c2-row[data-state="on"] .c2-bar--non {
+  background: color-mix(in srgb, var(--noncancer) 42%, #fff);
+}
+.c2-row[data-state="off"] .c2-bar--non { opacity: 0.4; }
+.c2-row[data-state="off"] .c2-cap { background: var(--amber); }
+.c2-row[data-state="off"] .c2-rowlabel .val { color: var(--amber); }
+
+/* axis strip */
+.c2-axisrow {
+  display: grid;
+  grid-template-columns: var(--lane-left) 1fr;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--cream-2);
+  min-height: 34px;
+  align-items: center;
+}
+.c2-axisrow .axlabel {
+  padding-left: 18px;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+}
+.c2-axisticks {
+  position: relative;
+  height: 100%;
+  margin-right: var(--lane-right);
+}
+.c2-tick {
+  position: absolute;
+  top: 0; bottom: 0;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+}
+.c2-tick span {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+/* overlay + playhead */
+.c2-overlay {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: var(--lane-left);
+  right: var(--lane-right);
+  z-index: 5;
+  cursor: ew-resize;
+  touch-action: none;
+}
+.c2-overlay .gl {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 1px;
+  background: var(--border-soft);
+  z-index: 0;
+}
+.c2-playhead {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--amber);
+  z-index: 4;
+  pointer-events: none;
+}
+.c2-playhead::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0;
+  left: -7px; width: 16px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--amber) 16%, transparent), transparent);
+}
+.c2-knob {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--amber);
+  color: #fff;
+  border-radius: 999px;
+  padding: 4px 11px 4px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px -3px rgba(200, 117, 21, 0.6);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+.c2-knob::before {
+  content: "";
+  width: 0; height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-right: 5px solid rgba(255,255,255,0.85);
+}
+.c2-knob::after {
+  content: "";
+  width: 0; height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 5px solid rgba(255,255,255,0.85);
+}
+
+/* readout */
+.c2-readout {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.c2-stat {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  padding: 13px 16px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  position: relative;
+  overflow: hidden;
+}
+.c2-stat::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+}
+.c2-stat[data-k="cancer"]::before { background: var(--cancer); }
+.c2-stat[data-k="non"]::before { background: var(--noncancer); }
+.c2-stat .big {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  min-width: 58px;
+}
+.c2-stat[data-k="cancer"] .big { color: var(--cancer-deep); }
+.c2-stat[data-k="non"] .big { color: var(--noncancer-deep); }
+.c2-stat .lab {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+.c2-stat .lab b { color: var(--ink); font-weight: 700; }
+.c2-stat .arrow {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--ink-faint);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+/* foot hint */
+.c2-foot {
+  margin-top: 12px;
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.c2-foot kbd {
+  font-size: 10.5px; font-weight: 600;
+  border: 1px solid var(--border);
+  background: #fff; border-radius: 4px;
+  padding: 1px 6px; color: var(--ink-soft);
+}

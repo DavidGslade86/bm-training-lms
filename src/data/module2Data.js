@@ -36,76 +36,11 @@ export const MODULE2 = {
         "intro": "If Yajaira qualifies, she is entitled to free treatment for her 9/11 condition and an award for her pain and suffering and lost income - if applicable. Our job is to help her navigate two federal bureaucracies to get her the healthcare and compensation she deserves.",
         "blocks": [
           {
-            "type": "program-cards",
-            "cards": [
-              {
-                "icon": "HP",
-                "iconBg": "#63656a",
-                "title": "World Trade Center Health Program",
-                "agency": "U.S. Dept. of Health & Human Services (CDC/NIOSH)",
-                "bullets": [
-                  "Confirms exposure to 9/11 toxins",
-                  "Certifies the claimant has a qualified illness",
-                  "Provides subsidized healthcare for that illness"
-                ],
-                "accent": "#63656a"
-              },
-              {
-                "icon": "$",
-                "iconBg": "#009bdf",
-                "title": "Victim Compensation Fund",
-                "agency": "U.S. Dept. of Justice",
-                "bullets": [
-                  "Confirms presence in the VCF eligibility area",
-                  "Provides financial compensation (non-economic and economic loss)"
-                ],
-                "accent": "#009bdf"
-              }
-            ]
+            "type": "program-comparison"
           },
           {
             "type": "paragraph",
             "text": "In a typical case, the claimant first enrolls in the WTCHP and gets their illness **certified**. That certification letter is then submitted as part of the **VCF claim**. WTCHP certification is a prerequisite for most living claimants, though there are alternative paths we'll cover in later modules."
-          },
-          {
-            "type": "comparison-table",
-            "headers": [
-              "",
-              "WTCHP",
-              "VCF"
-            ],
-            "rows": [
-              [
-                "Administered by",
-                "HHS (CDC/NIOSH)",
-                "Department of Justice"
-              ],
-              [
-                "Purpose",
-                "Healthcare & illness certification",
-                "Financial compensation"
-              ],
-              [
-                "Eligibility area",
-                "Responders: south of Canal/west of Clinton (through 7/31/2002). Survivors: south of Houston, 1.5mi radius (through 7/31/2002)",
-                "South of Canal St. & west of Clinton St. (9/11/2001 through 5/30/2002)"
-              ],
-              [
-                "Proof needed",
-                "Attestations showing hours and location(s) of exposure",
-                "Evidence placing the claimant in the 9/11 exposure zone — employer/official documents and/or eye-witnesses, ideally telling a consistent story"
-              ],
-              [
-                "What claimant gets",
-                "Free monitoring & treatment for covered conditions",
-                "Compensation — Non-Economic Loss (pain and suffering), Economic Loss"
-              ],
-              [
-                "Open through",
-                "2090",
-                "2090"
-              ]
-            ]
           },
           {
             "type": "yajaira-check",
@@ -225,29 +160,7 @@ export const MODULE2 = {
             "text": "**Latency** is the minimum time that must pass between a claimant's first exposure to 9/11 toxins and their cancer diagnosis. If the cancer was diagnosed too soon after exposure or is a recurrence of a cancer diagnosed before the latency period it may not be certifiable."
           },
           {
-            "type": "latency-list",
-            "items": [
-              {
-                "time": "~5 months",
-                "desc": "Blood cancers"
-              },
-              {
-                "time": "1 year",
-                "desc": "Childhood cancers (diagnosed under age 18)"
-              },
-              {
-                "time": "2.5 years",
-                "desc": "Thyroid cancer"
-              },
-              {
-                "time": "4 years",
-                "desc": "Most solid cancers"
-              },
-              {
-                "time": "11 years",
-                "desc": "Mesothelioma"
-              }
-            ]
+            "type": "latency-spectrum"
           },
           {
             "type": "subheading",
@@ -256,31 +169,6 @@ export const MODULE2 = {
           {
             "type": "paragraph",
             "text": "**Maximum Time Interval** is the maximum time allowed between a claimant's last exposure to 9/11 toxins and the onset of their symptoms. If symptoms appeared too long after their last exposure, the condition may not be certifiable."
-          },
-          {
-            "type": "latency-list",
-            "items": [
-              {
-                "time": "No Maximum Time Interval",
-                "desc": "**COPD** (new onset or exacerbated) and Emphysema"
-              },
-              {
-                "time": "No Maximum Time Interval",
-                "desc": "**Interstitial Lung Diseases**: Sarcoidosis, Pulmonary Fibrosis, Asbestosis"
-              },
-              {
-                "time": "5 years",
-                "desc": "Upper respiratory and obstructive airway diseases"
-              },
-              {
-                "time": "1 year",
-                "desc": "GERD (alone)"
-              },
-              {
-                "time": "5 years",
-                "desc": "GERD (if co-occurring with a respiratory disorder)"
-              }
-            ]
           },
           {
             "type": "yajaira-check",

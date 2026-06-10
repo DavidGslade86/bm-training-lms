@@ -5,6 +5,8 @@ import { GT } from "./Glossary";
 import mapImg from "../assets/911-map-alt.jpg";
 import yajairaImg from "../assets/Yajaira_Torso.png";
 import ClientJourneyMap from "./ClientJourneyMap";
+import ProgramComparisonWidget from "./ProgramComparisonWidget";
+import LatencySpectrumDiagram from "./LatencySpectrumDiagram";
 
 // ─── Md: simple **bold** renderer (no glossary) ──────
 export function Md({ t }) {
@@ -496,6 +498,12 @@ export function Blocks({ blocks, cardId }) {
 
     if (b.type === "sufficiency-quiz")
       return <SufficiencyQuiz key={i} block={b} cardId={cardId} blockIndex={i} />;
+
+    if (b.type === "program-comparison")
+      return <ProgramComparisonWidget key={i} />;
+
+    if (b.type === "latency-spectrum")
+      return <LatencySpectrumDiagram key={i} />;
 
     if (b.type === "journey-map")
       // Breakout: left edge stays flush with the surrounding text (no margin-left
